@@ -1,0 +1,190 @@
+[
+  {
+    "q": "impôt CAF",
+    "expect_disambiguation": true,
+    "note": "Ambiguïté connue — doit proposer choix"
+  },
+  {
+    "q": "fraude carte bancaire",
+    "expect_case": "bank_cb_fraud",
+    "pillar": "banque"
+  },
+  {
+    "q": "virement frauduleux",
+    "expect_case": "bank_wire_fraud",
+    "pillar": "banque"
+  },
+  {
+    "q": "trop perçu CAF bonne foi",
+    "expect_case": "caf_remise_gracieuse",
+    "pillar": "caf"
+  },
+  {
+    "q": "CAF fraude",
+    "expect_case": "caf_fraud_allegation",
+    "pillar": "caf"
+  },
+  {
+    "q": "France Travail radiation",
+    "expect_case": "ft_radiation_missed_appointment",
+    "pillar": "travail"
+  },
+  {
+    "q": "ARE refus",
+    "expect_case": "ft_are_refusal",
+    "pillar": "travail"
+  },
+  {
+    "q": "CPAM refus remboursement",
+    "expect_case": "cpam_refund_delay",
+    "pillar": "sante"
+  },
+  {
+    "q": "dépôt de garantie",
+    "expect_case": "housing_deposit_return",
+    "pillar": "logement"
+  },
+  {
+    "q": "logement insalubre",
+    "expect_case": "housing_insalubre",
+    "pillar": "logement"
+  },
+  {
+    "q": "garantie produit",
+    "expect_case": "conso_garantie_conformite",
+    "pillar": "consommation"
+  },
+  {
+    "q": "surendettement",
+    "expect_case": "bank_overindebt_bdf",
+    "pillar": "banque"
+  },
+  {
+    "q": "passeport mineur",
+    "expect_case": "vie_passeport_mineur",
+    "pillar": "institutions"
+  },
+  {
+    "q": "titre de séjour bloqué",
+    "expect_case": "prefecture_residence_permit",
+    "pillar": "institutions"
+  },
+  {
+    "q": "proposition de rectification L64",
+    "pillar": "impots",
+    "expect_case": "tax_audit_request_docs",
+    "note": " [corrected V51]"
+  },
+  {
+    "q": "trop-perçu CAF",
+    "pillar": "caf",
+    "expect_case": "caf_remise_gracieuse",
+    "note": " [corrected V51]"
+  },
+  {
+    "q": "CAF trop perçu remboursement",
+    "pillar": "caf",
+    "expect_case": "caf_remise_gracieuse",
+    "note": " [corrected V51]"
+  },
+  {
+    "q": "fraude CB opposition",
+    "expect_case": "bank_cb_fraud",
+    "pillar": "banque"
+  },
+  {
+    "q": "radiation pole emploi rendez-vous manqué",
+    "expect_case": "ft_radiation_missed_appointment",
+    "pillar": "travail"
+  },
+  {
+    "q": "médiateur france travail CRA",
+    "expect_case": "work_ft_cra_mediateur",
+    "pillar": "travail"
+  },
+  {
+    "q": "dépôt de garantie non rendu",
+    "expect_case": "housing_deposit_return",
+    "pillar": "logement"
+  },
+  {
+    "q": "expulsion locataire",
+    "expect_case": "housing_eviction_notice",
+    "pillar": "logement"
+  },
+  {
+    "q": "passeport adulte renouvellement",
+    "expect_case_not": "vie_passeport_mineur",
+    "pillar": "institutions"
+  },
+  {
+    "q": "remise gracieuse impôts",
+    "expect_case": "tax_grace_request",
+    "pillar": "impots"
+  },
+  {
+    "q": "échéancier impôts",
+    "expect_case": "tax_payment_plan",
+    "pillar": "impots"
+  },
+  {
+    "q": "SATD avis tiers détenteur",
+    "expect_case": "tax_third_party_notice",
+    "pillar": "impots"
+  },
+  {
+    "q": "retraite trimestres manquants",
+    "expect_case": "work_retraite_erreur",
+    "pillar": "retraite"
+  },
+  {
+    "q": "pension de réversion",
+    "expect_case": "retraite_pension_reversion",
+    "pillar": "retraite"
+  },
+  {
+    "q": "arnaque phishing",
+    "expect_case_family": "scam",
+    "pillar": "arnaques"
+  },
+  {
+    "q": "aide juridictionnelle avocat",
+    "expect_case": "justice_aide_juridictionnelle",
+    "pillar": "justice"
+  },
+  {
+    "q": "injonction de payer",
+    "expect_case": "justice_injonction_payer",
+    "pillar": "justice"
+  },
+  {
+    "q": "MDPH délai sans réponse",
+    "expect_case": "mdph_delay_rights",
+    "pillar": "sante"
+  },
+  {
+    "q": "OQTF recours",
+    "expect_case": "prefecture_titre_sejour_recours",
+    "pillar": "institutions"
+  },
+  {
+    "q": "garantie légale conformité 2 ans",
+    "expect_case": "conso_garantie_conformite",
+    "pillar": "consommation"
+  },
+  {
+    "q": "surendettement banque de france",
+    "expect_case": "bank_overindebt_bdf",
+    "pillar": "banque"
+  },
+  {
+    "q": "problème totalement inconnu xyz",
+    "expect_fallback": true,
+    "note": "Fallback explicite attendu"
+  },
+  {
+    "q": "",
+    "expect_fallback": true,
+    "note": "Requête vide — fallback obligatoire"
+  }
+]

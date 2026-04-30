@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vigie — Accueil (V44)</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="brand">
+      <div class="logo">V</div>
+      <div>
+        <div style="font-weight:900">Vigie</div>
+        <div class="small">Copilote citoyen • Offline</div>
+      </div>
+    </div>
+    <div class="nav">
+      <a class="btn" href="parcours.html">🧩 Parcours</a>
+            <a class="btn" href="pillars.html">🧱 Piliers</a>
+<a class="btn" href="map.html">🗺️ Carte</a>
+      <a class="btn" href="dashboard.html">📁 Dashboard</a>
+      <a class="btn" href="wizard.html">🧭 Assistant</a>
+    </div>
+  </div>
+
+  <div style="height:14px"></div>
+
+  
+  <div class="card">
+    <div class="h2">Démarrer</div>
+    <div class="small muted" style="margin-bottom:10px">2 entrées : rechercher ou parcourir par piliers.</div>
+
+    <div class="field">
+      <label class="small">Recherche</label>
+      <input id="q" placeholder="Tapez une question (ex : CAF rembourser, proposition de rectification, passeport mineur…)">
+    </div>
+
+    <div class="row" style="margin-top:10px;gap:10px;align-items:flex-end">
+      <button class="btn primary" onclick="go()">Rechercher</button>
+      <a class="btn" href="pillars.html">🧱 Piliers</a>
+      <a class="btn" href="parcours.html?guide=1">🤷 Je ne comprends pas (guidé)</a>
+    </div>
+
+    <details style="margin-top:12px">
+      <summary class="btn">Affiner ▾</summary>
+      <div style="height:10px"></div>
+
+      <div class="row">
+        <div class="field" style="max-width:260px">
+          <label class="small">Organisme</label>
+          <select id="org">
+            <option value="" selected>Auto</option>
+            <option value="caf">CAF</option>
+            <option value="ameli">Ameli / CPAM</option>
+            <option value="impots">Impôts</option>
+            <option value="banque">Banque</option>
+            <option value="amende">Amende / ANTAI</option>
+            <option value="mairie">Mairie</option>
+            <option value="france_travail">France Travail</option>
+          </select>
+        </div>
+        <div class="field" style="max-width:260px">
+          <label class="small">Courrier reçu</label>
+          <select id="has_mail">
+            <option value="auto" selected>Auto</option>
+            <option value="yes">Oui</option>
+            <option value="no">Non</option>
+          </select>
+        </div>
+        <div class="field" style="max-width:260px">
+          <label class="small">Urgence : date limite (si connue)</label>
+          <input id="deadline" type="date">
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <div class="field" style="max-width:220px">
+          <label class="small">Code postal (pour carte locale)</label>
+          <input id="cp" placeholder="Ex : 75001" inputmode="numeric" pattern="\d{5}" maxlength="5" autocomplete="postal-code">
+        </div>
+        <div class="field" style="max-width:220px">
+          <label class="small">Date (optionnel)</label>
+          <input id="date" type="date">
+        </div>
+        <div class="field" style="max-width:260px">
+          <label class="small">Type de date</label>
+          <select id="date_kind">
+            <option value="auto" selected>Auto</option>
+            <option value="date_received">Réception d’un courrier</option>
+            <option value="date_letter">Date du courrier</option>
+            <option value="date_event">Date d’un événement</option>
+          </select>
+        </div>
+      </div>
+    </details>
+  </div>
+
+
+  <div class="card">
+    <div class="h2">Mode simple — 10 exemples</div>
+    <p class="p">Clique sur un exemple : on prépare le parcours et tu peux ensuite affiner dans l’assistant.</p>
+
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); margin-top:10px">
+      <button class="btn" onclick="exampleSet('Passeport adulte','passeport adulte')">🛂 Passeport (adulte)</button>
+      <button class="btn" onclick="exampleSet('Passeport mineur','passeport mineur')">🧒 Passeport (mineur)</button>
+      <button class="btn" onclick="exampleSet('Carte d\'identité','carte d\'identité renouvellement')">🪪 Carte d’identité</button>
+      <button class="btn" onclick="exampleSet('Mariage','dossier mariage')">💍 Mariage</button>
+      <button class="btn" onclick="exampleSet('CAF','CAF justificatifs ou trop-perçu')">👶 CAF</button>
+      <button class="btn" onclick="exampleSet('Ameli','ameli attestation ou remboursement')">🩺 Ameli</button>
+      <button class="btn" onclick="exampleSet('France Travail','france travail actualisation ou droits')">💼 France Travail</button>
+      <button class="btn" onclick="exampleSet('Impôts (rectification)','proposition de rectification L64')">💰 Impôts — rectification</button>
+      <button class="btn" onclick="exampleSet('Impôts (réclamation)','contester avis d\'imposition')">🧾 Impôts — réclamation</button>
+      <button class="btn" onclick="exampleSet('Litige / fraude','fraude bancaire ou litige')">💳 Litige / fraude</button>
+    </div>
+
+    <div style="height:10px"></div>
+    <button class="btn" onclick="toggleMore()">➕ Plus d’exemples</button>
+
+    <div id="moreExamples" style="display:none; margin-top:10px">
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+        <button class="btn" onclick="exampleSet('Logement','problème logement travaux propriétaire')">🏠 Logement</button>
+        <button class="btn" onclick="exampleSet('Naissance','déclarer une naissance démarches')">👶 Naissance</button>
+        <button class="btn" onclick="exampleSet('Décès','démarches après décès')">🕊️ Décès</button>
+        <button class="btn" onclick="exampleSet('Permis','permis de conduire renouvellement')">🚗 Permis</button>
+        <button class="btn" onclick="exampleSet('Retraite','dossier retraite carrière')">🧓 Retraite</button>
+        <button class="btn" onclick="exampleSet('Aide juridictionnelle','aide juridictionnelle dossier')">⚖️ Aide juridictionnelle</button>
+      </div>
+      <p class="small" style="margin-top:8px">Ces exemples “génériques” ouvrent l’assistant en mode orientation. Les flows experts s’activent automatiquement quand le sujet correspond (passeport, CNI, mariage, impôts…).</p>
+    </div>
+  </div>
+
+  <div class="footer">V40 — Copilote citoyen : moteur expert + checklists + timeline + courriers types + contacts locaux.</div>
+</div>
+
+<script src="data/geo_mairies.js"></script>
+<script src="data/sources_registry.js"></script>
+<script src="data/checklists_v30.js"></script>
+<script src="data/packs_v30.js"></script>
+<script src="data/flows_v30.js"></script>
+<script src="data/scenarios_v2.js"></script>
+<script src="data/engine_v30.js"></script>
+<script src="data/letters_v1.js"></script>
+<script src="assets/ui.js"></script>
+<script src="assets/ux_v42_1.js"></script>
+<script src="assets/assistant_v42_1.js"></script>
+
+<script>
+function go(){
+  let q = document.getElementById('q').value || '';
+  const cp = document.getElementById('cp').value || '';
+  const date = document.getElementById('date').value || '';
+  const dateKind = (document.getElementById('date_kind')||{}).value || 'auto';
+
+  // Mini-diagnostic : améliore l'orientation sans alourdir l'UX
+  const org = (document.getElementById('org')||{}).value || '';
+  const hasMail = (document.getElementById('has_mail')||{}).value || 'auto';
+  const deadlineKnown = (document.getElementById('deadline')||{}).value || '';
+  if(org){
+    const m = {
+      impots:"impôts ",
+      caf:"CAF ",
+      ameli:"ameli cpam ",
+      france_travail:"france travail ",
+      mairie:"mairie ",
+      banque:"banque fraude ",
+    };
+    q = (m[org]||"") + q;
+  }
+  if(hasMail==='yes') q = "courrier " + q;
+  if(hasMail==='no') q = "démarche " + q;
+  const flow = V30.matchFlow(q);
+
+  // V42.1 : désambiguïsation 1-question si nécessaire
+  let d = null;
+  if(window.V42_1 && V42_1.createDossierSmart){
+    d = V42_1.createDossierSmart({query:q, flowId: flow.id, cp});
+    if(!d) return; // la modal de choix gère la suite
+  } else {
+    d = V30.createDossier({query:q, flowId: flow.id, cp});
+  }
+  // seed common answers
+  d.answers.query = q;
+  d.answers.cp = cp;
+  // map date according to user choice (or flow anchor if auto)
+  if(date){
+    if(dateKind === 'date_received') d.answers.date_received = date;
+    else if(dateKind === 'date_rdv') d.answers.date_rdv = date;
+    else if(dateKind === 'date_deadline') d.answers.date_deadline = date;
+    else {
+      if(flow.deadline_anchor === 'date_received') d.answers.date_received = date;
+      if(flow.deadline_anchor === 'date_rdv') d.answers.date_rdv = date;
+    }
+  }
+
+  // Deadline explicite si l'utilisateur la connaît (utile pour le mode urgence)
+  if(deadlineKnown){
+    d.answers.date_deadline = deadlineKnown;
+  }
+  V30.upsertDossier(d);
+
+  location.href = 'wizard.html?id=' + encodeURIComponent(d.id);
+}
+
+function exampleSet(label, qText){
+  document.getElementById('q').value = qText;
+  // conserve CP/date si l’utilisateur a rempli
+  go();
+}
+function toggleMore(){
+  const el = document.getElementById('moreExamples');
+  if(!el) return;
+  el.style.display = (el.style.display==='none' || !el.style.display) ? 'block' : 'none';
+}
+
+// V42.1 hooks (safe)
+if(window.V42_1 && V42_1.initIndex){
+  V42_1.initIndex();
+}
+
+</script>
+
+<div class="bottomnav">
+  <a href="index.html">🏠 Accueil</a>
+  <a href="map.html">🗺️ Carte</a>
+  <a href="dashboard.html">📊 Dashboard</a>
+</div>
+<div class="footerNote">
+  ℹ️ Vigie citoyen est un outil d’accompagnement. Les informations fournies sont générales et ne constituent pas un conseil juridique.
+  <br>🔒 Vos données restent sur votre appareil (stockage local). Aucune compilation automatique.
+  <br><a href="mentions.html">Mentions légales</a>
+</div>
+</body></html>

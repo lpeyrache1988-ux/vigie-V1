@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vigie — Pack d'action</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="container"><div class="inner">
+    <a href="index.html" class="brand">
+      <div class="brand-logo">V</div>
+      <div><div class="brand-name">Vigie</div><div class="brand-tagline">Pack d'action</div></div>
+    </a>
+    <nav class="header-nav">
+      <a class="nav-link" href="index.html">🏠 <span>Accueil</span></a>
+      <a class="nav-link" href="result.html" onclick="history.back();return false;">← <span>Retour</span></a>
+      <a class="nav-link" href="dashboard.html">📁 <span>Dossiers</span></a>
+      <a class="nav-link" href="map.html">🗺️ <span>Carte</span></a>
+    </nav>
+  </div></div>
+</header>
+
+<div class="main">
+  <div class="container">
+    <div id="app">
+      <div class="card" style="text-align:center;padding:40px">
+        <div style="font-size:32px;margin-bottom:12px">⏳</div>
+        <div style="font-weight:600">Chargement du pack…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footerNote">
+  ℹ️ Vigie est un outil d'<strong>information générale</strong> — pas un conseil juridique personnalisé. Vérifiez toujours les délais sur votre courrier officiel.
+  <span style="margin:0 6px">·</span><a href="mentions.html">Mentions légales</a>
+</div>
+
+<script src="data/engine_v30.js"></script>
+<script src="data/packs_v30.js"></script>
+<script src="data/letters_v1.js"></script>
+<script src="data/sources_registry.js"></script>
+<script>
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function getParam(n){return new URL(location.href).searchParams.get(n)||''}
+
+const packId = getParam('id');
+const app = document.getElementById('app');
+
+function render(){
+  if(!packId){
+    app.innerHTML = `<div class="card"><h2 class="h2">Aucun pack sélectionné</h2><p class="p">Retournez à l'accueil pour commencer une démarche.</p><a class="btn btn-primary" href="index.html" style="margin-top:12px;display:inline-flex">🏠 Accueil</a></div>`;
+    return;
+  }
+  const packs = window.VIGIE_PACKS || {};
+  const p = packs[packId];
+  if(!p){
+    app.innerHTML = `<div class="card"><h2 class="h2">Pack introuvable</h2><p class="p">Identifiant : <code>${esc(packId)}</code></p><a class="btn" href="index.html" style="margin-top:12px;display:inline-flex">🏠 Accueil</a></div>`;
+    return;
+  }
+
+  // Sources officielles
+  const allSrc = window.VIGIE_SOURCES || [];
+  const src = allSrc.filter(s=>{
+    if(!s||!s.sources_key) return false;
+    return String(s.sources_key).split(',').map(k=>k.trim()).some(k=>k===packId||packId.startsWith(k));
+  }).slice(0,5);
+
+  // Lettres associées
+  const letters = window.VIGIE_LETTERS || {};
+  const packLetters = Array.isArray(p.letter_ids) ? p.letter_ids.map(id=>letters[id]).filter(Boolean) : [];
+
+  let html = `
+    <div class="card" style="margin-bottom:12px">
+      <div class="flex items-center justify-between" style="margin-bottom:12px">
+        <div>
+          <h1 class="h1" style="font-size:22px">${esc(p.title||packId)}</h1>
+          <p class="muted" style="margin-top:4px">${esc(p.subtitle||p.context||'')}</p>
+        </div>
+        <a href="result.html" onclick="history.back();return false;" class="btn btn-sm">← Retour</a>
+      </div>`;
+
+  // Résumé / objectif
+  if(p.goal){
+    html += `<div class="alert alert-blue" style="margin-bottom:12px"><div>🎯 <strong>Objectif :</strong> ${esc(p.goal)}</div></div>`;
+  }
+
+  // Étapes clés
+  if(Array.isArray(p.steps) && p.steps.length){
+    html += `<h2 class="h2" style="margin-top:4px">Étapes clés</h2><div class="timeline-old">`;
+    p.steps.forEach((s,i)=>{
+      html += `<div class="tItem"><div class="tDot"></div><div class="tCard"><strong>Étape ${i+1}</strong><div class="small" style="margin-top:3px">${esc(s)}</div></div></div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+
+  // Erreurs fréquentes
+  if(Array.isArray(p.common_pitfalls) && p.common_pitfalls.length){
+    html += `<div class="card" style="margin-bottom:12px">
+      <h2 class="h2">⚠️ Erreurs à éviter</h2>
+      <ul style="padding-left:20px;margin-top:8px;display:grid;gap:6px">
+        ${p.common_pitfalls.map(a=>`<li style="font-size:14px;color:var(--text-2)">${esc(a)}</li>`).join('')}
+      </ul>
+    </div>`;
+  }
+
+  // Courriers types
+  if(packLetters.length){
+    html += `<div class="card" style="margin-bottom:12px"><h2 class="h2" style="margin-bottom:12px">📄 Courriers types</h2>`;
+    packLetters.forEach(l=>{
+      html += `
+        <div class="letter-card" style="margin-bottom:12px">
+          <div class="letter-header">
+            <div>
+              <div style="font-weight:700;font-size:14px">${esc(l.title)}</div>
+              <div class="small">${esc(l.context||'')}</div>
+            </div>
+            <button class="btn btn-sm" onclick="copyLetter(this)" data-text="${esc(l.text||'')}">📋 Copier</button>
+          </div>
+          <div class="letter-disclaimer">
+            ⚠️ Ce modèle est une aide à la rédaction — <strong>pas un acte juridique</strong>. Adaptez-le à votre situation réelle et remplacez les crochets [].
+          </div>
+          <div class="letter-body">${esc(l.text||'')}</div>
+        </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Liens officiels
+  if(src.length){
+    html += `<div class="card" style="margin-bottom:12px">
+      <h2 class="h2" style="margin-bottom:10px">🔗 Liens officiels</h2>
+      <div class="list">
+        ${src.map(s=>`
+          <div class="item">
+            <div><strong style="font-size:14px">${esc(s.label||s.title||s.url)}</strong><div class="small">${esc(s.url)}</div></div>
+            <a class="btn btn-sm btn-outline-primary" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">Ouvrir ↗</a>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Délai légal
+  if(p.legal_delay_days){
+    html += `<div class="alert alert-amber" style="margin-bottom:12px">
+      <div>⏱️ <strong>Délai indicatif :</strong> ${p.legal_delay_days} jour(s) — <em>vérifiez toujours votre courrier officiel, ce délai est indicatif.</em></div>
+    </div>`;
+  }
+
+  app.innerHTML = html;
+}
+
+function copyLetter(btn){
+  const text = btn.getAttribute('data-text').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='✓ Copié !';
+    setTimeout(()=>btn.innerHTML='📋 Copier',2000);
+  }).catch(()=>{
+    btn.textContent='Erreur';
+    setTimeout(()=>btn.innerHTML='📋 Copier',2000);
+  });
+}
+
+render();
+</script>
+</body>
+</html>

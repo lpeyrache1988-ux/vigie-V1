@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vigie — Dashboard</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="brand">
+      <div class="logo">V</div>
+      <div>
+        <div style="font-weight:900">Dashboard</div>
+        <div class="small">Dossiers • Deadlines • Gravité</div>
+      </div>
+    </div>
+    <div class="nav">
+      <a class="btn" href="parcours.html">🧩 Parcours</a>
+            <a class="btn" href="pillars.html">🧱 Piliers</a>
+<a class="btn" href="map.html">🗺️ Carte</a>
+      <a class="btn" href="index.html">🏠 Accueil</a>
+      <a class="btn" href="wizard.html">🧭 Assistant</a>
+      <a class="btn" href="courrier.html">📬 Courrier</a>
+      <a class="btn" href="moments.html">🗓️ Moments</a>
+      <a class="btn" href="rappels.html">🔔 Rappels</a>
+    </div>
+  </div>
+
+  <div style="height:14px"></div>
+
+  <div id="priority" class="card" style="display:none"></div>
+  <div style="height:12px"></div>
+  <div id="kpis" class="card"></div>
+  <div style="height:12px"></div>
+  <div id="list" class="card"></div>
+
+  <div class="footer">V40 — Garde un dossier par sujet (passeport, impôts, CAF…). Tout reste local.</div>
+</div>
+
+<script src="data/geo_mairies.js"></script>
+<script src="data/sources_registry.js"></script>
+<script src="data/checklists_v30.js"></script>
+<script src="data/packs_v30.js"></script>
+<script src="data/flows_v30.js"></script>
+<script src="data/scenarios_v2.js"></script>
+<script src="data/engine_v30.js"></script>
+<script src="assets/ui.js"></script>
+<script src="assets/ux_v42_1.js"></script>
+<script src="assets/assistant_v42_1.js"></script>
+
+<script>
+function flowLabel(id){
+  const f = (window.VIGIE_FLOWS||[]).find(x=>x.id===id);
+  return f ? f.label : id;
+}
+
+function render(){
+  let ds = V30.getDossiers();
+  const active = V30.getActiveId();
+  const now = new Date();
+
+  function daysLeft(d){
+    const iso = d?.result?.deadline || d?.answers?.date_deadline || null;
+    if(!iso) return null;
+    const dd = new Date(iso);
+    if(!isFinite(dd.getTime())) return null;
+    return Math.ceil((dd - now) / (1000*3600*24));
+  }
+
+  // tri : urgences d'abord (en retard -> ≤7j -> ≤30j -> autres), puis récent
+  ds = ds.slice().sort((a,b)=>{
+    const da = daysLeft(a); const db = daysLeft(b);
+    const wa = (da===null)? 3 : (da<0?0:(da<=7?1:(da<=30?2:3)));
+    const wb = (db===null)? 3 : (db<0?0:(db<=7?1:(db<=30?2:3)));
+    if(wa!==wb) return wa-wb;
+    const ta = new Date(a.updated_at||a.created_at||0).getTime();
+    const tb = new Date(b.updated_at||b.created_at||0).getTime();
+    return tb-ta;
+  });
+
+  let crit=0, mod=0, simp=0, overdue=0, due7=0;
+  for(const d of ds){
+    const r = d.result || null;
+    if(r){
+      if(r.severity==='critique') crit++;
+      else if(r.severity==='modéré') mod++;
+      else simp++;
+      if(r.deadline){
+        const dd = new Date(r.deadline);
+        if(dd < now) overdue++;
+        const diff = (dd - now) / (1000*3600*24);
+        if(diff >= 0 && diff <= 7) due7++;
+      }
+    }
+  }
+
+  document.getElementById('kpis').innerHTML = `
+    <div class="h2">Synthèse</div>
+    <div class="kpi" style="margin-top:10px">
+      ${kpiBox("Dossiers", String(ds.length), "")}
+      ${kpiBox("Critiques", String(crit), "à traiter vite")}
+      ${kpiBox("Deadlines ≤ 7j", String(due7), "")}
+      ${kpiBox("En retard", String(overdue), "")}
+    </div>
+  `;
+
+  if(!ds.length){
+    document.getElementById('priority').style.display = 'none';
+    document.getElementById('list').innerHTML = `
+      <div class="h2">Aucun dossier</div>
+      <p class="p">Démarre depuis l’accueil ou l’assistant.</p>
+      <a class="btn" href="index.html">▶ Créer un dossier</a>
+    `;
+    return;
+  }
+
+  // Action prioritaire (1 seule) : réduit le stress et guide vers l'action.
+  const top = ds[0];
+  const topR = top?.result || {};
+  const topDL = daysLeft(top);
+  const urgent = (topDL!==null && topDL <= 2) || topR?.severity === 'critique';
+  const warn = !urgent && (topDL!==null && topDL <= 7);
+  const cardCls = urgent ? 'cardUrgent' : (warn ? 'cardWarn' : '');
+  const statusCls = urgent ? 'urgent' : (warn ? 'warn' : 'progress');
+  const statusLabel = urgent ? '🔴 Urgent' : (warn ? '🟡 À traiter' : '🔵 Suivi');
+  const nextAction = (topR?.actions && topR.actions[0]) ? topR.actions[0] : 'Reprendre le dossier et suivre la timeline.';
+
+  const p = document.getElementById('priority');
+  p.style.display = '';
+  p.className = `card ${cardCls}`.trim();
+  p.innerHTML = `
+    <div class="cta">
+      <div class="ctaText">
+        <div class="row" style="align-items:center; justify-content:space-between">
+          <span class="status ${statusCls}">${statusLabel}</span>
+          <span class="small">Action prioritaire aujourd’hui</span>
+        </div>
+        <div style="height:8px"></div>
+        <div style="font-weight:900; font-size:18px">${esc(flowLabel(top.flow_id))}</div>
+        <div class="p" style="margin-top:6px">${esc(nextAction)}</div>
+      </div>
+      <div class="row" style="justify-content:flex-end">
+        <button class="btn ${urgent?'danger':'primary'}" onclick="openWizard('${esc(top.id)}')">Agir maintenant</button>
+        ${(() => {
+          const pack = topR.pack_id || top.pack_id || null;
+          return (pack && pack !== '—') ? `<a class="btn" href="pack.html?id=${encodeURIComponent(pack)}">📦 Pack</a>` : '';
+        })()}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('list').innerHTML = `
+    <div class="row" style="align-items:center; justify-content:space-between">
+      <div>
+        <div class="h2">Mes dossiers</div>
+        <p class="p">Clique pour reprendre, ouvrir le pack, ou vérifier la checklist.</p>
+      </div>
+      <a class="btn" href="index.html">➕ Nouveau</a>
+    </div>
+    <div class="sep"></div>
+    <div class="list">
+      ${ds.map(d=>{
+        const r = d.result || {};
+        const bcls = r.severity_badge || 'gray';
+        const isActive = d.id===active;
+        const title = flowLabel(d.flow_id);
+        const deadline = r.deadline_label || "—";
+        const dd = r.deadline || d.answers?.date_deadline || null;
+        const dl = dd ? daysLeft(d) : null;
+        const dlTxt = (dl===null) ? "" : (dl<0 ? `⚠️ ${Math.abs(dl)} j en retard` : `${dl} j restants`);
+        const dlTag = (dl===null) ? `` : `<span class="tag">${esc(dlTxt)}</span>`;
+        const pack = r.pack_id || d.pack_id || null;
+        const tl = ensureTimeline(d, d.flow_id);
+        const tlDone = (tl||[]).filter(x=>x.done).length;
+        const tlTotal = (tl||[]).length || 0;
+        const nextStep = (tl||[]).find(x=>!x.done);
+        const tlTag = tlTotal ? `<span class="tag">🗺️ ${esc(tlDone)}/${esc(tlTotal)}</span>` : ``;
+        const nextTag = nextStep ? `<span class="tag">➡️ ${esc(nextStep.label)}</span>` : `<span class="tag">✅ Timeline OK</span>`;
+        return `
+          <div class="item" style="${isActive?'outline:1px solid rgba(255,255,255,.18)':''}">
+            <div style="min-width:0">
+              <strong>${esc(title)} ${isActive?'<span class="tag" style="margin-left:6px">actif</span>':''}</strong>
+              <div class="small">${esc(d.query||"")}</div>
+              <div class="tags" style="margin-top:6px">
+                ${badgeHTML(r.severity || "—", bcls)}
+                <span class="tag">Deadline: <b>${esc(deadline)}</b></span>
+                ${dlTag}
+                ${tlTag}
+                ${nextTag}
+                ${pack ? `<span class="tag">Pack: <b>${esc(pack)}</b></span>` : ``}
+              </div>
+            </div>
+            <div class="row" style="justify-content:flex-end">
+              <button class="btn" onclick="openWizard('${esc(d.id)}')">🧭 Reprendre</button>
+              <button class="btn" onclick="deleteDossier('${esc(d.id)}')">🗑️ Supprimer</button>
+              ${pack ? `<a class="btn" href="pack.html?id=${encodeURIComponent(pack)}">📦 Pack</a>` : ``}
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function deleteDossier(id){
+  if(!confirm('Supprimer ce dossier ?')) return;
+  const ds = V30.getDossiers().filter(x=>x.id!==id);
+  // overwrite
+  const s = V30.loadState();
+  s.dossiers = ds;
+  if(s.active_dossier_id===id) s.active_dossier_id = ds[0]?.id || null;
+  V30.saveState(s);
+  render();
+}
+
+function openWizard(id){
+  V30.setActiveId(id);
+  location.href = "wizard.html?id=" + encodeURIComponent(id);
+}
+render();
+</script>
+  <script src="data/letters_v1.js"></script>
+<div class="bottomnav">
+  <a href="index.html">🏠 Accueil</a>
+  <a href="map.html">🗺️ Carte</a>
+  <a href="dashboard.html">📊 Dashboard</a>
+</div>
+<div class="footerNote">
+  ℹ️ Vigie citoyen est un outil d’accompagnement. Les informations fournies sont générales et ne constituent pas un conseil juridique.
+  <br>🔒 Vos données restent sur votre appareil (stockage local). Aucune compilation automatique.
+  <br><a href="mentions.html">Mentions légales</a>
+</div>
+</body>
+</html>

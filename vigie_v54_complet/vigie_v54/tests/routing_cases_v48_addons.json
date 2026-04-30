@@ -1,0 +1,327 @@
+[
+  {
+    "query": "échéancier impôts",
+    "expected_case": "tax_payment_plan",
+    "expected_pillar": "impots"
+  },
+  {
+    "query": "remise gracieuse impots",
+    "expected_case": "tax_grace_request",
+    "expected_pillar": "impots"
+  },
+  {
+    "query": "satd",
+    "expected_case": "tax_third_party_notice",
+    "expected_pillar": "impots"
+  },
+  {
+    "query": "taxe fonciere erreur",
+    "expected_case": "tax_local_tax_error",
+    "expected_pillar": "impots"
+  },
+  {
+    "query": "compte étranger",
+    "expected_case": "tax_bank_account_foreign",
+    "expected_pillar": "impots"
+  },
+  {
+    "query": "don manuel",
+    "expected_case": "tax_family_gift",
+    "expected_pillar": "impots"
+  },
+  {
+    "query": "micro entreprise impots",
+    "expected_case": "tax_self_employed_bic_bnc",
+    "expected_pillar": "impots"
+  },
+  {
+    "query": "demander pièces impots",
+    "expected_case": "tax_audit_request_docs",
+    "expected_pillar": "impots"
+  },
+  {
+    "query": "remise gracieuse caf",
+    "expected_case": "caf_remise_gracieuse",
+    "expected_pillar": "caf"
+  },
+  {
+    "query": "fraude caf",
+    "expected_case": "caf_fraud_allegation",
+    "expected_pillar": "caf"
+  },
+  {
+    "query": "apl refusée",
+    "expected_case": "caf_apl_refusal",
+    "expected_pillar": "caf"
+  },
+  {
+    "query": "rsa suspendu",
+    "expected_case": "caf_rsa_suspension",
+    "expected_pillar": "caf"
+  },
+  {
+    "query": "prime activité refus",
+    "expected_case": "caf_prime_activity",
+    "expected_pillar": "caf"
+  },
+  {
+    "query": "controle caf domicile",
+    "expected_case": "caf_control_home",
+    "expected_pillar": "caf"
+  },
+  {
+    "query": "séparation caf",
+    "expected_case": "caf_family_situation",
+    "expected_pillar": "caf"
+  },
+  {
+    "query": "contester prélèvement",
+    "expected_case": "bank_direct_debit_dispute",
+    "expected_pillar": "banque"
+  },
+  {
+    "query": "compte clôturé banque",
+    "expected_case": "bank_account_closed",
+    "expected_pillar": "banque"
+  },
+  {
+    "query": "médiateur bancaire",
+    "expected_case": "bank_mediator",
+    "expected_pillar": "banque"
+  },
+  {
+    "query": "crédit refusé",
+    "expected_case": "bank_credit_refusal",
+    "expected_pillar": "banque"
+  },
+  {
+    "query": "assurance emprunteur",
+    "expected_case": "bank_insurance_borrower",
+    "expected_pillar": "banque"
+  },
+  {
+    "query": "chargeback",
+    "expected_case": "bank_chargeback",
+    "expected_pillar": "banque"
+  },
+  {
+    "query": "are refusée",
+    "expected_case": "ft_are_refusal",
+    "expected_pillar": "travail"
+  },
+  {
+    "query": "trop perçu france travail",
+    "expected_case": "ft_overpayment",
+    "expected_pillar": "travail"
+  },
+  {
+    "query": "radiation rendez vous manqué",
+    "expected_case": "ft_radiation_missed_appointment",
+    "expected_pillar": "travail"
+  },
+  {
+    "query": "formation refusée france travail",
+    "expected_case": "ft_training_refusal",
+    "expected_pillar": "travail"
+  },
+  {
+    "query": "actualisation oubliée",
+    "expected_case": "ft_update_issue",
+    "expected_pillar": "travail"
+  },
+  {
+    "query": "salaire non payé",
+    "expected_case": "work_employer_salary",
+    "expected_pillar": "travail"
+  },
+  {
+    "query": "licenciement abusif",
+    "expected_case": "work_dismissal_dispute",
+    "expected_pillar": "travail"
+  },
+  {
+    "query": "harcèlement travail",
+    "expected_case": "work_harassment",
+    "expected_pillar": "travail"
+  },
+  {
+    "query": "attestation employeur manquante",
+    "expected_case": "work_contract_documents",
+    "expected_pillar": "travail"
+  },
+  {
+    "query": "indemnités journalières non versées",
+    "expected_case": "cpam_daily_allowance",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "remboursement cpam retard",
+    "expected_case": "cpam_refund_delay",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "droits cpam fermés",
+    "expected_case": "cpam_rights_closed",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "ald refusée",
+    "expected_case": "cpam_ald_refusal",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "accident du travail refusé",
+    "expected_case": "cpam_work_accident",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "caution non rendue",
+    "expected_case": "housing_deposit_return",
+    "expected_pillar": "logement"
+  },
+  {
+    "query": "travaux bailleur refuse",
+    "expected_case": "housing_repairs_landlord",
+    "expected_pillar": "logement"
+  },
+  {
+    "query": "commandement de payer",
+    "expected_case": "housing_eviction_notice",
+    "expected_pillar": "logement"
+  },
+  {
+    "query": "augmentation loyer abusive",
+    "expected_case": "housing_rent_increase",
+    "expected_pillar": "logement"
+  },
+  {
+    "query": "trouble voisinage",
+    "expected_case": "housing_neighbor_nuisance",
+    "expected_pillar": "logement"
+  },
+  {
+    "query": "dpe location",
+    "expected_case": "housing_dpe_energy",
+    "expected_pillar": "logement"
+  },
+  {
+    "query": "logement social bloqué",
+    "expected_case": "social_housing_request",
+    "expected_pillar": "logement"
+  },
+  {
+    "query": "dalo recours",
+    "expected_case": "dalo_recours",
+    "expected_pillar": "logement"
+  },
+  {
+    "query": "fps stationnement",
+    "expected_case": "fine_fps_parking",
+    "expected_pillar": "justice"
+  },
+  {
+    "query": "désigner conducteur antai",
+    "expected_case": "fine_antai_nomination",
+    "expected_pillar": "justice"
+  },
+  {
+    "query": "retrait de points",
+    "expected_case": "fine_license_points",
+    "expected_pillar": "justice"
+  },
+  {
+    "query": "litige consommateur",
+    "expected_case": "justice_small_claim",
+    "expected_pillar": "justice"
+  },
+  {
+    "query": "défenseur des droits",
+    "expected_case": "justice_defender_rights",
+    "expected_pillar": "justice"
+  },
+  {
+    "query": "faux site administratif",
+    "expected_case": "scam_fake_admin_site",
+    "expected_pillar": "arnaques"
+  },
+  {
+    "query": "usurpation identité bancaire",
+    "expected_case": "scam_identity_theft_bank",
+    "expected_pillar": "arnaques"
+  },
+  {
+    "query": "achat internet non livré",
+    "expected_case": "scam_online_purchase",
+    "expected_pillar": "arnaques"
+  },
+  {
+    "query": "arnaque sentimentale",
+    "expected_case": "scam_romance_investment",
+    "expected_pillar": "arnaques"
+  },
+  {
+    "query": "sms frauduleux",
+    "expected_case": "scam_phone_sms",
+    "expected_pillar": "arnaques"
+  },
+  {
+    "query": "carte identité perdue",
+    "expected_case": "id_lost_stolen",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "acte de naissance",
+    "expected_case": "birth_certificate",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "décès démarches",
+    "expected_case": "death_procedures",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "dossier mariage mairie",
+    "expected_case": "marriage_file",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "permis perdu",
+    "expected_case": "driver_license_lost",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "ants bloqué",
+    "expected_case": "ants_blocked",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "facture électricité abusive",
+    "expected_case": "energy_bill_dispute",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "résiliation internet frais",
+    "expected_case": "telecom_cancel",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "assurance refuse indemnisation",
+    "expected_case": "insurance_claim_refused",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "inscription école refusée",
+    "expected_case": "school_admin_issue",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "mdph retard dossier",
+    "expected_case": "mdph_delay",
+    "expected_pillar": "institutions"
+  },
+  {
+    "query": "titre de séjour bloqué",
+    "expected_case": "prefecture_residence_permit",
+    "expected_pillar": "institutions"
+  }
+]

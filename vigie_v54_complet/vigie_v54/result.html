@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vigie — Résultat</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <div class="logo">V</div>
+        <div>
+          <div style="font-weight:900">Résultat</div>
+          <div class="muted">Diagnostic → stratégie → action</div>
+        </div>
+      </div>
+      <div class="actions" style="display:flex;align-items:center;gap:8px">
+        <button id="expertBtn" class="btn" type="button" aria-label="Mode expert">Expert</button>
+        <a class="btn" href="map.html" aria-label="Carte">🗺️</a>
+        <a class="btn" href="dashboard.html" aria-label="Dashboard">📊</a>
+        <a class="btn" href="index.html" aria-label="Accueil">🏠</a>
+      </div>
+    </div>
+
+    <div id="app"></div>
+
+    <div class="small" style="text-align:center;padding:18px">
+      ℹ️ Informations générales, pas de conseil juridique personnalisé. Stockage local.
+      <a href="mentions.html">Mentions</a>
+    </div>
+  </div>
+
+  <script src="data/expert_mode.js"></script>
+  <script src="data/scenarios_v2.js"></script>
+  <script src="data/scenarios_v47_addons.js"></script>
+  <script src="data/scenarios_v49_coverage.js"></script>
+  <script src="data/scenarios_v51_fixes.js"></script>
+  <script src="data/scenarios_v53_governance.js"></script>
+  <script src="data/strategies_v53_addons.js"></script>
+  <script src="data/moments_de_vie.js"></script>
+  <script src="data/rappels.js"></script>
+  <script src="data/registry_cases_v46.js"></script>
+  <script src="assets/router_v46.js"></script>
+  <script src="assets/router_v51.js"></script>
+  <script src="data/external_sources_v46.js"></script>
+  <script src="data/sources_registry.js"></script>
+  <script src="data/strategies_v44.js"></script>
+
+  <script>
+    function esc(s){ return String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+    function getParam(name){ return new URL(location.href).searchParams.get(name) || ""; }
+
+    const q = getParam('q').trim();
+    const pillar = getParam('pillar').trim();
+    const forcedCase = getParam('case').trim();
+    const cp = getParam('cp').trim();
+    const org = getParam('org').trim();
+    const app = document.getElementById('app');
+
+    // Expert toggle
+    const expertBtn = document.getElementById('expertBtn');
+    function refreshExpertLabel(){
+      const on = (window.VIGIE && window.VIGIE.getExpertMode && window.VIGIE.getExpertMode());
+      expertBtn.textContent = on ? 'Expert : ON' : 'Expert : OFF';
+    }
+    expertBtn.onclick = ()=>{ window.VIGIE.toggleExpertMode(); refreshExpertLabel(); render(); };
+    refreshExpertLabel();
+
+    // Recours contextuels par pilier
+    const RECOURS_CONTEXTUELS = {
+      banque:       { label:'🏦 Médiateur bancaire', url:'https://www.economie.gouv.fr/particuliers/litige-avec-sa-banque' },
+      caf:          { label:'🛡️ Défenseur des droits', url:'https://formulaire.defenseurdesdroits.fr/' },
+      impots:       { label:'⚖️ Médiateur de Bercy', url:'https://www.economie.gouv.fr/mediateur/je-saisis-le-mediateur' },
+      travail:      { label:'💼 Médiateur France Travail', url:'https://www.francetravail.fr/candidat/vos-services-en-ligne/le-mediateur.html' },
+      sante:        { label:'🩺 Médiateur CPAM', url:'https://www.ameli.fr/assure/droits-demarches/difficultes-acces-aux-soins/contacter-votre-caisse' },
+      logement:     { label:'🤝 Conciliateur de justice', url:'https://www.conciliateurs.fr/Trouver-une-permanence' },
+      consommation: { label:'🛒 Médiateur consommation', url:'https://www.economie.gouv.fr/mediation-conso/liste-des-mediateurs-references' },
+      arnaques:     { label:'🔐 Cybermalveillance.gouv.fr', url:'https://www.cybermalveillance.gouv.fr/' },
+      institutions: { label:'🛡️ Défenseur des droits', url:'https://formulaire.defenseurdesdroits.fr/' },
+      retraite:     { label:'👴 Info-retraite.fr', url:'https://www.info-retraite.fr' },
+      justice:      { label:'📍 Point justice / CDAD', url:'https://www.justice.gouv.fr/annuaire/lieux-daccueil-dinformation/conseils-departementaux-dacces-au-droit' },
+    };
+    function getRecoursContextuel(scenario, pillar){
+      const tags = (scenario && scenario.tags) || [];
+      const p = pillar || (tags[0]||'').toLowerCase() || 'autres';
+      return RECOURS_CONTEXTUELS[p] || { label:'⚖️ Tous les recours nationaux', url:'recours_nationaux.html' };
+    }
+
+    function render(){
+      // If user came from a pillar without free-text, propose common cases inside that pillar
+      if(!q && pillar){
+        const list = (window.VIGIE_FIND_CASES ? window.VIGIE_FIND_CASES({q:'', pillar}) : []).slice(0,12);
+        const title = (window.VIGIE_PILLARS||window.VIGIE_PILLARS||[]).find?.(p=>p.id===pillar)?.label || pillar;
+        app.innerHTML = `
+          <div class="card">
+            <h2 style="margin:0 0 6px 0">${esc(title)}</h2>
+            <div class="muted">Choisissez un cas fréquent ou décrivez votre situation.</div>
+            <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap">
+              ${list.map(c=>`<button class="btn" onclick="pickCase('${esc(c.id)}')">${esc(c.label)}</button>`).join('')}
+            </div>
+            <div style="margin-top:14px">
+              <input id="q2" class="input" placeholder="Décrivez votre problème…" value="">
+              <button class="btn primary" style="margin-top:8px" onclick="searchInPillar()">Rechercher</button>
+            </div>
+            <div style="margin-top:14px">
+              <a class="btn" href="index.html">🏠 Retour accueil</a>
+            </div>
+          </div>`;
+        return;
+      }
+      if(!q){
+        app.innerHTML = `
+          <div class="card">
+            <h2 style="margin:0 0 8px 0">Entrez votre problème</h2>
+            <div class="muted">Retour à l’accueil.</div>
+            <a class="btn primary" href="index.html">Accueil</a>
+          </div>`;
+        return;
+      }
+
+
+      let scenario = null;
+      if(forcedCase){
+        scenario = (window.VIGIE_SCENARIOS||[]).find(s=>s.id===forcedCase) || null;
+        if(!scenario){
+          const rc = (window.VIGIE_REGISTRY_CASES||[]).find(c=>c.id===forcedCase);
+          if(rc){ scenario = { id: rc.id, label: rc.label, flow_id: rc.flow_id, pack_id: rc.pack_id, tags:[rc.pillar], todo:['Qualifier la situation et rassembler les pièces.','Utiliser le canal officiel indiqué.','Conserver les preuves d’envoi et de réponse.'], urgency:{kind:'none', hint:'Délai indicatif : vérifiez toujours votre courrier ou votre espace officiel.'} }; }
+        }
+      }
+      if(!scenario){
+        // V51: prefer router_v51, fallback to v46
+      const _router = window.VIGIE_ROUTE_V51 || window.VIGIE_ROUTE_V46;
+      const routed = (_router ? _router.route(q, pillar, forcedCase) : {match:null, top:[]});
+        scenario = routed.match;
+
+        // Disambiguation: propose up to 3 close matches instead of routing silently
+        if(window.VIGIE_ROUTE_V46 && window.VIGIE_ROUTE_V46.shouldDisambiguate(routed) && routed.top && routed.top.length>=2){
+          const choicesHtml = routed.top.slice(0,3).map(x=>{
+            const p = window.VIGIE_ROUTE_V46.inferPillarFromScenario(x.s);
+            const label = x.s.label || x.s.id;
+            const qs = new URLSearchParams();
+            qs.set('q', q);
+            if(cp) qs.set('cp', cp);
+            if(org) qs.set('org', org);
+            qs.set('pillar', p);
+            qs.set('case', x.s.id);
+            return `<a class="btn" href="result.html?${qs.toString()}">${esc(label)}</a>`;
+          }).join('');
+          app.innerHTML = `
+            <div class="card">
+              <h2 style="margin:0 0 8px 0">On clarifie votre demande</h2>
+              <div class="muted">Plusieurs cas possibles. Choisissez celui qui ressemble le plus à votre situation :</div>
+              <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap">${choicesHtml}</div>
+              <div style="margin-top:14px"><a class="btn" href="index.html">🏠 Retour accueil</a></div>
+            </div>`;
+          return;
+        }
+      }
+      // fallback to legacy matcher
+      if(!scenario) scenario = (window.VIGIE_MATCH_SCENARIO ? window.VIGIE_MATCH_SCENARIO(q) : null);
+      if(!scenario){
+        app.innerHTML = `
+          <div class="card">
+            <h2 style="margin:0 0 8px 0">Cas non reconnu</h2>
+            <div class="muted">Essayez le parcours guidé (3 questions) ou reformulez.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+              <a class="btn primary" href="parcours.html?guide=1&q=${encodeURIComponent(q)}">🧩 Parcours guidé</a>
+              <a class="btn" href="index.html">🏠 Accueil</a>
+            </div>
+          </div>`;
+        return;
+      }
+
+      const expert = (window.VIGIE && window.VIGIE.getExpertMode && window.VIGIE.getExpertMode());
+      const stratFn = window.VIGIE_GET_STRATEGIES_V53 || window.VIGIE_GET_STRATEGIES_V44;
+const strategies = (stratFn ? stratFn(scenario, q, pillar) : []);
+      const urgencyHint = scenario.urgency && scenario.urgency.hint ? scenario.urgency.hint : '';
+
+      // Pick first action as "Action maintenant" (simple mode)
+      const actionNow = (strategies[0] && strategies[0].action_now) ? strategies[0].action_now : ((scenario.todo && scenario.todo[0]) ? scenario.todo[0] : 'Commencer par clarifier votre situation et rassembler les pièces.');
+      const levels = (strategies[0] && strategies[0].levels) ? strategies[0].levels : [];
+
+      // Best-effort official sources (existing registry is mixed; we show as "liens utiles")
+      const links = [];
+      if(window.VIGIE_SOURCES && Array.isArray(window.VIGIE_SOURCES)){
+        // heuristics: keep official domains
+        const ql = q.toLowerCase();
+        const pick = (u)=>/gouv\.fr|service-public\.fr|caf\.fr|ameli\.fr|impots\.gouv\.fr|francetravail\.fr|banque-france\.fr|cnil\.fr|cybermalveillance\.gouv\.fr|masecurite\.interieur\.gouv\.fr/.test(u);
+        window.VIGIE_SOURCES.forEach(s=>{
+          if(!s || !s.url) return;
+          const url = String(s.url);
+          if(!pick(url)) return;
+          const hay = (s.title||'') + ' ' + (s.tags||[]).join(' ') + ' ' + url;
+          if(ql && hay.toLowerCase().includes(ql.split(' ')[0])) links.push({title:s.title||url, url});
+        });
+      }
+
+      const strategyCards = strategies.length ? strategies.map(st=>`
+        <button class="card" style="text-align:left;width:100%;cursor:pointer" onclick="go('${esc(st.id)}')">
+          <div style="font-weight:900">${esc(st.label)}</div>
+          <div class="muted" style="margin-top:4px">${esc(st.why||'')}</div>
+          ${expert && st.legal_basis ? `<div class="small" style="margin-top:8px"><b>Référence utile :</b> ${esc(st.legal_basis)}</div>` : ''}
+          ${expert && (st.risks||[]).length ? `<div class="small" style="margin-top:6px"><b>Risques :</b> ${esc((st.risks||[]).join(' • '))}</div>` : ''}
+          ${expert && (st.avoid||[]).length ? `<div class="small" style="margin-top:6px"><b>À éviter :</b> ${esc((st.avoid||[]).join(' • '))}</div>` : ''}
+        </button>
+      `).join('') : `
+        <div class="card"><b>Plan d’action indicatif</b><div class="muted">Cas ajouté en surcouche : on garde la résolution légère, sans écraser les stratégies existantes.</div><ol style="margin-top:10px">${(scenario.todo||['Qualifier la situation','Rassembler les pièces','Agir via le canal officiel']).map(t=>`<li>${esc(t)}</li>`).join('')}</ol></div>
+      `;
+
+      const levelsHtml = levels.length ? `
+        <div class="card">
+          <h3 style="margin:0 0 6px 0">Cadre & escalade (général)</h3>
+          <div class="muted">À vérifier sur votre courrier (voies et délais).</div>
+          <ol style="margin-top:10px">
+            ${levels.map(l=>`<li><b>${esc(l.label)}</b> — ${esc(l.what)} <span class="muted">(${esc(l.when)})</span></li>`).join('')}
+          </ol>
+        </div>
+      ` : '';
+
+      const linksHtml = links.slice(0,5).length ? `
+        <details class="card">
+          <summary><b>Liens utiles</b> ▾</summary>
+          <ul style="margin-top:10px">
+            ${links.slice(0,5).map(l=>`<li><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.title)}</a></li>`).join('')}
+          </ul>
+        </details>
+      ` : '';
+      const scenPillar = (window.VIGIE_ROUTE_V46 && scenario) ? window.VIGIE_ROUTE_V46.inferPillarFromScenario(scenario) : (pillar||'');
+      const ext = (window.VIGIE_EXTERNAL_SOURCES_V46 && scenPillar) ? (window.VIGIE_EXTERNAL_SOURCES_V46[scenPillar]||[]) : [];
+      const extHtml = ext.length ? `
+        <details class="card">
+          <summary><b>Sources officielles (en ligne)</b> ▾</summary>
+          <ul style="margin-top:10px">
+            ${ext.slice(0,6).map(l=>`<li><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.title)}</a></li>`).join('')}
+          </ul>
+          <div class="small muted">Astuce : si un lien ne s’ouvre pas, passez en ligne ou copiez l’adresse.</div>
+        </details>` : '';
+
+
+      app.innerHTML = `
+        <div class="card">
+          <h2 style="margin:0 0 6px 0">${esc(scenario.label || scenario.id)}</h2>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap">
+            <div class="muted">✔ Situation reconnue</div>
+            ${routed && routed.matchScore ? `<span class="badge ${routed.matchScore >= 20 ? 'badge-green' : routed.matchScore >= 10 ? 'badge-amber' : 'badge-slate'}" style="font-size:11px">${routed.matchScore >= 20 ? '✅ Fiable' : routed.matchScore >= 10 ? '⚠️ Probable' : '❓ À vérifier'}</span>` : ''}
+          </div>
+          ${urgencyHint ? `<div class="small" style="margin-top:6px">⏳ ${esc(urgencyHint)}</div>` : ''}
+          ${cp ? `<div class="small" style="margin-top:6px">📍 Code postal : <b>${esc(cp)}</b> (pour la carte / contacts)</div>` : ''}
+        </div>
+
+        <div class="card cardUrgent">
+          <h3 style="margin:0 0 6px 0">👉 Action à faire maintenant</h3>
+          <div>${esc(actionNow)}</div>
+          <div class="small" style="margin-top:8px">Ensuite, choisissez votre situation pour adapter la stratégie.</div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0 0 10px 0">Choisissez votre situation</h3>
+          <div class="muted">On adapte le plan. (Info générale, pas de conseil juridique.)</div>
+        </div>
+        ${strategyCards}
+
+        ${expert ? levelsHtml : ''}
+        ${linksHtml}
+        ${extHtml}
+
+        <div class="card" style="border-color:var(--blue-200);background:var(--blue-50)">
+          <div style="font-weight:700;font-size:14px;margin-bottom:8px">⚖️ Recours disponibles pour votre situation</div>
+          ${(()=>{ const rc = getRecoursContextuel(scenario, pillar); return \`
+            <a class="btn btn-outline-primary" href="\${esc(rc.url)}" target="_blank" rel="noopener" style="margin-bottom:6px;display:flex;gap:6px;width:100%">\${rc.label} ↗</a>
+          \`; })()}
+          <a class="btn" href="recours_nationaux.html" style="display:flex;gap:6px;width:100%">📋 Tous les recours nationaux →</a>
+        </div>
+
+        <div class="card">
+          <div class="muted">Besoin de contacts locaux ?</div>
+          <a class="btn" href="map.html?type=${encodeURIComponent(org||'auto')}&cp=${encodeURIComponent(cp)}">🗺️ Ouvrir la carte</a>
+        </div>
+      `;
+    }
+
+    function pickCase(caseId){
+      const qs = new URLSearchParams();
+      if(pillar) qs.set('pillar', pillar);
+      qs.set('case', caseId);
+      if(cp) qs.set('cp', cp);
+      if(org) qs.set('org', org);
+      location.href = 'result.html?' + qs.toString();
+    }
+
+    function searchInPillar(){
+      const v = (document.getElementById('q2')?.value||'').trim();
+      if(!v) return alert('Décrivez votre problème');
+      const qs = new URLSearchParams();
+      qs.set('q', v);
+      if(pillar) qs.set('pillar', pillar);
+      if(cp) qs.set('cp', cp);
+      if(org) qs.set('org', org);
+      location.href = 'result.html?' + qs.toString();
+    }
+
+    function go(strategyId){
+      const qs = new URLSearchParams();
+      qs.set('q', q);
+      if(cp) qs.set('cp', cp);
+      if(org) qs.set('org', org);
+      if(pillar) qs.set('pillar', pillar);
+      if(forcedCase) qs.set('case', forcedCase);
+      if(strategyId) qs.set('strategy', strategyId);
+      location.href = 'wizard.html?' + qs.toString();
+    }
+
+    render();
+  </script>
+</body>
+</html>

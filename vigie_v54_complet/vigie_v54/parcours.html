@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vigie — Parcours guidé</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  /* ── Onboarding step-by-step (mode guide) ── */
+  .guide-wrap {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 12px 0 24px 0;
+  }
+  .guide-progress {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    justify-content: center;
+  }
+  .guide-progress .dot {
+    width: 10px; height: 10px;
+    border-radius: 999px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    transition: background .2s;
+  }
+  .guide-progress .dot.active {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .guide-progress .dot.done {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .guide-step { display: none; }
+  .guide-step.visible { display: block; }
+
+  .guide-title {
+    font-size: 22px;
+    font-weight: 900;
+    margin: 0 0 6px 0;
+    color: var(--text);
+  }
+  .guide-sub {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0 0 20px 0;
+    line-height: 1.5;
+  }
+  .pillar-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  @media(min-width: 480px) {
+    .pillar-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  .pillar-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 16px 10px;
+    border: 2px solid var(--border);
+    border-radius: 18px;
+    background: rgba(255,255,255,.85);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    box-shadow: var(--shadow2);
+    transition: border-color .15s, background .15s;
+    text-align: center;
+  }
+  .pillar-btn .icon { font-size: 26px; }
+  .pillar-btn:hover,
+  .pillar-btn.selected {
+    border-color: var(--accent);
+    background: rgba(37,99,235,.07);
+  }
+  .guide-textarea {
+    width: 100%;
+    padding: 14px;
+    border-radius: 18px;
+    border: 1.5px solid var(--border);
+    background: rgba(255,255,255,.95);
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    resize: none;
+    min-height: 100px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    margin-bottom: 16px;
+  }
+  .guide-textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .deadline-opts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .deadline-btn {
+    padding: 18px 12px;
+    border: 2px solid var(--border);
+    border-radius: 18px;
+    background: rgba(255,255,255,.85);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    box-shadow: var(--shadow2);
+    text-align: center;
+    line-height: 1.4;
+    transition: border-color .15s, background .15s;
+  }
+  .deadline-btn .icon { font-size: 22px; display: block; margin-bottom: 6px; }
+  .deadline-btn:hover,
+  .deadline-btn.selected {
+    border-color: var(--accent);
+    background: rgba(37,99,235,.07);
+  }
+  .guide-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .guide-nav .btn-back {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 10px 16px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .guide-next {
+    flex: 1;
+    padding: 14px;
+    border-radius: 16px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    opacity: .35;
+    pointer-events: none;
+    transition: opacity .2s;
+  }
+  .guide-next.ready {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .guide-next.ready:hover { filter: brightness(.93); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="brand">
+      <div class="logo">V</div>
+      <div>
+        <div style="font-weight:900">Parcours</div>
+        <div class="small">Guidage étape par étape</div>
+      </div>
+    </div>
+    <div class="nav">
+      <a class="btn" href="index.html">🏠 Accueil</a>
+      <a class="btn" href="dashboard.html">📁 Dashboard</a>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       MODE GUIDE (?guide=1) — 3 questions
+  ════════════════════════════════════════ -->
+  <div id="guideMode" style="display:none">
+    <div class="guide-wrap">
+
+      <!-- Barre de progression -->
+      <div class="guide-progress">
+        <div class="dot active" id="dot1"></div>
+        <div class="dot" id="dot2"></div>
+        <div class="dot" id="dot3"></div>
+      </div>
+
+      <!-- Étape 1 — Pilier -->
+      <div class="card guide-step visible" id="gStep1">
+        <div class="guide-title">Quel est le sujet ?</div>
+        <div class="guide-sub">Choisissez la catégorie qui ressemble le plus à votre situation.</div>
+        <div class="pillar-grid" id="pillarGrid">
+          <button class="pillar-btn" data-pillar="impots" onclick="selectPillar(this)">
+            <span class="icon">💰</span>Impôts
+          </button>
+          <button class="pillar-btn" data-pillar="caf" onclick="selectPillar(this)">
+            <span class="icon">👶</span>CAF / aides
+          </button>
+          <button class="pillar-btn" data-pillar="banque" onclick="selectPillar(this)">
+            <span class="icon">🏦</span>Banque / fraude
+          </button>
+          <button class="pillar-btn" data-pillar="logement" onclick="selectPillar(this)">
+            <span class="icon">🏠</span>Logement
+          </button>
+          <button class="pillar-btn" data-pillar="travail" onclick="selectPillar(this)">
+            <span class="icon">💼</span>France Travail
+          </button>
+          <button class="pillar-btn" data-pillar="institutions" onclick="selectPillar(this)">
+            <span class="icon">🪪</span>Mairie / ANTS
+          </button>
+          <button class="pillar-btn" data-pillar="sante" onclick="selectPillar(this)">
+            <span class="icon">🩺</span>Santé (CPAM)
+          </button>
+          <button class="pillar-btn" data-pillar="arnaques" onclick="selectPillar(this)">
+            <span class="icon">⚠️</span>Arnaque / piratage
+          </button>
+          <button class="pillar-btn" data-pillar="" onclick="selectPillar(this)">
+            <span class="icon">🤷</span>Je ne sais pas
+          </button>
+        </div>
+        <div class="guide-nav">
+          <div></div>
+          <button class="guide-next" id="nextBtn1" onclick="goStep(2)">Suivant →</button>
+        </div>
+      </div>
+
+      <!-- Étape 2 — Description libre -->
+      <div class="card guide-step" id="gStep2">
+        <div class="guide-title">Qu'est-ce qui se passe ?</div>
+        <div class="guide-sub" id="step2Sub">Décrivez en quelques mots. Pas besoin d'être précis — on s'occupe du reste.</div>
+        <textarea
+          class="guide-textarea"
+          id="guideQuery"
+          placeholder="Ex : j'ai reçu un courrier de la CAF me demandant de rembourser…"
+          oninput="onQueryInput()"
+        ></textarea>
+        <div class="guide-nav">
+          <button class="btn-back" onclick="goStep(1)">← Retour</button>
+          <button class="guide-next" id="nextBtn2" onclick="goStep(3)">Suivant →</button>
+        </div>
+      </div>
+
+      <!-- Étape 3 — Date limite -->
+      <div class="card guide-step" id="gStep3">
+        <div class="guide-title">Y a-t-il une date limite ?</div>
+        <div class="guide-sub">Un courrier avec une date, une relance, une saisie en cours ?</div>
+        <div class="deadline-opts">
+          <button class="deadline-btn" data-deadline="yes" onclick="selectDeadline(this)">
+            <span class="icon">📅</span>
+            Oui, j'ai reçu un courrier avec une date
+          </button>
+          <button class="deadline-btn" data-deadline="no" onclick="selectDeadline(this)">
+            <span class="icon">🙂</span>
+            Non / Je ne sais pas
+          </button>
+        </div>
+        <div class="guide-nav">
+          <button class="btn-back" onclick="goStep(2)">← Retour</button>
+          <button class="guide-next ready" id="nextBtn3" onclick="launchResult()">Voir mon plan d'action →</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       MODE NORMAL (sans ?guide=1)
+  ════════════════════════════════════════ -->
+  <div id="normalMode" style="display:none">
+    <div style="height:14px"></div>
+
+    <div class="card">
+      <div class="h2">🧩 Trouver le bon parcours</div>
+      <p class="p">Si ta demande est floue ou stressante, utilise ce parcours guidé. Il sert à <b>désambigüiser</b> (CAF vs impôts vs banque…) et à te donner une <b>action claire</b>.</p>
+
+      <div class="sep"></div>
+
+      <div class="h2">Étape 1 — Qu'est-ce qui t'arrive ?</div>
+      <div class="row" style="margin-top:10px; flex-wrap:wrap">
+        <button class="btn" onclick="pickN0('pay')">💸 On me demande de payer / rembourser</button>
+        <button class="btn" onclick="pickN0('cut')">❌ On m'a coupé un droit / un paiement</button>
+        <button class="btn" onclick="pickN0('letter')">📄 J'ai reçu un courrier / je ne comprends pas</button>
+        <button class="btn" onclick="pickN0('urgent')">🚨 Urgence (saisie, fraude, menace)</button>
+        <button class="btn" onclick="pickN0('unknown')">🤷 Je ne sais pas</button>
+      </div>
+
+      <div id="step2" style="display:none">
+        <div class="sep"></div>
+        <div class="h2">Étape 2 — Qui est en face ?</div>
+        <p class="p">Choisis l'organisme. Si tu n'es pas sûr, prends le plus probable : on pourra corriger ensuite.</p>
+        <div class="row" style="margin-top:10px; flex-wrap:wrap">
+          <button class="btn" onclick="pickN1('caf')">👶 CAF</button>
+          <button class="btn" onclick="pickN1('impots')">💰 Impôts (DGFiP)</button>
+          <button class="btn" onclick="pickN1('amende')">🧾 Amende / ANTAI / Trésor</button>
+          <button class="btn" onclick="pickN1('cpam')">🩺 CPAM (Ameli)</button>
+          <button class="btn" onclick="pickN1('banque')">🏦 Banque</button>
+          <button class="btn" onclick="pickN1('logement')">🏠 Logement</button>
+          <button class="btn" onclick="pickN1('vie')">🪪 Vie civile (mairie/ANTS)</button>
+        </div>
+      </div>
+
+      <div id="step3" style="display:none">
+        <div class="sep"></div>
+        <div class="row" style="align-items:center; justify-content:space-between">
+          <div>
+            <div class="h2">Étape 3 — Choisir le cas précis</div>
+            <p class="p">On te propose les scénarios les plus probables. Clique : on ouvre le plan d'action.</p>
+          </div>
+          <button class="btn" onclick="resetPath()">↩ Réinitialiser</button>
+        </div>
+        <div id="scenarios" class="list" style="margin-top:10px"></div>
+      </div>
+
+      <div class="sep"></div>
+      <details class="card" style="padding:14px">
+        <summary class="h2">Mode expert — Voir l'arbre complet</summary>
+        <p class="p" style="margin-top:10px">Astuce : utilise la recherche navigateur (Ctrl+F) pour retrouver un terme.</p>
+        <div id="tree" class="list" style="margin-top:10px"></div>
+      </details>
+    </div>
+  </div>
+
+  <div class="small" style="text-align:center;padding:18px">
+    ℹ️ Informations générales, pas de conseil juridique personnalisé.
+    <a href="mentions.html">Mentions</a>
+  </div>
+</div>
+
+<!-- Scripts partagés -->
+<script src="data/scenarios_v2.js"></script>
+<script src="data/scenarios_v47_addons.js"></script>
+<script src="data/engine_v30.js"></script>
+<script src="assets/router_v46.js"></script>
+  <script src="assets/router_v51.js"></script>
+<script src="assets/ui.js"></script>
+<script src="assets/ux_v42_1.js"></script>
+<script src="assets/assistant_v42_1.js"></script>
+
+<script>
+// ── Utilitaire ──────────────────────────────────────────────────────────────
+function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function getParam(name){ return new URL(location.href).searchParams.get(name)||""; }
+
+// ── Détection du mode ───────────────────────────────────────────────────────
+const isGuide = getParam('guide') === '1';
+document.getElementById('guideMode').style.display  = isGuide ? '' : 'none';
+document.getElementById('normalMode').style.display = isGuide ? 'none' : '';
+
+// ════════════════════════════════════════════════════════════════════════════
+//  MODE GUIDE — logique des 3 étapes
+// ════════════════════════════════════════════════════════════════════════════
+let gPillar   = null;
+let gDeadline = 'no';
+
+const placeholders = {
+  impots:       "Ex : j'ai reçu une proposition de rectification, redressement fiscal…",
+  caf:          "Ex : la CAF me demande de rembourser un trop-perçu, mon APL a été suspendu…",
+  banque:       "Ex : j'ai une opération frauduleuse sur mon compte, prélèvement inconnu…",
+  logement:     "Ex : mon propriétaire ne rend pas ma caution, expulsion, loyer impayé…",
+  travail:      "Ex : France Travail a radié mon dossier, mon ARE a été refusée…",
+  institutions: "Ex : je dois renouveler mon passeport, carte d'identité, acte de naissance…",
+  sante:        "Ex : la CPAM a refusé ma prise en charge, mes droits Ameli sont fermés…",
+  arnaques:     "Ex : j'ai cliqué sur un lien frauduleux, mon compte a été piraté…",
+  "":           "Ex : décrivez votre problème en quelques mots…"
+};
+
+function updateDots(step){
+  for(let i=1;i<=3;i++){
+    const d = document.getElementById('dot'+i);
+    d.className = 'dot' + (i < step ? ' done' : (i === step ? ' active' : ''));
+  }
+}
+
+function goStep(n){
+  // Validation
+  if(n === 2 && gPillar === undefined) return; // bloqué si pas de sélection
+  if(n === 3){
+    const q = document.getElementById('guideQuery').value.trim();
+    if(!q) return;
+  }
+  for(let i=1;i<=3;i++){
+    const s = document.getElementById('gStep'+i);
+    s.classList.toggle('visible', i===n);
+  }
+  updateDots(n);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function selectPillar(btn){
+  document.querySelectorAll('.pillar-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  gPillar = btn.dataset.pillar;
+  // Mettre à jour le placeholder de l'étape 2
+  const ta = document.getElementById('guideQuery');
+  ta.placeholder = placeholders[gPillar] || placeholders[''];
+  // Mettre à jour le sous-titre étape 2
+  const labels = {
+    impots:'impôts', caf:'CAF', banque:'banque', logement:'logement',
+    travail:'France Travail', institutions:'démarches administratives',
+    sante:'santé', arnaques:'arnaque / sécurité', '':''
+  };
+  const sub = document.getElementById('step2Sub');
+  const lab = labels[gPillar];
+  sub.textContent = lab
+    ? `Décrivez votre problème lié à ${lab} en quelques mots.`
+    : 'Décrivez votre situation en quelques mots. Pas besoin d\'être précis.';
+  // Activer le bouton suivant
+  document.getElementById('nextBtn1').classList.add('ready');
+}
+
+function onQueryInput(){
+  const q = document.getElementById('guideQuery').value.trim();
+  document.getElementById('nextBtn2').classList.toggle('ready', q.length > 2);
+}
+
+function selectDeadline(btn){
+  document.querySelectorAll('.deadline-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  gDeadline = btn.dataset.deadline;
+}
+
+function launchResult(){
+  const q = document.getElementById('guideQuery').value.trim();
+  if(!q) return;
+  const qs = new URLSearchParams();
+  qs.set('q', q);
+  if(gPillar) qs.set('pillar', gPillar);
+  if(gDeadline === 'yes') qs.set('deadline', '1');
+  qs.set('guide', '1');
+  location.href = 'result.html?' + qs.toString();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  MODE NORMAL — logique existante inchangée
+// ════════════════════════════════════════════════════════════════════════════
+let n0 = null;
+let n1 = null;
+
+function resetPath(){
+  n0 = null; n1 = null;
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step3').style.display = 'none';
+  document.getElementById('scenarios').innerHTML = '';
+}
+
+function pickN0(v){
+  n0 = v;
+  document.getElementById('step2').style.display = '';
+  document.getElementById('step3').style.display = 'none';
+  document.getElementById('scenarios').innerHTML = '';
+  window.scrollTo({top:document.getElementById('step2').getBoundingClientRect().top+window.scrollY-12, behavior:'smooth'});
+}
+
+function pickN1(v){
+  n1 = v;
+  document.getElementById('step3').style.display = '';
+  renderScenarioChoices();
+  window.scrollTo({top:document.getElementById('step3').getBoundingClientRect().top+window.scrollY-12, behavior:'smooth'});
+}
+
+function domainMatch(s){
+  const id=(s.id||'').toLowerCase(), label=(s.label||'').toLowerCase();
+  if(n1==='impots') return id.includes('tax')||id.includes('impot')||label.includes('impôt');
+  if(n1==='caf')    return id.includes('caf')||label.includes('caf');
+  if(n1==='banque') return id.includes('bank')||label.includes('banque');
+  if(n1==='amende') return id.includes('fine')||id.includes('antai')||label.includes('amende');
+  if(n1==='cpam')   return id.includes('ameli')||id.includes('cpam')||label.includes('cpam')||label.includes('ameli');
+  if(n1==='logement') return id.includes('housing')||id.includes('logement')||label.includes('logement');
+  if(n1==='vie')    return id.includes('passport')||id.includes('cni')||id.includes('mariage')||id.includes('vie_civile')||label.includes('passeport')||label.includes('carte')||label.includes('mariage');
+  return true;
+}
+
+function n0Relevance(s){
+  const txt=((s.label||'')+' '+(s.id||'')+' '+(Array.isArray(s.keywords)?s.keywords.join(' '):'')).toLowerCase();
+  if(n0==='pay')    return /payer|rembour|indu|recouv|major|penalit|dette|saisie/.test(txt);
+  if(n0==='cut')    return /suspend|radi|supprim|coup|refus|droits/.test(txt);
+  if(n0==='letter') return /courrier|avis|notification|proposition|mise|demeure|lettre/.test(txt);
+  if(n0==='urgent') return /fraude|saisie|huiss|atd|satd|urgence|majoration/.test(txt);
+  return true;
+}
+
+function scoreScenario(s){
+  let sc=0;
+  if(domainMatch(s)) sc+=2;
+  if(n0Relevance(s)) sc+=2;
+  if(s.urgency==='immediate'||s.urgency==='legal_deadline') sc+=(n0==='urgent'?2:0);
+  return sc;
+}
+
+function openScenario(id){
+  const qs = new URLSearchParams();
+  qs.set('q', id);
+  qs.set('case', id);
+  location.href = 'result.html?' + qs.toString();
+}
+
+function renderScenarioChoices(){
+  const all=(window.VIGIE_SCENARIOS||[]).slice();
+  const ranked=all.filter(s=>domainMatch(s)).map(s=>({s,sc:scoreScenario(s)})).sort((a,b)=>b.sc-a.sc).slice(0,12);
+  const host=document.getElementById('scenarios');
+  if(!ranked.length){
+    host.innerHTML=`<div class="small">Aucun scénario trouvé. Essaie un autre organisme, ou utilise la recherche libre.</div>`;
+    return;
+  }
+  host.innerHTML=ranked.map(({s})=>{
+    const status=s.urgency==='immediate'||s.urgency==='legal_deadline'?'urgent':(s.urgency==='admin_deadline'?'warn':'progress');
+    const statusLabel=status==='urgent'?'🔴 Urgent':(status==='warn'?'🟡 Attention':'🔵 Suivi');
+    return `
+      <div class="item">
+        <div style="min-width:0">
+          <strong>${esc(s.label||s.id)}</strong>
+          <div class="tags" style="margin-top:6px">
+            <span class="status ${status}">${statusLabel}</span>
+          </div>
+        </div>
+        <div class="row" style="justify-content:flex-end">
+          <button class="btn primary" onclick="openScenario('${esc(s.id)}')">Ouvrir</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderTree(){
+  const byDomain={caf:[],impots:[],amende:[],cpam:[],banque:[],logement:[],vie:[],autres:[]};
+  for(const s of (window.VIGIE_SCENARIOS||[])){
+    const id=(s.id||'').toLowerCase(), lab=(s.label||'').toLowerCase();
+    let k='autres';
+    if(id.includes('caf')||lab.includes('caf')) k='caf';
+    else if(id.includes('tax')||id.includes('impot')||lab.includes('impôt')) k='impots';
+    else if(id.includes('fine')||id.includes('antai')||lab.includes('amende')) k='amende';
+    else if(id.includes('ameli')||id.includes('cpam')||lab.includes('cpam')||lab.includes('ameli')) k='cpam';
+    else if(id.includes('bank')||lab.includes('banque')) k='banque';
+    else if(id.includes('housing')||id.includes('logement')||lab.includes('logement')) k='logement';
+    else if(id.includes('passport')||id.includes('cni')||id.includes('mariage')||id.includes('vie_civile')) k='vie';
+    byDomain[k].push(s);
+  }
+  const host=document.getElementById('tree');
+  const order=[['caf','👶 CAF / aides'],['impots','💰 Impôts'],['amende','🧾 Amendes'],['banque','🏦 Banque'],['cpam','🩺 Santé (CPAM)'],['logement','🏠 Logement'],['vie','🪪 Vie civile'],['autres','📌 Autres']];
+  host.innerHTML=order.map(([k,title])=>{
+    const arr=byDomain[k]||[];
+    if(!arr.length) return '';
+    return `
+      <details class="card" style="padding:14px">
+        <summary class="h2">${title} <span class="small">(${arr.length})</span></summary>
+        <div class="list" style="margin-top:10px">
+          ${arr.sort((a,b)=>String(a.label||a.id).localeCompare(String(b.label||b.id))).map(s=>`
+            <div class="item">
+              <div style="min-width:0">
+                <strong>${esc(s.label||s.id)}</strong>
+                <div class="small">${esc(s.id)}</div>
+              </div>
+              <div class="row" style="justify-content:flex-end">
+                <button class="btn" onclick="openScenario('${esc(s.id)}')">Ouvrir</button>
+              </div>
+            </div>`).join('')}
+        </div>
+      </details>`;
+  }).join('');
+}
+
+if(!isGuide) renderTree();
+</script>
+
+<div class="bottomnav">
+  <a href="index.html">🏠 Accueil</a>
+  <a href="map.html">🗺️ Carte</a>
+  <a href="dashboard.html">📊 Dashboard</a>
+</div>
+<div class="footerNote">
+  ℹ️ Vigie citoyen est un outil d'accompagnement. Les informations fournies sont générales et ne constituent pas un conseil juridique.
+  <br>🔒 Vos données restent sur votre appareil (stockage local). Aucune compilation automatique.
+  <br><a href="mentions.html">Mentions légales</a>
+</div>
+</body>
+</html>

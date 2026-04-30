@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vigie — V44</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head><body>
+<div class="container">
+  <div class="header">
+    <div class="brand">
+      <div class="logo">V</div>
+      <div><div style="font-weight:900">Vigie</div><div class="muted">Copilote citoyen — guidage étape par étape</div></div>
+    </div>
+    <div class="actions">
+      <a class="btn" href="map.html" aria-label="Carte">🗺️</a>
+      <a class="btn" href="dashboard.html" aria-label="Dashboard">📊</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 8px 0">Décrivez votre problème</h2>
+    <input id="q" class="input" placeholder="Ex : CAF trop-perçu, impôts rectification, fraude CB...">
+    <button class="btn primary" onclick="go()">Rechercher</button>
+    <div class="muted" style="margin-top:8px">Ou utilisez un parcours guidé si vous êtes perdu.</div>
+    <a class="btn" href="parcours.html?guide=1" style="display:inline-block;margin-top:10px">🤷 Parcours guidé</a>
+  </div>
+
+  <details class="card">
+    <summary><b>Piliers</b> ▾</summary>
+    <div id="pillars"></div>
+  </details>
+
+  <details class="card">
+    <summary><b>Affiner</b> ▾</summary>
+    <div class="muted">Ces informations peuvent aider à mieux orienter, mais ne sont pas obligatoires.</div>
+    <div style="margin-top:10px">
+      <label>Organisme</label>
+      <select id="org" class="select"></select>
+      <label style="margin-top:8px;display:block">Code postal</label>
+      <input id="cp" class="input" placeholder="Ex: 31000">
+    </div>
+  </details>
+
+  <div class="small" style="text-align:center;padding:18px">
+    ℹ️ Informations générales, pas de conseil juridique personnalisé. <a href="mentions.html">Mentions</a>
+  </div>
+</div>
+
+<script src="data/pillars_catalog.js"></script>
+<script src="data/sources_registry.js"></script>
+<script>
+function go(){
+  const q=document.getElementById('q').value.trim();
+  if(!q) return alert("Entrez votre problème");
+  // Reuse existing go() from old index via redirect with query
+  location.href="index.html?q="+encodeURIComponent(q);
+}
+try{
+  const wrap=document.getElementById('pillars');
+  if(window.PILLARS && wrap){
+    window.PILLARS.forEach(p=>{
+      const a=document.createElement('a');
+      a.className='chip'; a.href='pillars.html#'+p.id; a.textContent=p.label;
+      a.style.display='inline-block'; a.style.margin='6px'; a.style.padding='8px 10px';
+      a.style.border='1px solid #e5e7eb'; a.style.borderRadius='999px';
+      wrap.appendChild(a);
+    });
+  }
+}catch(e){}
+</script>
+</body></html>

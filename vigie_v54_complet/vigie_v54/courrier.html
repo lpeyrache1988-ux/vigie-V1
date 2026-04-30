@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vigie — J'ai reçu un courrier</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+.textarea-big {
+  width: 100%;
+  min-height: 140px;
+  padding: 14px;
+  border-radius: var(--r-xl);
+  border: 1.5px solid var(--border);
+  font-family: var(--font-body);
+  font-size: 15px;
+  resize: vertical;
+  line-height: 1.6;
+  color: var(--text);
+  background: #fff;
+  transition: border-color .15s, box-shadow .15s;
+  margin: 0;
+}
+.textarea-big:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.result-card {
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  background: #fff;
+  animation: fadeIn .3s ease;
+}
+.result-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.result-header.urgent { background: var(--red-50); border-bottom: 1px solid var(--red-100); }
+.result-header.warn   { background: var(--amber-50); border-bottom: 1px solid var(--amber-100); }
+.result-header.ok     { background: var(--blue-50); border-bottom: 1px solid var(--blue-100); }
+.result-body { padding: 16px 20px; }
+.info-row {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.info-row:last-child { border-bottom: none; }
+.info-label { color: var(--text-2); min-width: 120px; font-weight: 500; flex-shrink: 0; }
+.info-value { color: var(--text); flex: 1; }
+.step-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+  font-size: 14px;
+}
+.step-num {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.confidence-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--r);
+  font-size: 12px;
+  font-weight: 600;
+}
+.conf-high   { background: var(--green-50);  color: var(--green-600);  border: 1px solid var(--green-100); }
+.conf-medium { background: var(--amber-50);  color: var(--amber-600);  border: 1px solid var(--amber-100); }
+.conf-low    { background: var(--slate-100); color: var(--slate-600);  border: 1px solid var(--slate-200); }
+.example-chip {
+  display: inline-block;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition: all .15s;
+  margin: 3px;
+}
+.example-chip:hover { border-color: var(--primary); background: var(--blue-50); color: var(--primary); }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container"><div class="inner">
+    <a href="index.html" class="brand">
+      <div class="brand-logo">V</div>
+      <div><div class="brand-name">Vigie</div><div class="brand-tagline">Analyser un courrier</div></div>
+    </a>
+    <nav class="header-nav">
+      <a class="nav-link" href="index.html">🏠 <span>Accueil</span></a>
+      <a class="nav-link active" href="courrier.html">📬 <span>Courrier</span></a>
+      <a class="nav-link" href="moments.html">🗓️ <span>Moments de vie</span></a>
+      <a class="nav-link" href="rappels.html">🔔 <span>Rappels</span></a>
+      <a class="nav-link" href="dashboard.html">📁 <span>Dossiers</span></a>
+    </nav>
+  </div></div>
+</header>
+
+<div class="main">
+<div class="container" style="max-width:720px">
+
+  <!-- Intro -->
+  <div style="margin-bottom:20px">
+    <h1 class="h1" style="margin-bottom:6px">📬 J'ai reçu un courrier</h1>
+    <p class="muted">Copiez les premières lignes du courrier (ou les mots clés importants) et Vigie identifie l'organisme, le type de décision et ce que vous devez faire.</p>
+  </div>
+
+  <!-- Zone de saisie -->
+  <div class="card" style="margin-bottom:14px">
+    <label class="label" style="margin-bottom:8px">Collez le début du courrier ou des extraits clés</label>
+    <textarea class="textarea-big" id="courrierText"
+      placeholder="Ex : « Madame, Monsieur, Suite à notre contrôle, nous vous adressons une proposition de rectification… »
+Ou : « Nous vous informons d'un indu de 450€ correspondant à… »
+Ou : « Vous avez été radié(e) de la liste des demandeurs d'emploi le… »"></textarea>
+
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-primary btn-lg" onclick="analyser()" style="flex:1;min-width:140px">
+        🔍 Analyser le courrier
+      </button>
+      <button class="btn" onclick="reset()">Effacer</button>
+    </div>
+
+    <!-- Exemples rapides -->
+    <div style="margin-top:14px">
+      <div class="muted-xs" style="margin-bottom:6px">Exemples rapides :</div>
+      <div>
+        <span class="example-chip" onclick="fillEx('proposition de rectification suite à la vérification de vos revenus article L57')">📄 Rectification impôts</span>
+        <span class="example-chip" onclick="fillEx('nous vous informons d\'un indu d\'un montant de 380€ correspondant à des sommes indûment versées')">👶 Indu CAF</span>
+        <span class="example-chip" onclick="fillEx('vous avez été radié de la liste des demandeurs d\'emploi suite à votre absence à la convocation')">💼 Radiation FT</span>
+        <span class="example-chip" onclick="fillEx('nous ne pouvons pas donner suite à votre demande de remboursement concernant l\'opération de 850€ car vous avez validé un code de confirmation')">🏦 Refus remboursement banque</span>
+        <span class="example-chip" onclick="fillEx('commandement de payer la somme de 1200€ à peine de résiliation de plein droit du bail')">🏠 Commandement de payer</span>
+        <span class="example-chip" onclick="fillEx('avis de contravention agence nationale de traitement automatisé des infractions excès de vitesse')">🚗 Amende ANTAI</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Résultat -->
+  <div id="result" style="display:none"></div>
+
+  <!-- Disclaimer -->
+  <div style="padding:12px 14px;background:var(--amber-50);border:1px solid var(--amber-100);border-radius:var(--r-lg);font-size:12px;color:#78350f;margin-top:12px">
+    ⚠️ Vigie identifie le type de courrier pour vous orienter — ce n'est pas une analyse juridique personnalisée. 
+    Vérifiez toujours les délais <strong>sur votre courrier officiel</strong>. En cas de doute sur un enjeu important, consultez un professionnel.
+  </div>
+
+</div>
+</div>
+
+<div class="footerNote">
+  ℹ️ Analyse locale — aucun texte n'est envoyé sur un serveur. <a href="mentions.html">Mentions légales</a>
+</div>
+
+<script src="data/courrier_reader.js"></script>
+<script src="data/letters_v1.js"></script>
+<script>
+function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function fillEx(txt){
+  document.getElementById('courrierText').value = txt;
+  analyser();
+}
+
+function reset(){
+  document.getElementById('courrierText').value = '';
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('result').innerHTML = '';
+}
+
+function analyser(){
+  const texte = document.getElementById('courrierText').value;
+  if(!texte.trim()){
+    document.getElementById('courrierText').focus();
+    return;
+  }
+
+  const raw = window.VIGIE_COURRIER_READER.analyser(texte);
+  const result = raw ? window.VIGIE_COURRIER_READER.formatResult(raw) : null;
+  const el = document.getElementById('result');
+  el.style.display = '';
+
+  if(!result){
+    el.innerHTML = `
+      <div class="card">
+        <div style="text-align:center;padding:20px">
+          <div style="font-size:36px;margin-bottom:12px">🤔</div>
+          <div style="font-weight:700;margin-bottom:8px">Courrier non reconnu</div>
+          <p class="muted" style="margin-bottom:16px">Vigie n'a pas pu identifier le type de courrier. Essayez de coller plus d'extraits, notamment l'objet du courrier et le nom de l'organisme expéditeur.</p>
+          <a href="parcours.html?guide=1" class="btn btn-primary">🧩 Utiliser le parcours guidé</a>
+          <a href="index.html" class="btn" style="margin-left:8px">🔍 Recherche libre</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const urgClasses = { legal_deadline: 'urgent', admin_deadline: 'warn', none: 'ok' };
+  const urgLabels  = { legal_deadline: '🔴 Délai légal — agir vite', admin_deadline: '🟡 Délai administratif', none: '🟢 Pas d\'urgence immédiate' };
+  const urgColors  = { legal_deadline: 'var(--red-600)', admin_deadline: 'var(--amber-600)', none: 'var(--green-600)' };
+  const confLabels = { high: '✅ Reconnaissance fiable', medium: '⚠️ Probable — vérifiez', low: '❓ Incertain' };
+
+  // Courrier type disponible ?
+  const letters = window.VIGIE_LETTERS || {};
+  const lettre = result.lettre_id ? letters[result.lettre_id] : null;
+
+  const candidatesHtml = result.ambiguous && result.candidates.length > 1
+    ? `<div class="alert alert-amber" style="margin-bottom:12px">
+        <div>⚠️ <strong>Plusieurs types possibles :</strong>
+          ${result.candidates.map(c => `<span class="badge badge-slate" style="margin:2px">${esc(c.type)}</span>`).join(' ')}
+          — copiez plus d'extraits pour préciser.
+        </div>
+      </div>` : '';
+
+  el.innerHTML = `
+  <div class="result-card" style="margin-bottom:14px">
+    <div class="result-header ${urgClasses[result.urgency]||'ok'}">
+      <div>
+        <div style="font-family:var(--font-display);font-size:16px;font-weight:800;margin-bottom:4px">
+          ${esc(result.organisme)}
+        </div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-2)">${esc(result.type_courrier)}</div>
+      </div>
+      <div class="confidence-bar conf-${result.confidence}">${confLabels[result.confidence]||''}</div>
+    </div>
+
+    <div class="result-body">
+      ${candidatesHtml}
+
+      <div class="info-row">
+        <div class="info-label">⏱️ Délai</div>
+        <div class="info-value" style="color:${urgColors[result.urgency]};font-weight:600">${esc(result.delai)}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">🎯 Action immédiate</div>
+        <div class="info-value">${esc(result.action_immediate)}</div>
+      </div>
+      ${result.risques && result.risques.length ? `
+      <div class="info-row">
+        <div class="info-label">⚠️ Risques</div>
+        <div class="info-value">
+          ${result.risques.map(r => `<div style="margin:2px 0">· ${esc(r)}</div>`).join('')}
+        </div>
+      </div>` : ''}
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="card" style="margin-bottom:14px">
+    <h2 class="h2" style="margin-bottom:12px">Que faire maintenant ?</h2>
+    <div style="display:grid;gap:8px">
+      ${result.scenario_id ? `
+      <a href="result.html?case=${encodeURIComponent(result.scenario_id)}&q=${encodeURIComponent(result.type_courrier)}" class="btn btn-primary" style="justify-content:flex-start;padding:12px 16px">
+        📋 Voir le plan d'action complet →
+      </a>` : ''}
+      <a href="parcours.html?guide=1&pillar=${encodeURIComponent(result.pillar||'')}" class="btn" style="justify-content:flex-start;padding:12px 16px">
+        🧩 Parcours guidé pour affiner
+      </a>
+      <button onclick="creerDossier('${esc(result.type_courrier)}','${esc(result.pillar||'')}')" class="btn" style="justify-content:flex-start;padding:12px 16px">
+        📁 Créer un dossier de suivi
+      </button>
+    </div>
+  </div>
+
+  <!-- Sources officielles -->
+  ${result.sources && result.sources.length ? `
+  <div class="card" style="margin-bottom:14px">
+    <h2 class="h2" style="margin-bottom:10px">🔗 Sources officielles</h2>
+    <div style="display:grid;gap:8px">
+      ${result.sources.map(s=>`
+        <div class="item">
+          <div style="font-size:14px;font-weight:500">${esc(s.label)}</div>
+          <a class="btn btn-sm btn-outline-primary" href="${esc(s.url)}" target="_blank" rel="noopener">Accéder ↗</a>
+        </div>`).join('')}
+    </div>
+  </div>` : ''}
+
+  <!-- Courrier type -->
+  ${lettre ? `
+  <div class="card">
+    <h2 class="h2" style="margin-bottom:4px">📄 Courrier type disponible</h2>
+    <p class="muted" style="margin-bottom:12px">${esc(lettre.title)} — ${esc(lettre.context||'')}</p>
+    <div style="padding:8px 12px;background:var(--amber-50);border:1px solid var(--amber-100);border-radius:var(--r);font-size:12px;color:#78350f;margin-bottom:10px">
+      ⚠️ Ce modèle est une aide à la rédaction — <strong>pas un acte juridique</strong>. Adaptez-le à votre situation et remplacez les [ ].
+    </div>
+    <details>
+      <summary style="cursor:pointer;font-weight:600;font-size:14px;padding:8px 0">Voir le modèle de lettre</summary>
+      <div style="margin-top:10px;padding:12px;background:#fefefe;border:1px solid var(--border);border-radius:var(--r);font-family:'Courier New',monospace;font-size:12px;white-space:pre-wrap;line-height:1.7">${esc(lettre.text||'')}</div>
+      <button onclick="copierLettre()" style="margin-top:8px" class="btn btn-sm">📋 Copier la lettre</button>
+    </details>
+  </div>` : ''}
+  `;
+  // Scroll to result
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function creerDossier(query, pillar){
+  const qs = new URLSearchParams({ q: query, pillar: pillar });
+  location.href = 'result.html?' + qs.toString();
+}
+
+function copierLettre(){
+  const pre = document.querySelector('.result-card ~ div ~ div ~ div pre, details div');
+  if(!pre) return;
+  navigator.clipboard.writeText(pre.textContent).then(()=>{
+    const btn = document.querySelector('button[onclick="copierLettre()"]');
+    if(btn){ btn.textContent = '✓ Copié !'; setTimeout(()=>btn.textContent='📋 Copier la lettre', 2000); }
+  });
+}
+</script>
+</body>
+</html>

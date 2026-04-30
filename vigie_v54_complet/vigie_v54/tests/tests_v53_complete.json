@@ -1,0 +1,98 @@
+{
+  "routing": [
+    {"q": "impôt CAF", "expect_disambiguation": true, "note": "Ambiguïté connue — doit proposer choix"},
+    {"q": "fraude carte bancaire", "expect_case": "bank_cb_fraud", "pillar": "banque"},
+    {"q": "virement frauduleux", "expect_case": "bank_wire_fraud", "pillar": "banque"},
+    {"q": "trop perçu CAF bonne foi", "expect_case": "caf_remise_gracieuse", "pillar": "caf"},
+    {"q": "CAF fraude fausse déclaration", "expect_case": "caf_fraud_allegation", "pillar": "caf"},
+    {"q": "France Travail radiation", "expect_case": "ft_radiation_missed_appointment", "pillar": "travail"},
+    {"q": "ARE refus allocation chômage", "expect_case": "ft_are_refusal", "pillar": "travail"},
+    {"q": "CPAM refus remboursement", "expect_case": "cpam_refund_delay", "pillar": "sante"},
+    {"q": "dépôt de garantie non rendu", "expect_case": "housing_deposit_return", "pillar": "logement"},
+    {"q": "logement insalubre moisissures", "expect_case": "housing_insalubre", "pillar": "logement"},
+    {"q": "garantie produit défectueux", "expect_case": "conso_garantie_conformite", "pillar": "consommation"},
+    {"q": "surendettement banque de france", "expect_case": "bank_overindebt_bdf", "pillar": "banque"},
+    {"q": "passeport mineur enfant", "expect_case": "vie_passeport_mineur", "pillar": "institutions"},
+    {"q": "titre de séjour refusé ANEF bloqué", "expect_case": "prefecture_titre_sejour_recours", "pillar": "institutions"},
+    {"q": "MDPH délai sans réponse AAH", "expect_case": "mdph_delay_rights", "pillar": "sante"},
+    {"q": "expulsion locataire commandement", "expect_case": "housing_eviction_notice", "pillar": "logement"},
+    {"q": "arnaque phishing faux site", "expect_case_family": "scam", "pillar": "arnaques"},
+    {"q": "retraite trimestres manquants relevé", "expect_case": "work_retraite_erreur", "pillar": "retraite"},
+    {"q": "pension de réversion conjoint décédé", "expect_case": "retraite_pension_reversion", "pillar": "retraite"},
+    {"q": "aide juridictionnelle avocat gratuit", "expect_case": "justice_aide_juridictionnelle", "pillar": "justice"},
+    {"q": "injonction de payer dette", "expect_case": "justice_injonction_payer", "pillar": "justice"},
+    {"q": "colis non reçu remboursement site", "expect_case": "conso_ecommerce_litige", "pillar": "consommation"},
+    {"q": "demarchage abusif rétractation contrat", "expect_case": "conso_demarchage_abusif", "pillar": "consommation"},
+    {"q": "problème xyz inconnu", "expect_fallback": true, "note": "Fallback explicite attendu"},
+    {"q": "", "expect_fallback": true, "note": "Requête vide — fallback obligatoire"},
+    {"q": "passeport adulte renouvellement", "expect_case_not": "vie_passeport_mineur", "note": "Adulte ne doit pas matcher mineur"},
+    {"q": "fraude CB pas de virement", "expect_case": "bank_cb_fraud", "note": "neg_keyword virement doit écarter bank_wire_fraud"},
+    {"q": "indu CAF pas de fraude erreur involontaire", "expect_case": "caf_remise_gracieuse", "note": "Bonne foi doit scorer plus que fraude"}
+  ],
+  "data_integrity": {
+    "rules": [
+      {"check": "no_duplicate_ids", "scope": "all_scenario_files", "severity": "P0"},
+      {"check": "no_missing_flow_id", "severity": "P0"},
+      {"check": "no_empty_label", "severity": "P0"},
+      {"check": "no_empty_keywords_any", "severity": "P1"},
+      {"check": "no_unknown_pillar_in_tags", "valid_pillars": ["impots","caf","banque","logement","travail","sante","arnaques","justice","institutions","retraite","consommation","autres","vie_civile","retraite"], "severity": "P1"},
+      {"check": "all_delays_have_indicatif", "scope": "urgency.hint where kind=legal_deadline OR admin_deadline", "severity": "P1"},
+      {"check": "sensitive_cases_have_sources", "sensitive_tags": ["impots","caf","banque","travail","sante","logement","consommation"], "severity": "P1"},
+      {"check": "no_score_in_user_facing_html", "forbidden": ["Score:", "flow_id", "pack_id", "score_technique"], "files": ["result.html","index.html","parcours.html"], "severity": "P0"},
+      {"check": "letter_disclaimer_present", "must_contain": "pas un acte juridique", "files": ["pack.html","courrier.html"], "severity": "P1"},
+      {"check": "registry_cases_have_scenario", "note": "29 registry IDs now bridged via v53_governance.js", "severity": "P2"}
+    ]
+  },
+  "legal_completeness": {
+    "critical_cases": [
+      {
+        "id": "bank_cb_fraud",
+        "required": ["L.133-18 CMF", "13 mois", "indicatif"],
+        "must_not_contain_in_ui": ["L.133-19"],
+        "note": "CB vs virement distinction critique"
+      },
+      {
+        "id": "bank_wire_fraud",
+        "required": ["L.133-19 CMF", "2 mois", "indicatif"],
+        "must_not_contain_in_ui": ["L.133-18"],
+        "note": "CB vs virement distinction critique"
+      },
+      {
+        "id": "caf_fraud_allegation",
+        "required": ["441-1 CP", "indicatif"],
+        "note": "Risque pénal — warning obligatoire"
+      },
+      {
+        "id": "caf_remise_gracieuse",
+        "required": ["L.133-4 CSS", "indicatif"],
+        "must_not_match_query": "fraude CAF",
+        "note": "Bonne foi uniquement — pas fraude"
+      },
+      {
+        "id": "tax_audit_request_docs",
+        "required": ["L.47 LPF", "indicatif"],
+        "note": "Droit à l'assistance obligatoire en ESFP"
+      },
+      {
+        "id": "ft_are_refusal",
+        "required": ["R.142-1 CSS", "2 mois", "tribunal judiciaire", "indicatif"],
+        "note": "Tribunal judiciaire (pas administratif)"
+      },
+      {
+        "id": "housing_eviction_notice",
+        "required": ["indicatif"],
+        "note": "Délais stricts — 2 mois commandement"
+      },
+      {
+        "id": "cpam_refund_delay",
+        "required": ["CRA", "2 mois", "indicatif"],
+        "note": "CRA obligatoire avant tribunal"
+      },
+      {
+        "id": "prefecture_titre_sejour_recours",
+        "required": ["2 mois", "tribunal administratif", "indicatif"],
+        "note": "OQTF : délais réduits — mention obligatoire"
+      }
+    ]
+  }
+}

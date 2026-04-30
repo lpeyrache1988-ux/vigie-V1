@@ -1,0 +1,802 @@
+[
+  {
+    "id": 1,
+    "query": "CAF me demande de rembourser un trop-perçu de 3200€",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 2,
+    "query": "Notification d'indu CAF, comment contester ?",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 3,
+    "query": "Créance CAF trop perçu APL",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 4,
+    "query": "CAF indu RSA remboursement",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 5,
+    "query": "CAF demande remboursement prime d'activité",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 6,
+    "query": "APL suspendue par la CAF sans explication",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 7,
+    "query": "RSA suspendu CAF, que faire ?",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 8,
+    "query": "Prime d'activité suspendue CAF dossier incomplet",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 9,
+    "query": "CAF droit coupé suite contrôle",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 10,
+    "query": "CAF radiation, plus d'APL",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 11,
+    "query": "CAF me réclame un indu, je veux un échéancier",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 12,
+    "query": "CAF trop perçu après changement de situation",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 13,
+    "query": "CAF suspension pour pièce manquante",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 14,
+    "query": "CAF bloque mon dossier, aucun paiement",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 15,
+    "query": "CAF me demande de payer une créance",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 16,
+    "query": "CAF m'accuse de fraude, indu",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 17,
+    "query": "CAF a suspendu mes prestations",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 18,
+    "query": "APL supprimée CAF contestation",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 19,
+    "query": "CAF demande remboursement et menace saisie",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 20,
+    "query": "CAF trop perçu calcul faux",
+    "expectFlow": "caf",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "caf"
+  },
+  {
+    "id": 21,
+    "query": "Proposition de rectification impôts reçue, délai de réponse ?",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 22,
+    "query": "Proposition de rectification L64 abus de droit",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 23,
+    "query": "Lettre impôts abus de droit article L64",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 24,
+    "query": "Contrôle fiscal proposition de rectification",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 25,
+    "query": "Rectification impôts, observations à envoyer",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 26,
+    "query": "Majorations impôts 10% suite retard",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 27,
+    "query": "Pénalité 40% mauvaise foi contestation",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 28,
+    "query": "Amende fiscale et pénalités impôts",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 29,
+    "query": "Impôts majoration 80% contestation",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 30,
+    "query": "Remise gracieuse pénalités impôts",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 31,
+    "query": "Erreur déclaration revenus, rectifier",
+    "expectFlow": "tax_declaration",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_declaration"
+  },
+  {
+    "id": 32,
+    "query": "Remboursement impôts non reçu",
+    "expectFlow": "tax_declaration",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_declaration"
+  },
+  {
+    "id": 33,
+    "query": "Messagerie impots.gouv réclamation",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 34,
+    "query": "Avis d'imposition erroné contestation",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 35,
+    "query": "Prélèvement à la source trop élevé correction",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 36,
+    "query": "Demande de justification impôts",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 37,
+    "query": "Taxe foncière contestation",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 38,
+    "query": "Proposition rectification sur donation viager",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 39,
+    "query": "Rectification base imposable impôts",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 40,
+    "query": "Abus de droit fiscal L.64 contestation",
+    "expectFlow": "tax_rectif",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "tax_rectif"
+  },
+  {
+    "id": 41,
+    "query": "Je veux contester une amende radar",
+    "expectFlow": "justice",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "justice_recours_admin"
+  },
+  {
+    "id": 42,
+    "query": "PV stationnement contestation",
+    "expectFlow": "justice",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "justice_recours_admin"
+  },
+  {
+    "id": 43,
+    "query": "Contravention injuste comment contester",
+    "expectFlow": "justice",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "justice_recours_admin"
+  },
+  {
+    "id": 44,
+    "query": "Amende majorée je conteste",
+    "expectFlow": "justice",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "justice_recours_admin"
+  },
+  {
+    "id": 45,
+    "query": "PV erreur de plaque contestation",
+    "expectFlow": "justice",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "justice_recours_admin"
+  },
+  {
+    "id": 46,
+    "query": "Amende forfaitaire contestation en ligne",
+    "expectFlow": "justice",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "justice_recours_admin"
+  },
+  {
+    "id": 47,
+    "query": "Je n'étais pas le conducteur amende",
+    "expectFlow": "justice",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "justice_recours_admin"
+  },
+  {
+    "id": 48,
+    "query": "Contestations amendes ANTAI",
+    "expectFlow": "justice",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "justice_recours_admin"
+  },
+  {
+    "id": 49,
+    "query": "Amende transport contestation",
+    "expectFlow": "justice",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "justice_recours_admin"
+  },
+  {
+    "id": 50,
+    "query": "PV radar feu rouge contester",
+    "expectFlow": "justice",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "justice_recours_admin"
+  },
+  {
+    "id": 51,
+    "query": "Amende pour non port de ceinture contester",
+    "expectFlow": "justice",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "justice_recours_admin"
+  },
+  {
+    "id": 52,
+    "query": "Je reçois une amende sans preuve",
+    "expectFlow": "justice",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "justice_recours_admin"
+  },
+  {
+    "id": 53,
+    "query": "Amende pour stationnement gênant contester",
+    "expectFlow": "justice",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "justice_recours_admin"
+  },
+  {
+    "id": 54,
+    "query": "PV reçu mais véhicule vendu",
+    "expectFlow": "justice",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "justice_recours_admin"
+  },
+  {
+    "id": 55,
+    "query": "Contravention contestation délai dépassé",
+    "expectFlow": "justice",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "justice_recours_admin"
+  },
+  {
+    "id": 56,
+    "query": "Paiement non autorisé carte bancaire, que faire ?",
+    "expectFlow": "banque",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "banque_fraude"
+  },
+  {
+    "id": 57,
+    "query": "Fraude CB opérations non autorisées",
+    "expectFlow": "banque",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "banque_fraude"
+  },
+  {
+    "id": 58,
+    "query": "Transaction non autorisée sur mon compte",
+    "expectFlow": "banque",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "banque_fraude"
+  },
+  {
+    "id": 59,
+    "query": "Phishing bancaire, prélèvements inconnus",
+    "expectFlow": "banque",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "banque_fraude"
+  },
+  {
+    "id": 60,
+    "query": "Virement frauduleux sur mon compte",
+    "expectFlow": "banque",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "banque_fraude"
+  },
+  {
+    "id": 61,
+    "query": "Banque refuse de rembourser une fraude carte",
+    "expectFlow": "banque",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "banque_fraude"
+  },
+  {
+    "id": 62,
+    "query": "Frais bancaires abusifs commission d'intervention",
+    "expectFlow": "banque",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "banque_frais"
+  },
+  {
+    "id": 63,
+    "query": "Agios trop élevés contestation",
+    "expectFlow": "banque",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "banque_frais"
+  },
+  {
+    "id": 64,
+    "query": "Frais d'incident abusifs banque",
+    "expectFlow": "banque",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "banque_frais"
+  },
+  {
+    "id": 65,
+    "query": "Surendettement dossier Banque de France",
+    "expectFlow": "banque",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "banque_surendettement"
+  },
+  {
+    "id": 66,
+    "query": "Commission de surendettement Banque de France",
+    "expectFlow": "banque",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "banque_surendettement"
+  },
+  {
+    "id": 67,
+    "query": "Je veux déposer un dossier de surendettement",
+    "expectFlow": "banque",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "banque_surendettement"
+  },
+  {
+    "id": 68,
+    "query": "Banque fraude par carte virtuelle",
+    "expectFlow": "banque",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "banque_fraude"
+  },
+  {
+    "id": 69,
+    "query": "Paiements CB frauduleux après vol",
+    "expectFlow": "banque",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "banque_fraude"
+  },
+  {
+    "id": 70,
+    "query": "Frais bancaires injustifiés",
+    "expectFlow": "banque",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "banque_frais"
+  },
+  {
+    "id": 71,
+    "query": "Loyer impayé commandement de payer huissier",
+    "expectFlow": "logement",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "logement_impayes"
+  },
+  {
+    "id": 72,
+    "query": "Risque expulsion loyers impayés",
+    "expectFlow": "logement",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "logement_impayes"
+  },
+  {
+    "id": 73,
+    "query": "Mon propriétaire retient le dépôt de garantie",
+    "expectFlow": "logement",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "logement_litige"
+  },
+  {
+    "id": 74,
+    "query": "Litige état des lieux dépôt de garantie",
+    "expectFlow": "logement",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "logement_litige"
+  },
+  {
+    "id": 75,
+    "query": "Logement insalubre moisissure humidité",
+    "expectFlow": "logement",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "logement_litige"
+  },
+  {
+    "id": 76,
+    "query": "Appartement indécent que faire ?",
+    "expectFlow": "logement",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "logement_litige"
+  },
+  {
+    "id": 77,
+    "query": "Assignation pour loyers impayés",
+    "expectFlow": "logement",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "logement_impayes"
+  },
+  {
+    "id": 78,
+    "query": "Bailleur refuse de rendre caution",
+    "expectFlow": "logement",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "logement_litige"
+  },
+  {
+    "id": 79,
+    "query": "Propriétaire ne fait pas les travaux humidité",
+    "expectFlow": "logement",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "logement_litige"
+  },
+  {
+    "id": 80,
+    "query": "Commandement de payer reçu",
+    "expectFlow": "logement",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "logement_impayes"
+  },
+  {
+    "id": 81,
+    "query": "CPAM refuse mon remboursement",
+    "expectFlow": "ameli",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "ameli"
+  },
+  {
+    "id": 82,
+    "query": "Ameli refus de prise en charge",
+    "expectFlow": "ameli",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "ameli"
+  },
+  {
+    "id": 83,
+    "query": "Indu CPAM trop perçu",
+    "expectFlow": "ameli",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "ameli"
+  },
+  {
+    "id": 84,
+    "query": "AMELI remboursement refusé",
+    "expectFlow": "ameli",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "ameli"
+  },
+  {
+    "id": 85,
+    "query": "CPAM me demande de rembourser un indu",
+    "expectFlow": "ameli",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "ameli"
+  },
+  {
+    "id": 86,
+    "query": "Refus remboursement CPAM contestation",
+    "expectFlow": "ameli",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "ameli"
+  },
+  {
+    "id": 87,
+    "query": "Ameli dossier bloqué remboursement",
+    "expectFlow": "ameli",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "ameli"
+  },
+  {
+    "id": 88,
+    "query": "CPAM rejette ma demande de remboursement",
+    "expectFlow": "ameli",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "ameli"
+  },
+  {
+    "id": 89,
+    "query": "Ameli trop perçu indu",
+    "expectFlow": "ameli",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "ameli"
+  },
+  {
+    "id": 90,
+    "query": "CPAM refus arrêt maladie paiement",
+    "expectFlow": "ameli",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "ameli"
+  },
+  {
+    "id": 91,
+    "query": "Renouveler passeport adulte",
+    "expectFlow": "passport",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "passport"
+  },
+  {
+    "id": 92,
+    "query": "Carte d'identité perdue renouvellement",
+    "expectFlow": "cni",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "cni"
+  },
+  {
+    "id": 93,
+    "query": "Acte de naissance demande copie intégrale",
+    "expectFlow": "vie_civile",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": null
+  },
+  {
+    "id": 94,
+    "query": "Déclaration de décès démarches",
+    "expectFlow": "vie_civile",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": null
+  },
+  {
+    "id": 95,
+    "query": "Se marier dossier mairie",
+    "expectFlow": "mariage",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "mariage"
+  },
+  {
+    "id": 96,
+    "query": "Passeport mineur rendez-vous mairie",
+    "expectFlow": "passport",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "passport"
+  },
+  {
+    "id": 97,
+    "query": "Renouvellement CNI adulte",
+    "expectFlow": "cni",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": "cni"
+  },
+  {
+    "id": 98,
+    "query": "Obtenir un acte de décès",
+    "expectFlow": "vie_civile",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": null
+  },
+  {
+    "id": 99,
+    "query": "Demande livret de famille",
+    "expectFlow": "vie_civile",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": null
+  },
+  {
+    "id": 100,
+    "query": "Acte de mariage obtenir copie",
+    "expectFlow": "vie_civile",
+    "answers": {},
+    "expectStrategy": "standard",
+    "expectPack": null
+  }
+]

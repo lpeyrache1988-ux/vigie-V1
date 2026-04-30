@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vigie — Sauvegarde</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="brand">
+      <div class="logo">V</div>
+      <div>
+        <div style="font-weight:900">Vigie</div>
+        <div class="muted">Sauvegarde / Import</div>
+      </div>
+    </div>
+    <div class="nav">
+      <a href="index.html">Accueil</a>
+      <a href="dashboard.html">Dashboard</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 8px 0">Sauvegarder vos données</h2>
+    <div class="muted">Vos dossiers et préférences sont stockés sur votre appareil (localStorage). Vous pouvez exporter un fichier de sauvegarde et le réimporter plus tard.</div>
+    <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap">
+      <button class="btn primary" onclick="doExport()">⬇️ Exporter</button>
+      <label class="btn" style="cursor:pointer">
+        ⬆️ Importer
+        <input id="file" type="file" accept="application/json" style="display:none" onchange="doImport(event)">
+      </label>
+      <button class="btn" onclick="toggleDebug()">🛠️ Debug UI</button>
+    </div>
+    <div id="status" class="small muted" style="margin-top:10px"></div>
+  </div>
+
+  <details class="card">
+    <summary><b>Conseils</b> ▾</summary>
+    <ul style="margin-top:10px">
+      <li>Exportez avant chaque mise à jour importante.</li>
+      <li>En import, le mode <b>fusion</b> n’écrase pas ce qui existe déjà.</li>
+      <li>Le mode debug affiche les tags techniques (Flow/Score) pour les tests.</li>
+    </ul>
+  </details>
+
+</div>
+
+<script src="assets/storage_v46.js"></script>
+<script>
+  (function(){
+    try{ window.VIGIE_STORAGE_V46 && window.VIGIE_STORAGE_V46.migrate(); }catch(e){}
+    setStatus();
+  })();
+
+  function setStatus(msg){
+    const el=document.getElementById('status');
+    const v = (window.VIGIE_STORAGE_V46 ? window.VIGIE_STORAGE_V46.getVersion() : 0);
+    el.textContent = (msg? (msg+" — ") : "") + "Schéma données: v"+v + " | Debug: " + (localStorage.getItem('vigie_debug')==='1' ? "ON" : "OFF");
+  }
+
+  function download(filename, text){
+    const blob = new Blob([text], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  }
+
+  function doExport(){
+    try{
+      const payload = window.VIGIE_STORAGE_V46.exportAll();
+      const name = "vigie_backup_"+new Date().toISOString().slice(0,10)+".json";
+      download(name, JSON.stringify(payload, null, 2));
+      setStatus("Export OK");
+    }catch(e){
+      alert("Export impossible: "+e.message);
+    }
+  }
+
+  async function doImport(ev){
+    const f = ev.target.files && ev.target.files[0];
+    if(!f) return;
+    const text = await f.text();
+    let payload=null;
+    try{ payload = JSON.parse(text); }catch(e){ alert("Fichier JSON invalide"); return; }
+    const mode = confirm("Importer en FUSION (OK) ou REMPLACER (Annuler) ?\n\nOK = fusion (n’écrase pas l’existant)\nAnnuler = remplacement (efface puis importe)") ? "merge" : "replace";
+    try{
+      window.VIGIE_STORAGE_V46.importAll(payload, mode);
+      setStatus("Import OK ("+mode+")");
+      alert("Import OK ✅");
+    }catch(e){
+      alert("Import impossible: "+e.message);
+    }
+  }
+
+  function toggleDebug(){
+    const cur = localStorage.getItem('vigie_debug')==='1';
+    localStorage.setItem('vigie_debug', cur ? '0' : '1');
+    setStatus("Debug "+(!cur ? "activé" : "désactivé"));
+  }
+</script>
+</body>
+</html>

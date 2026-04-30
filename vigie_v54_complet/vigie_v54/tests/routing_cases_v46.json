@@ -1,0 +1,23 @@
+[
+  {
+    "q": "impôt CAF",
+    "expect_disambiguation": true
+  },
+  {
+    "q": "proposition de rectification L64",
+    "pillar": "impots",
+    "expect_case": "tax_rectif_l64"
+  },
+  {
+    "q": "trop perçu CAF",
+    "pillar": "caf"
+  },
+  {
+    "q": "fraude CB",
+    "pillar": "banque"
+  },
+  {
+    "q": "dépôt de garantie non rendu",
+    "pillar": "logement"
+  }
+]

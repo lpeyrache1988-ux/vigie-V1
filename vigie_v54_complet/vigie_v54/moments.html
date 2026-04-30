@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vigie — Moments de vie</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+.moment-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-xl);
+  background: #fff;
+  cursor: pointer;
+  transition: all .15s;
+  box-shadow: var(--shadow-xs);
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-body);
+}
+.moment-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow); }
+.moment-icon { font-size: 32px; flex-shrink: 0; }
+.moment-title { font-family: var(--font-display); font-weight: 700; font-size: 16px; margin-bottom: 2px; }
+.moment-desc { font-size: 13px; color: var(--text-2); }
+.step-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: #fff;
+  transition: background .15s;
+}
+.step-row.obligatoire { border-left: 3px solid var(--red-500); }
+.step-row.done { background: var(--green-50); border-color: var(--green-100); }
+.step-row.done .step-label { text-decoration: line-through; color: var(--text-3); }
+.step-check {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  background: #fff;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all .15s;
+  margin-top: 1px;
+}
+.step-check.done { background: var(--green-500); border-color: var(--green-500); }
+.step-label { font-size: 14px; font-weight: 500; flex: 1; }
+.step-meta { font-size: 11px; color: var(--text-2); margin-top: 3px; }
+.step-delay { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 700; background: var(--amber-50); color: var(--amber-600); border: 1px solid var(--amber-100); margin-right: 4px; }
+.progress-moment { height: 8px; border-radius: 999px; background: var(--slate-200); overflow: hidden; margin: 8px 0; }
+.progress-moment-fill { height: 100%; background: var(--green-500); border-radius: 999px; transition: width .4s; }
+.date-input-wrap { display:flex; gap:8px; align-items:center; margin-bottom:16px; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container"><div class="inner">
+    <a href="index.html" class="brand">
+      <div class="brand-logo">V</div>
+      <div><div class="brand-name">Vigie</div><div class="brand-tagline">Moments de vie</div></div>
+    </a>
+    <nav class="header-nav">
+      <a class="nav-link" href="index.html">🏠 <span>Accueil</span></a>
+      <a class="nav-link" href="courrier.html">📬 <span>Courrier</span></a>
+      <a class="nav-link active" href="moments.html">🗓️ <span>Moments</span></a>
+      <a class="nav-link" href="rappels.html">🔔 <span>Rappels</span></a>
+      <a class="nav-link" href="dashboard.html">📁 <span>Dossiers</span></a>
+    </nav>
+  </div></div>
+</header>
+
+<div class="main">
+<div class="container">
+
+  <div id="listView">
+    <div style="margin-bottom:20px">
+      <h1 class="h1" style="margin-bottom:6px">🗓️ Moments de vie</h1>
+      <p class="muted">Les grandes transitions de votre vie déclenchent des cascades de démarches administratives. Vigie vous guide étape par étape.</p>
+    </div>
+    <div id="momentGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px"></div>
+  </div>
+
+  <div id="detailView" style="display:none"></div>
+
+</div>
+</div>
+
+<div class="footerNote">
+  ℹ️ Informations générales — pas un conseil juridique. Les délais sont indicatifs, vérifiez vos courriers officiels. <a href="mentions.html">Mentions légales</a>
+</div>
+
+<script src="data/moments_de_vie.js"></script>
+<script src="data/rappels.js"></script>
+<script>
+function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+const STORAGE_KEY = 'vigie_moments_progress';
+function loadProgress(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'); }catch(e){ return {}; } }
+function saveProgress(p){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }catch(e){} }
+
+function getStepsDone(momentId){
+  const p = loadProgress();
+  return p[momentId] || {};
+}
+function toggleStep(momentId, stepId){
+  const p = loadProgress();
+  p[momentId] = p[momentId] || {};
+  p[momentId][stepId] = !p[momentId][stepId];
+  saveProgress(p);
+  renderDetail(momentId, document.getElementById('dateRef')?.value);
+  updateMomentCard(momentId);
+}
+
+function renderGrid(){
+  const moments = window.VIGIE_MOMENTS || [];
+  const grid = document.getElementById('momentGrid');
+  grid.innerHTML = '';
+  moments.forEach(m => {
+    const progress = getStepsDone(m.id);
+    const done = Object.values(progress).filter(Boolean).length;
+    const total = m.steps.length;
+    const pct = total ? Math.round(done / total * 100) : 0;
+
+    const card = document.createElement('button');
+    card.className = 'moment-card';
+    card.setAttribute('data-id', m.id);
+    card.innerHTML = `
+      <div class="moment-icon">${m.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div class="moment-title">${esc(m.label)}</div>
+        <div class="moment-desc">${esc(m.desc)}</div>
+        ${pct > 0 ? `
+        <div class="progress-moment" style="margin-top:8px">
+          <div class="progress-moment-fill" style="width:${pct}%"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text-2);margin-top:2px">${done}/${total} étapes</div>` : `
+        <div style="font-size:11px;color:var(--text-2);margin-top:4px">${total} démarches à faire</div>`}
+      </div>
+      <div style="font-size:18px;color:var(--text-3)">→</div>`;
+    card.addEventListener('click', () => showDetail(m.id));
+    grid.appendChild(card);
+  });
+}
+
+function updateMomentCard(momentId){
+  const card = document.querySelector(`.moment-card[data-id="${momentId}"]`);
+  if(!card) return;
+  const m = (window.VIGIE_MOMENTS||[]).find(x=>x.id===momentId);
+  if(!m) return;
+  const progress = getStepsDone(momentId);
+  const done = Object.values(progress).filter(Boolean).length;
+  const total = m.steps.length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const progressEl = card.querySelector('.progress-moment-fill');
+  if(progressEl) progressEl.style.width = pct + '%';
+  const countEl = card.querySelectorAll('div')[4];
+  if(countEl) countEl.textContent = `${done}/${total} étapes`;
+}
+
+function showDetail(momentId){
+  document.getElementById('listView').style.display = 'none';
+  document.getElementById('detailView').style.display = '';
+  renderDetail(momentId, null);
+}
+
+function renderDetail(momentId, dateRef){
+  const m = (window.VIGIE_MOMENTS||[]).find(x=>x.id===momentId);
+  if(!m) return;
+  const progress = getStepsDone(momentId);
+  const done = Object.values(progress).filter(Boolean).length;
+  const total = m.steps.length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+
+  const urgColors = { legal_deadline:'var(--red-600)', admin_deadline:'var(--amber-600)', none:'var(--green-600)' };
+  const urgLabel  = { legal_deadline:'🔴 Délai légal sur certaines démarches', admin_deadline:'🟡 Délais administratifs à respecter', none:'🟢 Pas d\'urgence immédiate' };
+
+  const stepsHtml = m.steps.map(s => {
+    const isDone = !!progress[s.id];
+    return `
+    <div class="step-row${s.obligatoire?' obligatoire':''}${isDone?' done':''}">
+      <div class="step-check${isDone?' done':''}" onclick="toggleStep('${momentId}','${s.id}')" title="${isDone?'Marquer comme non fait':'Marquer comme fait'}">
+        ${isDone ? '<svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>' : ''}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="step-label">${esc(s.label)}</div>
+        <div class="step-meta">
+          ${s.delay ? `<span class="step-delay">⏱ ${esc(s.delay)}</span>` : ''}
+          ${s.obligatoire ? `<span class="badge badge-red" style="font-size:10px;padding:2px 6px">Obligatoire</span>` : ''}
+          ${s.organisme ? `<span style="color:var(--text-2)">${esc(s.organisme)}</span>` : ''}
+        </div>
+      </div>
+      <div style="display:flex;gap:4px;align-items:center">
+        ${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary" style="font-size:11px;padding:4px 8px">↗</a>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('detailView').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <button class="btn" onclick="backToList()">← Retour</button>
+      <h1 class="h1" style="font-size:22px;margin:0">${m.icon} ${esc(m.label)}</h1>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div>
+          <div style="font-weight:700;font-size:14px">${done}/${total} étapes complétées</div>
+          <div style="color:${urgColors[m.urgency]||'var(--text-2)'};font-size:13px;font-weight:600;margin-top:2px">${urgLabel[m.urgency]||''}</div>
+        </div>
+        <div style="font-size:24px;font-weight:900;font-family:var(--font-display);color:${pct===100?'var(--green-600)':'var(--primary)'}">${pct}%</div>
+      </div>
+      <div class="progress-moment"><div class="progress-moment-fill" style="width:${pct}%"></div></div>
+      ${m.urgency_hint ? `<div style="margin-top:8px;font-size:13px;color:${urgColors[m.urgency]}">${esc(m.urgency_hint)}</div>` : ''}
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div class="date-input-wrap">
+        <label class="label" style="margin:0">Date de référence de l'événement :</label>
+        <input type="date" id="dateRef" class="input" style="width:auto;margin:0;max-width:200px" value="${dateRef||''}"
+          onchange="renderDetail('${momentId}', this.value)">
+        <button class="btn btn-sm" onclick="importerRappels('${momentId}')">🔔 Importer dans mes rappels</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <h2 class="h2" style="margin-bottom:12px">📋 Checklist des démarches</h2>
+      <div style="margin-bottom:8px">
+        <span class="badge badge-red" style="font-size:11px">⬤ Bord rouge = obligatoire</span>
+        <span style="margin:0 8px;color:var(--text-3)">·</span>
+        <span style="font-size:12px;color:var(--text-2)">Cliquez sur ✓ pour cocher chaque étape</span>
+      </div>
+      <div style="display:grid;gap:8px">${stepsHtml}</div>
+    </div>
+
+    ${pct === 100 ? `
+    <div class="alert alert-green" style="margin-bottom:14px">
+      <div>🎉 <strong>Toutes les étapes sont complétées !</strong> Votre transition "${esc(m.label)}" est administrativement à jour.</div>
+    </div>` : ''}
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="btn" onclick="backToList()">← Retour à la liste</button>
+      <button class="btn" onclick="resetMoment('${momentId}')">🔄 Réinitialiser</button>
+      <a href="dashboard.html" class="btn">📁 Voir mes dossiers</a>
+    </div>
+  `;
+}
+
+function importerRappels(momentId){
+  const dateInput = document.getElementById('dateRef');
+  const dateRef = dateInput?.value || null;
+  if(!dateRef){
+    alert('Indiquez d\'abord la date de référence de l\'événement pour calculer les échéances.');
+    dateInput?.focus();
+    return;
+  }
+  const added = window.VIGIE_RAPPELS.importerMoment(momentId, dateRef);
+  if(added.length > 0){
+    const confirm_msg = `${added.length} rappel(s) ajouté(s) à votre calendrier.\n\nVoulez-vous les consulter maintenant ?`;
+    if(window.confirm(confirm_msg)) location.href = 'rappels.html';
+  } else {
+    alert('Aucun rappel n\'a pu être créé. Vérifiez les étapes et la date.');
+  }
+}
+
+function resetMoment(momentId){
+  if(!confirm('Réinitialiser toutes les étapes cochées ?')) return;
+  const p = loadProgress();
+  delete p[momentId];
+  saveProgress(p);
+  renderDetail(momentId, null);
+  updateMomentCard(momentId);
+}
+
+function backToList(){
+  document.getElementById('listView').style.display = '';
+  document.getElementById('detailView').style.display = 'none';
+  renderGrid();
+}
+
+// Init
+renderGrid();
+
+// Check URL param
+const urlMoment = new URLSearchParams(location.search).get('moment');
+if(urlMoment) showDetail(urlMoment);
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vigie — Piliers</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="brand">
+      <div class="logo">V</div>
+      <div>
+        <div style="font-weight:900">Vigie</div>
+        <div class="small">Piliers • problèmes fréquents • solutions</div>
+      </div>
+    </div>
+    <div class="nav">
+      <a class="btn" href="parcours.html">🧩 Parcours</a>
+            <a class="btn" href="pillars.html">🧱 Piliers</a>
+<a class="btn" href="index.html">🏠 Accueil</a>
+      <a class="btn" href="dashboard.html">📁 Dashboard</a>
+      <a class="btn" href="wizard.html">🧭 Assistant</a>
+    </div>
+  </div>
+
+  <div style="height:14px"></div>
+
+  <div class="card">
+    <div class="h2">Piliers</div>
+    <p class="p">Choisis un pilier : tu verras les problèmes les plus fréquents, les premières étapes, et les liens officiels.</p>
+  </div>
+
+  <div style="height:14px"></div>
+
+  <div id="pillarsGrid" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));"></div>
+
+  <div style="height:14px"></div>
+  <div id="pillarDetails"></div>
+
+  <div class="footer">Astuce : clique un problème → on pré-remplit l’assistant avec le bon scénario quand possible.</div>
+</div>
+
+<script src="data/pillars_catalog.js"></script>
+<script src="data/sources_registry.js"></script>
+<script src="data/checklists_v30.js"></script>
+<script src="data/packs_v30.js"></script>
+<script src="data/flows_v30.js"></script>
+<script src="data/scenarios_v2.js"></script>
+<script src="data/engine_v30.js"></script>
+<script>
+function esc(s){ return (s||'').replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+
+function render(){
+  const pillars = window.VIGIE_PILLARS || [];
+  const grid = document.getElementById('pillarsGrid');
+  const details = document.getElementById('pillarDetails');
+  grid.innerHTML = pillars.map(p=>`
+    <button class="btn" style="text-align:left" onclick="openPillar('${esc(p.id)}')">
+      <div style="font-weight:900">${esc(p.label)}</div>
+      <div class="small">${(p.problems||[]).length} problèmes fréquents</div>
+    </button>
+  `).join('');
+  // auto open first
+  if(pillars[0]) openPillar(pillars[0].id);
+}
+function findScenarioForProblem(title){
+  const q = title.toLowerCase();
+  const s = (window.VIGIE_MATCH_SCENARIO ? window.VIGIE_MATCH_SCENARIO(q) : null);
+  return s;
+}
+function openPillar(id){
+  const p = (window.VIGIE_PILLARS||[]).find(x=>x.id===id);
+  const host = document.getElementById('pillarDetails');
+  if(!p){ host.innerHTML = ''; return; }
+  host.innerHTML = `
+    <div class="card">
+      <div class="h2">${esc(p.label)}</div>
+      <div class="sep"></div>
+      ${(p.problems||[]).map(pb=>{
+        const scen = findScenarioForProblem(pb.title||'');
+        const hint = scen ? `• scénario détecté : <b>${esc(scen.label||scen.id)}</b>` : '• scénario : non trouvé (orientation générique)';
+        return `
+          <div class="card" style="margin:10px 0">
+            <div style="font-weight:900">${esc(pb.title||'')}</div>
+            <div class="small">${esc(pb.why||'')}</div>
+            <div class="small" style="margin-top:6px"><b>Premières étapes :</b><br>${(pb.steps||[]).map(s=>`• ${esc(s)}`).join('<br>')}</div>
+            <div class="small" style="margin-top:6px"><b>Liens :</b> ${(pb.links||[]).slice(0,4).map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noreferrer">${esc(l.label)}</a>`).join(' • ')}</div>
+            <div class="small" style="margin-top:6px">${hint}</div>
+            <div style="margin-top:8px">
+              <button class="btn primary" onclick="start('${esc(pb.title||p.label)}')">Ouvrir dans l’assistant</button>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function start(q){
+  const flow = V30.matchFlow(q);
+  const d = V30.createDossier({query:q, flowId:flow.id, cp:""});
+  V30.upsertDossier(d);
+  location.href = 'wizard.html?id=' + encodeURIComponent(d.id);
+}
+render();
+</script>
+<div class="bottomnav">
+  <a href="index.html">🏠 Accueil</a>
+  <a href="map.html">🗺️ Carte</a>
+  <a href="dashboard.html">📊 Dashboard</a>
+</div>
+<div class="footerNote">
+  ℹ️ Vigie citoyen est un outil d’accompagnement. Les informations fournies sont générales et ne constituent pas un conseil juridique.
+  <br>🔒 Vos données restent sur votre appareil (stockage local). Aucune compilation automatique.
+  <br><a href="mentions.html">Mentions légales</a>
+</div>
+</body>
+</html>

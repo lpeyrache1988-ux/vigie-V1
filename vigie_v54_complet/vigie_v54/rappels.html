@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vigie — Mes rappels</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+.rappel-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  background: #fff;
+  transition: all .15s;
+  box-shadow: var(--shadow-xs);
+}
+.rappel-card.retard  { border-color: var(--red-500);   background: var(--red-50);   }
+.rappel-card.critique{ border-color: var(--red-400);   background: #fff5f5;         }
+.rappel-card.urgent  { border-color: var(--amber-400); background: var(--amber-50); }
+.rappel-card.attention{ border-color: var(--blue-200);                              }
+.rappel-card.done    { opacity: .5; }
+.rappel-check {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  background: #fff;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all .15s;
+  margin-top: 2px;
+}
+.rappel-check.done { background: var(--green-500); border-color: var(--green-500); }
+.days-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.days-retard  { background: var(--red-100);   color: var(--red-700);  }
+.days-critique{ background: var(--red-50);    color: var(--red-600);  }
+.days-urgent  { background: var(--amber-50);  color: var(--amber-700);}
+.days-attention{background: var(--blue-50);   color: var(--blue-700); }
+.days-info    { background: var(--slate-100); color: var(--slate-600);}
+.section-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: 8px 0 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-2);
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container"><div class="inner">
+    <a href="index.html" class="brand">
+      <div class="brand-logo">V</div>
+      <div><div class="brand-name">Vigie</div><div class="brand-tagline">Mes rappels</div></div>
+    </a>
+    <nav class="header-nav">
+      <a class="nav-link" href="index.html">🏠 <span>Accueil</span></a>
+      <a class="nav-link" href="courrier.html">📬 <span>Courrier</span></a>
+      <a class="nav-link" href="moments.html">🗓️ <span>Moments</span></a>
+      <a class="nav-link active" href="rappels.html">🔔 <span>Rappels</span></a>
+      <a class="nav-link" href="dashboard.html">📁 <span>Dossiers</span></a>
+    </nav>
+  </div></div>
+</header>
+
+<div class="main">
+<div class="container" style="max-width:720px">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px">
+    <div>
+      <h1 class="h1" style="margin-bottom:4px">🔔 Mes rappels</h1>
+      <p class="muted" id="nbAlertes"></p>
+    </div>
+    <button class="btn btn-primary" onclick="showAjout()">+ Ajouter un rappel</button>
+  </div>
+
+  <!-- Formulaire ajout -->
+  <div id="formAjout" style="display:none" class="card" style="margin-bottom:14px">
+    <h2 class="h2" style="margin-bottom:12px">Nouveau rappel</h2>
+    <div class="field">
+      <label class="label">Titre *</label>
+      <input type="text" id="f_titre" class="input" placeholder="Ex : Répondre à la CAF avant le 15 mai">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field">
+        <label class="label">Date d'échéance</label>
+        <input type="date" id="f_date" class="input">
+      </div>
+      <div class="field">
+        <label class="label">Organisme</label>
+        <input type="text" id="f_organisme" class="input" placeholder="CAF, CPAM, Impôts…">
+      </div>
+    </div>
+    <div class="field">
+      <label class="label">Description (optionnel)</label>
+      <textarea id="f_desc" class="input" style="min-height:60px" placeholder="Détails, numéro de dossier, notes…"></textarea>
+    </div>
+    <div class="field">
+      <label class="label">Pilier</label>
+      <select id="f_pillar" class="select" style="margin-top:4px">
+        <option value="autres">Général</option>
+        <option value="impots">💰 Impôts</option>
+        <option value="caf">👶 CAF</option>
+        <option value="sante">🩺 Santé / CPAM</option>
+        <option value="travail">💼 France Travail</option>
+        <option value="banque">🏦 Banque</option>
+        <option value="logement">🏠 Logement</option>
+        <option value="institutions">🪪 Mairie / ANTS</option>
+        <option value="retraite">👴 Retraite</option>
+        <option value="consommation">🛒 Consommation</option>
+        <option value="justice">⚖️ Justice</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="ajouterRappel()">Ajouter</button>
+      <button class="btn" onclick="hideAjout()">Annuler</button>
+    </div>
+  </div>
+
+  <!-- Alertes actives -->
+  <div id="alertesSection"></div>
+
+  <!-- Calendrier système -->
+  <div class="card" style="margin-bottom:14px">
+    <details>
+      <summary>📅 Calendrier administratif annuel (dates clés)</summary>
+      <div id="sysRappels" style="margin-top:10px;display:grid;gap:8px"></div>
+    </details>
+  </div>
+
+  <!-- Rappels à venir -->
+  <div id="avenirSection"></div>
+
+  <!-- Rappels faits -->
+  <div id="doneSection"></div>
+
+  <!-- Liens moments de vie -->
+  <div class="card" style="text-align:center;padding:24px;margin-bottom:14px">
+    <div style="font-size:28px;margin-bottom:8px">🗓️</div>
+    <div style="font-weight:700;margin-bottom:6px">Déménagement, naissance, retraite…</div>
+    <p class="muted" style="margin-bottom:14px">Les moments de vie génèrent des dizaines de démarches. Importez-les automatiquement.</p>
+    <a href="moments.html" class="btn btn-primary">Voir les moments de vie →</a>
+  </div>
+
+</div>
+</div>
+
+<div class="footerNote">
+  ℹ️ Informations générales — pas un conseil juridique. Les dates sont indicatives, vérifiez vos courriers officiels. Tous vos rappels restent sur votre appareil. <a href="mentions.html">Mentions légales</a>
+</div>
+
+<script src="data/rappels.js"></script>
+<script>
+function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+const R = window.VIGIE_RAPPELS;
+
+const PILLAR_ICONS = { impots:'💰',caf:'👶',sante:'🩺',travail:'💼',banque:'🏦',logement:'🏠',institutions:'🪪',retraite:'👴',consommation:'🛒',justice:'⚖️',autres:'📋' };
+const NIVEAU_LABELS = { retard:'🔴 En retard', critique:'🔴 Critique', urgent:'🟡 Urgent', attention:'🔵 Attention', info:'⚪ À venir' };
+
+function showAjout(){ document.getElementById('formAjout').style.display=''; document.getElementById('f_titre').focus(); }
+function hideAjout(){ document.getElementById('formAjout').style.display='none'; }
+
+function ajouterRappel(){
+  const titre = document.getElementById('f_titre').value.trim();
+  if(!titre){ document.getElementById('f_titre').focus(); return; }
+  R.add({
+    titre,
+    date_echeance: document.getElementById('f_date').value || null,
+    organisme: document.getElementById('f_organisme').value.trim(),
+    description: document.getElementById('f_desc').value.trim(),
+    pillar: document.getElementById('f_pillar').value,
+  });
+  hideAjout();
+  document.getElementById('f_titre').value='';
+  document.getElementById('f_date').value='';
+  document.getElementById('f_organisme').value='';
+  document.getElementById('f_desc').value='';
+  render();
+}
+
+function toggleDone(id){ R.toggle(id); render(); }
+function supprimer(id){ if(confirm('Supprimer ce rappel ?')){ R.remove(id); render(); } }
+
+function renderRappelCard(r){
+  const days = r.days_left !== undefined ? r.days_left : R.daysUntil(r.date_echeance);
+  const niveau = r.niveau || 'info';
+  const daysLabel = days === null ? '' : days < 0 ? `il y a ${Math.abs(days)}j` : days === 0 ? "aujourd'hui" : `J-${days}`;
+
+  return `
+  <div class="rappel-card ${r.done?'done':niveau}" id="rcard_${r.id}">
+    <div class="rappel-check ${r.done?'done':''}" onclick="toggleDone('${r.id}')" title="${r.done?'Marquer à faire':'Marquer comme fait'}">
+      ${r.done?'<svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:700;font-size:14px;margin-bottom:3px">${esc(r.titre)}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:4px">
+        ${r.date_echeance ? `<span class="days-badge days-${r.done?'info':niveau}">${daysLabel} — ${R.fmtDate(r.date_echeance)}</span>` : ''}
+        ${r.organisme ? `<span class="badge badge-slate">${esc(r.organisme)}</span>` : ''}
+        ${PILLAR_ICONS[r.pillar]||''}
+      </div>
+      ${r.description ? `<div style="font-size:12px;color:var(--text-2)">${esc(r.description)}</div>` : ''}
+    </div>
+    <button onclick="supprimer('${r.id}')" class="btn btn-sm btn-ghost" title="Supprimer" style="flex-shrink:0">✕</button>
+  </div>`;
+}
+
+function render(){
+  const alertes = R.getAlertes();
+  const all = R.getAll();
+  const nb = R.getNbAlertes();
+
+  // Nb alertes
+  document.getElementById('nbAlertes').textContent = nb > 0
+    ? `${nb} rappel(s) urgent(s) ou en retard`
+    : 'Aucune urgence en cours';
+
+  // Alertes urgentes
+  const urgents = alertes.filter(r => ['retard','critique','urgent'].includes(r.niveau));
+  const alertesEl = document.getElementById('alertesSection');
+  if(urgents.length){
+    alertesEl.innerHTML = `
+      <div style="margin-bottom:14px">
+        <div class="section-title" style="color:var(--red-600)">🚨 Urgent / En retard (${urgents.length})</div>
+        <div style="display:grid;gap:8px">${urgents.map(renderRappelCard).join('')}</div>
+      </div>`;
+  } else alertesEl.innerHTML = '';
+
+  // À venir
+  const avenir = alertes.filter(r => ['attention','info'].includes(r.niveau));
+  const avenirEl = document.getElementById('avenirSection');
+  if(avenir.length){
+    avenirEl.innerHTML = `
+      <div style="margin-bottom:14px">
+        <div class="section-title">📅 À venir (${avenir.length})</div>
+        <div style="display:grid;gap:8px">${avenir.map(renderRappelCard).join('')}</div>
+      </div>`;
+  } else avenirEl.innerHTML = '';
+
+  // Faits
+  const done = all.filter(r => r.done);
+  const doneEl = document.getElementById('doneSection');
+  if(done.length){
+    doneEl.innerHTML = `
+      <details class="card" style="margin-bottom:14px">
+        <summary>✅ Complétés (${done.length})</summary>
+        <div style="margin-top:10px;display:grid;gap:8px">${done.map(r => renderRappelCard({...r, niveau:'info'})).join('')}</div>
+      </details>`;
+  } else doneEl.innerHTML = '';
+
+  // Sans date (aucune alerte ni done)
+  const sansDate = all.filter(r => !r.done && !r.date_echeance);
+  if(sansDate.length && !urgents.length && !avenir.length){
+    alertesEl.innerHTML = `
+      <div style="margin-bottom:14px">
+        <div class="section-title">📋 Rappels sans échéance</div>
+        <div style="display:grid;gap:8px">${sansDate.map(r => renderRappelCard({...r, niveau:'info'})).join('')}</div>
+      </div>`;
+  }
+
+  // Empty state
+  if(!all.length){
+    alertesEl.innerHTML = `
+      <div class="empty-state">
+        <div style="font-size:40px;margin-bottom:12px">🔔</div>
+        <div style="font-weight:700;margin-bottom:8px">Aucun rappel pour l'instant</div>
+        <p>Ajoutez vos démarches en cours ou importez-les depuis un <a href="moments.html">moment de vie</a>.</p>
+      </div>`;
+  }
+
+  // Calendrier système
+  const sysEl = document.getElementById('sysRappels');
+  const sys = R.getRappelsSysteme();
+  sysEl.innerHTML = sys.map(r => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="min-width:80px;font-size:12px;font-weight:600;color:${r.days_left<=30?'var(--amber-600)':'var(--text-2)'}">${R.fmtDate(r.date_echeance)}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${esc(r.titre)}</div>
+        <div style="font-size:11px;color:var(--text-2)">${esc(r.organisme)} · ${esc(r.description)}</div>
+      </div>
+      ${r.days_left !== null && r.days_left <= 30 ? `<span class="days-badge days-urgent">J-${r.days_left}</span>` : ''}
+    </div>`).join('');
+}
+
+render();
+</script>
+</body>
+</html>

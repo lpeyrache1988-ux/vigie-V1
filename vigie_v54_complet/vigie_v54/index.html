@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vigie — Copilote citoyen</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="container"><div class="inner">
+    <a href="index.html" class="brand">
+      <div class="brand-logo">V</div>
+      <div><div class="brand-name">Vigie</div><div class="brand-tagline">Copilote citoyen</div></div>
+    </a>
+    <nav class="header-nav">
+      <a class="nav-link active" href="index.html">🏠 <span>Accueil</span></a>
+      <a class="nav-link" href="parcours.html?guide=1">🧩 <span>Guidage</span></a>
+      <a class="nav-link" href="dashboard.html">📁 <span>Dossiers</span></a>
+      <a class="nav-link" href="map.html">🗺️ <span>Carte</span></a>
+      <a class="nav-link" href="recours_nationaux.html">⚖️ <span>Recours</span></a>
+      <a class="nav-link" href="courrier.html">📬 <span>Courrier</span></a>
+      <a class="nav-link" href="moments.html">🗓️ <span>Moments</span></a>
+      <a class="nav-link" href="rappels.html">🔔 <span>Rappels</span></a>
+    </nav>
+  </div></div>
+</header>
+
+<section class="hero">
+  <div class="container"><div class="hero-inner">
+    <div class="hero-badge">🛡️ Gratuit · Données locales · Pas de compte</div>
+    <h1>Face à l'administration,<br>vous n'êtes pas seul.</h1>
+    <p class="hero-sub">Décrivez votre problème en quelques mots.<br>Vigie vous oriente et vous aide à agir.</p>
+    <div class="hero-search">
+      <div class="input-group">
+        <input class="input" id="q" placeholder="Ex : CAF trop-perçu, impôts rectification, fraude CB…" onkeydown="if(event.key==='Enter')go()" autocomplete="off">
+        <button class="btn btn-primary" onclick="go()">Rechercher →</button>
+      </div>
+    </div>
+    <div><a href="parcours.html?guide=1" class="hero-guide-link">🤷 Vous ne savez pas par où commencer ? Parcours guidé (3 questions)</a></div>
+  </div></div>
+</section>
+
+<div class="main">
+  <div class="container">
+
+    <div class="card" style="margin-bottom:14px">
+      <h2 class="h2">Parcourir par thème</h2>
+      <div class="pillar-grid-home" id="pillarGrid"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <h2 class="h2">Situations fréquentes</h2>
+      <div id="quickCases" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:14px">
+      <a href="dashboard.html" style="text-decoration:none"><div class="card" style="display:flex;gap:12px;align-items:center"><div style="font-size:26px">📁</div><div><div style="font-weight:700;font-size:14px">Mes dossiers</div><div class="small">Suivre mes démarches</div></div></div></a>
+      <a href="map.html" style="text-decoration:none"><div class="card" style="display:flex;gap:12px;align-items:center"><div style="font-size:26px">🗺️</div><div><div style="font-weight:700;font-size:14px">Carte des guichets</div><div class="small">Mairies, MSAP, CPAM…</div></div></div></a>
+      <a href="recours_nationaux.html" style="text-decoration:none"><div class="card" style="display:flex;gap:12px;align-items:center"><div style="font-size:26px">⚖️</div><div><div style="font-weight:700;font-size:14px">Recours nationaux</div><div class="small">Défenseur, médiateurs…</div></div></div></a>
+    </div>
+
+    <!-- Nouvelles fonctionnalités V52 -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:14px">
+      <a href="courrier.html" style="text-decoration:none"><div class="card" style="display:flex;gap:12px;align-items:center;border-color:var(--blue-200);background:var(--blue-50)"><div style="font-size:26px">📬</div><div><div style="font-weight:700;font-size:14px;color:var(--blue-700)">J'ai reçu un courrier</div><div class="small">Identifier et agir</div></div></div></a>
+      <a href="moments.html" style="text-decoration:none"><div class="card" style="display:flex;gap:12px;align-items:center"><div style="font-size:26px">🗓️</div><div><div style="font-weight:700;font-size:14px">Moments de vie</div><div class="small">Naissance, déménagement…</div></div></div></a>
+      <a href="rappels.html" style="text-decoration:none"><div class="card" style="display:flex;gap:12px;align-items:center"><div style="font-size:26px">🔔</div><div><div style="font-weight:700;font-size:14px">Mes rappels</div><div class="small">Deadlines & calendrier</div></div></div></a>
+    </div>
+
+    <details class="card">
+      <summary>⚙️ Affiner la recherche <span class="small">(organisme, code postal)</span></summary>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <div><label class="label">Organisme</label>
+          <select id="org" class="select" style="margin-top:4px">
+            <option value="">Tous</option>
+            <option value="impots">Impôts</option><option value="caf">CAF</option>
+            <option value="sante">CPAM / Ameli</option><option value="travail">France Travail</option>
+            <option value="banque">Banque</option><option value="logement">Logement</option>
+            <option value="institutions">Mairie / ANTS</option><option value="retraite">Retraite</option>
+            <option value="consommation">Consommation</option><option value="justice">Justice</option>
+          </select>
+        </div>
+        <div><label class="label">Code postal</label>
+          <input id="cp" class="input" placeholder="Ex : 31000">
+        </div>
+      </div>
+    </details>
+
+  </div>
+</div>
+
+<div class="footerNote">
+  ℹ️ Vigie est un outil d'<strong>information générale</strong> — pas un conseil juridique personnalisé. Vérifiez toujours les délais sur votre courrier officiel. Toutes vos données restent sur votre appareil. <span style="margin:0 6px">·</span><a href="mentions.html">Mentions légales</a>
+</div>
+
+<script src="data/pillars_catalog.js"></script>
+<script src="data/registry_cases_v46.js"></script>
+<script src="data/scenarios_v2.js"></script>
+<script src="data/scenarios_v47_addons.js"></script>
+<script src="data/scenarios_v49_coverage.js"></script>
+<script src="data/scenarios_v51_fixes.js"></script>
+<script src="data/scenarios_v53_governance.js"></script>
+<script src="data/moments_de_vie.js"></script>
+<script src="data/rappels.js"></script>
+<script src="data/scenarios_v51_fixes.js"></script>
+<script src="data/scenarios_v53_governance.js"></script>
+<script>
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function go(){
+  const q=document.getElementById('q').value.trim();
+  if(!q){document.getElementById('q').focus();return;}
+  const cp=(document.getElementById('cp')?.value||'').trim();
+  const org=(document.getElementById('org')?.value||'').trim();
+  const qs=new URLSearchParams();
+  qs.set('q',q);
+  if(cp) qs.set('cp',cp);
+  if(org) qs.set('pillar',org);
+  location.href='result.html?'+qs.toString();
+}
+// Pillars
+try{
+  const pillars=window.VIGIE_PILLARS||window.PILLARS||[];
+  const grid=document.getElementById('pillarGrid');
+  if(pillars.length&&grid){
+    pillars.forEach(p=>{
+      const a=document.createElement('a');
+      a.href='result.html?pillar='+encodeURIComponent(p.id);
+      a.className='pillar-card';
+      a.innerHTML=`<div class="pillar-icon">${p.icon||'📋'}</div><div class="pillar-label">${esc(p.label)}</div>`;
+      grid.appendChild(a);
+    });
+  }
+}catch(e){}
+// Quick cases
+const qc=[
+  {l:'CAF — Trop-perçu',id:'caf_trop_percu',i:'👶'},{l:'Fraude carte CB',id:'bank_cb_fraud',i:'💳'},
+  {l:'Impôts — Rectification',id:'tax_rectif_generic',i:'💰'},{l:'Loyer / caution',id:'housing_deposit_return',i:'🏠'},
+  {l:'France Travail — ARE',id:'ft_are_refusal',i:'💼'},{l:'Arnaque / phishing',id:'scam_report',i:'⚠️'},
+  {l:'Passeport / CNI',id:'vie_passeport_adulte',i:'🪪'},{l:'CPAM — droits fermés',id:'ameli_refus',i:'🩺'},
+  {l:'Surendettement',id:'bank_overindebt',i:'🏦'},{l:'Retraite — trimestres',id:'work_retraite_erreur',i:'👴'},
+  {l:'Permis de séjour',id:'prefecture_residence_permit',i:'📋'},{l:'Garantie produit',id:'conso_garantie_conformite',i:'🛒'},
+];
+try{
+  const wrap=document.getElementById('quickCases');
+  qc.forEach(c=>{
+    const a=document.createElement('a');
+    a.href=`result.html?q=${encodeURIComponent(c.l)}&case=${encodeURIComponent(c.id)}`;
+    a.style.cssText='display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border:1px solid var(--border);border-radius:999px;font-size:13px;font-weight:500;background:#fff;color:var(--text);transition:all .15s;text-decoration:none';
+    a.onmouseover=()=>{a.style.borderColor='#2563eb';a.style.background='var(--blue-50)';a.style.color='var(--blue-700)';};
+    a.onmouseout=()=>{a.style.borderColor='';a.style.background='#fff';a.style.color='var(--text)';};
+    a.innerHTML=`${c.i} ${esc(c.l)}`;
+    wrap.appendChild(a);
+  });
+}catch(e){}
+</script>
+</body>
+</html>

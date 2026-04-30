@@ -1,0 +1,34 @@
+[
+  {"id":1,"query":"Renouveler passeport adulte","expectFlow":"passport","answers":{"person":"adult","trip_urgent":"no"},"expectStrategy":"standard","expectPack":"passport"},
+  {"id":2,"query":"Passeport mineur départ urgent","expectFlow":"passport","answers":{"person":"minor","trip_urgent":"yes"},"expectStrategy":"urgent_trip","expectPack":"passport"},
+  {"id":3,"query":"Carte d'identité urgence","expectFlow":"cni","answers":{"trip_urgent":"yes"},"expectStrategy":"urgent","expectPack":"cni"},
+  {"id":4,"query":"Je veux me marier dossier mairie","expectFlow":"mariage","answers":{},"expectStrategy":"standard","expectPack":"mariage"},
+  {"id":5,"query":"Acte de naissance état civil","expectFlow":"vie_civile","answers":{"vie_topic":"actes"},"expectStrategy":"actes","expectPack":"vie_actes"},
+
+  {"id":6,"query":"CAF trop-perçu contestation","expectFlow":"caf","answers":{},"expectStrategy":"standard","expectPack":"caf"},
+  {"id":7,"query":"Ameli remboursement refusé","expectFlow":"ameli","answers":{},"expectStrategy":"standard","expectPack":"ameli"},
+  {"id":8,"query":"France Travail actualisation oubli","expectFlow":"france_travail","answers":{},"expectStrategy":"standard","expectPack":"france_travail"},
+
+  {"id":9,"query":"Proposition de rectification impôts","expectFlow":"tax_rectif","answers":{"date_received":"2026-02-01","delay_left":"normal","l64":"no","amount":"low"},"expectStrategy":"prep","expectPack":"tax_rectif"},
+  {"id":10,"query":"Proposition de rectification abus de droit L64","expectFlow":"tax_rectif","answers":{"date_received":"2026-02-01","delay_left":"normal","l64":"yes","amount":"high"},"expectStrategy":"high_risk","expectPack":"tax_rectif"},
+  {"id":11,"query":"Redressement délai très court","expectFlow":"tax_rectif","answers":{"date_received":"2026-02-15","delay_left":"short","l64":"no","amount":"low"},"expectStrategy":"critical","expectPack":"tax_rectif"},
+  {"id":12,"query":"Déclaration impôts corriger déclaration","expectFlow":"tax_declaration","answers":{},"expectStrategy":"standard","expectPack":"tax_declaration"},
+
+  {"id":13,"query":"Dépôt de garantie non rendu logement","expectFlow":"logement","answers":{"mode":"probleme","logement_topic":"litige"},"expectStrategy":"litige","expectPack":"logement_litige"},
+  {"id":14,"query":"Expulsion impayés loyer","expectFlow":"logement","answers":{"mode":"probleme","logement_topic":"impayes"},"expectStrategy":"impayes","expectPack":"logement_impayes"},
+  {"id":15,"query":"Constituer dossier logement","expectFlow":"logement","answers":{"mode":"demarche","logement_topic":"dossier"},"expectStrategy":"dossier","expectPack":"logement_dossier"},
+
+  {"id":16,"query":"Fraude bancaire prélèvement inconnu","expectFlow":"banque","answers":{"mode":"probleme","banque_topic":"fraude"},"expectStrategy":"fraude","expectPack":"banque_fraude"},
+  {"id":17,"query":"Frais bancaires abusifs","expectFlow":"banque","answers":{"mode":"probleme","banque_topic":"frais"},"expectStrategy":"frais","expectPack":"banque_frais"},
+  {"id":18,"query":"Surendettement dossier banque","expectFlow":"banque","answers":{"mode":"probleme","banque_topic":"surendettement"},"expectStrategy":"surendettement","expectPack":"banque_surendettement"},
+
+  {"id":19,"query":"Arnaque phishing sms impôts","expectFlow":"arnaques","answers":{"mode":"signaler"},"expectStrategy":"signaler","expectPack":"arnaques_signaler"},
+  {"id":20,"query":"Usurpation identité compte piraté","expectFlow":"arnaques","answers":{"mode":"identite"},"expectStrategy":"identite","expectPack":"arnaques_identite"},
+
+  {"id":21,"query":"Recours tribunal administratif refus CAF","expectFlow":"justice","answers":{"mode":"recours_admin"},"expectStrategy":"recours_admin","expectPack":"justice_recours_admin"},
+  {"id":22,"query":"Conciliateur litige voisinage","expectFlow":"justice","answers":{"mode":"amiable"},"expectStrategy":"amiable","expectPack":"justice_amiable"},
+
+  {"id":23,"query":"Décès démarches banque succession","expectFlow":"vie_civile","answers":{"vie_topic":"deces"},"expectStrategy":"deces","expectPack":"vie_deces"},
+  {"id":24,"query":"Naissance déclaration","expectFlow":"vie_civile","answers":{"vie_topic":"actes"},"expectStrategy":"actes","expectPack":"vie_actes"},
+  {"id":25,"query":"Je ne sais pas quoi faire, besoin d'aide","expectFlow":"generic","answers":{"details":"J'ai reçu un courrier mais je ne comprends pas"},"expectStrategy":"generic","expectPack":null}
+]

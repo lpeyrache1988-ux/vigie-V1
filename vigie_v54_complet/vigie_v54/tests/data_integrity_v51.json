@@ -1,0 +1,12 @@
+{
+  "rules": [
+    {"check": "no_duplicate_ids", "files": ["scenarios_v47_addons.js", "scenarios_v49_coverage.js", "scenarios_v51_fixes.js"], "note": "IDs must be unique across scenario files"},
+    {"check": "no_unknown_pillar", "valid_pillars": ["impots","caf","banque","logement","travail","sante","arnaques","justice","institutions","retraite","consommation","autres","vie_civile"], "note": "All tags must match known pillars"},
+    {"check": "no_missing_flow_id", "note": "Every scenario must have a flow_id"},
+    {"check": "no_empty_keywords", "note": "Every scenario must have at least 2 keywords_any"},
+    {"check": "delay_must_be_indicative", "pattern": "legal_deadline|admin_deadline", "must_contain": "indicatif", "note": "All legal delays must say 'indicatif'"},
+    {"check": "no_score_in_ui", "forbidden_in_html": ["Score:", "flow_id", "pack_id", "score_technique"], "note": "No technical jargon in user-facing HTML"},
+    {"check": "letter_disclaimer", "must_contain_in_letters": "pas un acte juridique", "note": "Every letter must have legal disclaimer"},
+    {"check": "sensitive_case_has_warning", "sensitive_ids": ["tax_rectif_l64","caf_fraud_allegation","bank_wire_fraud","bank_cb_fraud","prefecture_titre_sejour_recours"], "must_have": "urgency.hint", "note": "Sensitive cases must have urgency hint"}
+  ]
+}

@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vigie — Assistant (V44)</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="brand">
+      <div class="logo">V</div>
+      <div>
+        <div style="font-weight:900">Assistant</div>
+        <div class="small">Questions adaptatives • Résultat + checklist + timeline</div>
+      </div>
+    </div>
+    <div class="nav">
+      <a class="btn" href="map.html">🗺️</a>
+      <a class="btn" href="dashboard.html">📊</a>
+      <details class="small"><summary class="btn">☰</summary><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"><a class="btn" href="parcours.html">🧩 Parcours</a><a class="btn" href="pillars.html">🧱 Piliers</a><a class="btn" href="map.html">🗺️ Carte</a><a class="btn" href="index.html">🏠 Accueil</a><a class="btn" href="dashboard.html">📁 Dashboard</a></div></details>
+    </div>
+  </div>
+</div>
+
+<!-- Zone de rendu de l'assistant (tout reste local) -->
+<div class="container" id="host"></div>
+
+  <div class="footer">V44 — Tout est stocké localement. Aucun compte requis.</div>
+</div>
+
+<script src="data/geo_mairies.js"></script>
+<script src="data/sources_registry.js"></script>
+<script src="data/checklists_v30.js"></script>
+<script src="data/packs_v30.js"></script>
+<script src="data/letters_v1.js"></script>
+<script src="data/flows_v30.js"></script>
+  <script src="data/flows_v54_index.js"></script>
+<script src="data/scenarios_v2.js"></script>
+<script src="data/registry_cases_v46.js"></script>
+<script src="assets/storage_v46.js"></script>
+<script src="data/engine_v30.js"></script>
+<script src="data/expert_mode.js"></script>
+<script src="data/strategies_v44.js"></script>
+<script src="assets/ui.js"></script>
+<script src="assets/ux_v42_1.js"></script>
+<script src="assets/assistant_v42_1.js"></script>
+
+<script>
+const params = new URL(location.href).searchParams;
+let id = params.get('id') || V30.getActiveId();
+// Strategy chosen on result page (UX only, not legal advice)
+const chosenStrategy = params.get('strategy') || "";
+
+let dossier = id ? V30.getDossier(id) : null;
+
+// if none, create from quick query
+if(!dossier){
+  dossier = V30.createDossier({query:"", flowId:"generic", cp:""});
+}
+
+// Persist the chosen strategy in the dossier (no loss)
+try{
+  dossier.answers = dossier.answers || {};
+  if(chosenStrategy) dossier.answers.__chosen_strategy = chosenStrategy;
+}catch(e){}
+
+V30.setActiveId(dossier.id);
+
+let __debounceTimers = {};
+function setAnswerDebounced(k, v){
+  clearTimeout(__debounceTimers[k]);
+  __debounceTimers[k] = setTimeout(()=>setAnswer(k,v), 250);
+}
+function preserveScroll(fn){
+  const y = window.scrollY;
+  fn();
+  window.scrollTo({top:y, behavior:'instant'});
+}
+
+function scrollToActions(){
+  const el = document.getElementById('actionsBlock');
+  if(!el) return;
+  const top = el.getBoundingClientRect().top + window.scrollY - 12;
+  window.scrollTo({ top, behavior:'smooth' });
+}
+
+
+function flowById(fid){
+  return (window.VIGIE_FLOWS||[]).find(f=>f.id===fid) || V30.matchFlow(dossier.query||"");
+}
+
+let flow = flowById(dossier.flow_id);
+
+// question schemas by flow id
+const questionSets = {
+  vie_civile: [
+    { id:"vie_topic", label:"Quel est votre besoin ?", type:"choice", options:[
+      {label:"Passeport", value:"passport"},
+      {label:"Carte d’identité", value:"cni"},
+      {label:"Acte d’état civil", value:"actes"},
+      {label:"Décès (démarches)", value:"deces"}
+    ]},
+    { id:"details", label:"Précisez (optionnel)", type:"textarea", placeholder:"Ex : renouvellement, urgence, pays de destination, organisme à prévenir…" }
+  ],
+
+  logement: [
+    { id:"mode", label:"Vous voulez…", type:"choice", options:[{label:"Faire une démarche", value:"demarche"},{label:"J’ai un problème", value:"probleme"}]},
+    { id:"logement_topic", label:"Choisissez une catégorie", type:"choice", options:[
+      {label:"Dossier / entrée logement", value:"dossier"},
+      {label:"Litige (dépôt, travaux, voisinage)", value:"litige"},
+      {label:"Impayés / expulsion", value:"impayes"}
+    ]},
+    { id:"details", label:"Expliquez en 1 phrase (optionnel)", type:"textarea", placeholder:"Ex : dépôt de garantie non rendu, travaux, loyers impayés…" }
+  ],
+  banque: [
+    { id:"mode", label:"Vous voulez…", type:"choice", options:[{label:"Faire une démarche", value:"demarche"},{label:"J’ai un problème", value:"probleme"}]},
+    { id:"banque_topic", label:"Choisissez une catégorie", type:"choice", options:[
+      {label:"Fraude / opération contestée", value:"fraude"},
+      {label:"Frais / découvert", value:"frais"},
+      {label:"Surendettement", value:"surendettement"}
+    ]},
+    { id:"details", label:"Décrivez brièvement", type:"textarea", placeholder:"Ex : carte piratée, prélèvement inconnu, frais trop élevés…" }
+  ],
+  arnaques: [
+    { id:"mode", label:"Vous voulez…", type:"choice", options:[{label:"Signaler/se protéger", value:"signaler"},{label:"Usurpation/compte piraté", value:"identite"}]},
+    { id:"details", label:"Décrivez brièvement", type:"textarea", placeholder:"Ex : SMS impôts, faux mail CAF, compte piraté…" }
+  ],
+  justice: [
+    { id:"mode", label:"Vous cherchez plutôt…", type:"choice", options:[{label:"Solution amiable", value:"amiable"},{label:"Recours administratif", value:"recours_admin"}]},
+    { id:"details", label:"Décrivez le litige", type:"textarea", placeholder:"Ex : refus administratif, voisinage, consommation…" }
+  ],
+
+  passport: [
+    { id:"person", label:"Pour qui est la demande ?", type:"choice", options:[
+      {label:"Adulte", value:"adult"},
+      {label:"Mineur", value:"minor"}
+    ]},
+    { id:"trip_urgent", label:"Y a-t-il une urgence de départ ?", type:"choice", options:[
+      {label:"Oui (départ proche)", value:"yes"},
+      {label:"Non", value:"no"}
+    ]},
+    { id:"date_rdv", label:"Date de RDV / dépôt en mairie (si déjà connue)", type:"date" },
+    { id:"cp", label:"Code postal (pour retrouver la mairie)", type:"text", placeholder:"Ex : 75001" }
+  ],
+  cni: [
+    { id:"trip_urgent", label:"Y a-t-il une urgence (départ proche) ?", type:"choice", options:[
+      {label:"Oui", value:"yes"},
+      {label:"Non", value:"no"}
+    ]},
+    { id:"date_rdv", label:"Date de RDV / dépôt (si connue)", type:"date" },
+    { id:"cp", label:"Code postal", type:"text", placeholder:"Ex : 69001" }
+  ],
+  mariage: [
+    { id:"date_rdv", label:"Date de dépôt / RDV mairie (si connue)", type:"date" },
+    { id:"cp", label:"Code postal", type:"text", placeholder:"Ex : 13001" }
+  ],
+  tax_rectif: [
+    { id:"date_received", label:"Date de réception de la proposition", type:"date" },
+    { id:"delay_left", label:"Temps restant estimé", type:"choice", options:[
+      {label:"Très court (≤ 7 jours)", value:"short"},
+      {label:"Normal", value:"normal"}
+    ]},
+    { id:"l64", label:"Mention 'abus de droit' / L64 ?", type:"choice", options:[
+      {label:"Oui", value:"yes"},
+      {label:"Non / je ne sais pas", value:"no"}
+    ]},
+    { id:"amount", label:"Montant en jeu", type:"choice", options:[
+      {label:"< 10 000 €", value:"low"},
+      {label:"≥ 10 000 €", value:"high"}
+    ]}
+  ],
+  generic: [
+    { id:"details", label:"Décrivez en 1–2 phrases", type:"textarea", placeholder:"Contexte, document reçu, date, objectif…" }
+  ]
+};
+
+
+function mapTypeFromContext(){
+  const q = (dossier.query || dossier.answers?.query || "").toLowerCase();
+  if(dossier.flow_id === "passport" || dossier.flow_id === "cni" || dossier.flow_id === "mariage") return "mairie";
+  if(dossier.flow_id === "tax_rectif") return "sip";
+  // keyword fallback
+  if(q.includes("caf") || q.includes("apl") || q.includes("rsa")) return "caf";
+  if(q.includes("ameli") || q.includes("cpam") || q.includes("carte vitale")) return "cpam";
+  if(q.includes("france travail") || q.includes("pole emploi") || q.includes("pôle emploi")) return "france_travail";
+  if(q.includes("impot") || q.includes("impôts") || q.includes("sip")) return "sip";
+  return "mairie";
+}
+function mapHref(){
+  const t = mapTypeFromContext();
+  const cp = (dossier.answers?.cp || dossier.cp || "").trim();
+  const qp = new URLSearchParams();
+  if(t) qp.set("type", t);
+  if(cp) qp.set("cp", cp);
+  return "map.html?" + qp.toString();
+}
+
+function suggestLetterKeys(flow, result){
+  const L = window.VIGIE_LETTERS || {};
+  const keys = [];
+  const fid = (flow && flow.id) || "";
+  const pack = (result && result.pack_id) || "";
+  // Impôts / contrôle
+  if(pack==="tax_rectif" || /tax|impot|rectif|l64|controle/.test(fid)){
+    if(L.impots_delai) keys.push("impots_delai");
+    if(L.impots_reclamation) keys.push("impots_reclamation");
+    if(L.generic_contestation) keys.push("generic_contestation");
+    return keys;
+  }
+  // Banque / arnaque
+  if(/banque|bank|arnaque|fraude/.test(fid) || /banque/.test(pack)){
+    if(L.banque_contestation) keys.push("banque_contestation");
+    if(L.banque_mediateur) keys.push("banque_mediateur");
+    if(L.generic_reclamation) keys.push("generic_reclamation");
+    return keys;
+  }
+  // CAF
+  if(/caf/.test(fid) || /caf/.test(pack)){
+    if(L.caf_reexamen) keys.push("caf_reexamen");
+    if(L.generic_reclamation) keys.push("generic_reclamation");
+    return keys;
+  }
+  // AMELI / CPAM
+  if(/ameli|cpam/.test(fid) || /ameli/.test(pack)){
+    if(L.ameli_droits) keys.push("ameli_droits");
+    if(L.generic_reclamation) keys.push("generic_reclamation");
+    return keys;
+  }
+  // France Travail
+  if(/france_travail|ft|pole_emploi/.test(fid) || /ft/.test(pack)){
+    if(L.ft_reexamen) keys.push("ft_reexamen");
+    if(L.generic_reclamation) keys.push("generic_reclamation");
+    return keys;
+  }
+  // Décès
+  if(/deces|décès/.test(fid) || /deces/.test(pack)){
+    ["deces_informer_organisme","deces_banque","deces_resiliation_contrat"].forEach(k=>{ if(L[k]) keys.push(k); });
+    return keys;
+  }
+  // Logement
+  if(/logement|bail|loyer/.test(fid) || /logement/.test(pack)){
+    ["logement_depot_garantie","logement_mise_en_demeure_travaux"].forEach(k=>{ if(L[k]) keys.push(k); });
+    if(L.generic_mise_en_demeure) keys.push("generic_mise_en_demeure");
+    return keys;
+  }
+  // Par défaut
+  if(L.generic_info) keys.push("generic_info");
+  if(L.generic_reclamation) keys.push("generic_reclamation");
+  return keys;
+}
+
+function renderLetters(letterKeys){
+  const L = window.VIGIE_LETTERS || {};
+  if(!letterKeys || !letterKeys.length) return "";
+  const expert = (window.VIGIE && window.VIGIE.getExpertMode) ? window.VIGIE.getExpertMode() : false;
+  const wrapOpen = expert ? `<div style="margin-top:12px">` : `<details class="card" style="padding:16px; margin-top:12px"><summary class="h2" style="cursor:pointer">📄 Courriers types</summary><div style="margin-top:12px">`;
+  const wrapClose = expert ? `</div>` : `</div></details>`;
+  const items = letterKeys.map(k=>{
+    const def = L[k]; if(!def) return "";
+    const id = "letter_" + k;
+    const txt = def.text || "";
+    const html = (typeof richHTML==='function' ? richHTML(txt) : esc(txt)).replace(/\n/g,'<br>');
+    return `
+      <div class="item">
+        <div style="min-width:0">
+          <div style="font-weight:900">${esc(def.title||k)}</div>
+          <div class="small" style="margin-top:4px">${esc(def.context||"")}</div>
+          <div class="p" style="margin-top:10px; white-space:normal">${html}</div>
+        </div>
+        <div class="row" style="gap:8px; flex-wrap:wrap; justify-content:flex-end">
+          <button class="btn" onclick="copyLetter('${esc(k)}')">Copier</button>
+        </div>
+      </div>`;
+  }).join("");
+  return `${wrapOpen}
+    <div class="small">Courriers génériques à adapter (identité, dates, référence dossier). Privilégier LRAR si enjeu important.</div>
+    <div class="list" style="margin-top:10px">${items}</div>
+  ${wrapClose}`;
+}
+
+function copyLetter(letterKey){
+  const L = window.VIGIE_LETTERS || {};
+  const def = L[letterKey];
+  const base = (def && def.text) ? def.text : "";
+  const txt = "\u26a0\ufe0f NOTE IMPORTANTE \u2014 Vigie est un outil d'information et d'aide \u00e0 la r\u00e9daction. Les informations sont g\u00e9n\u00e9rales et ne remplacent pas un avocat. V\u00e9rifiez toujours les d\u00e9lais et mentions sur votre courrier.\n\n" + base;
+  if(!txt){ alert("Courrier indisponible."); return; }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>alert("Copié ✅")).catch(()=>fallbackCopy(txt));
+  }else{
+    fallbackCopy(txt);
+  }
+}
+function fallbackCopy(txt){
+  const ta = document.createElement('textarea');
+  ta.value = txt;
+  ta.style.position='fixed'; ta.style.left='-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try{ document.execCommand('copy'); alert("Copié ✅"); }catch(e){ alert("Impossible de copier automatiquement."); }
+  document.body.removeChild(ta);
+}
+
+function parseAnyDate(v){
+  if(!v) return null;
+  const d = new Date(v);
+  if(isFinite(d.getTime())) return d;
+  return null;
+}
+
+function urgencyActionsFor(flowId){
+  // 3 actions max (mode urgence)
+  if(flowId === 'tax_rectif') return [
+    "Répondre dans le délai (prorogation si nécessaire)",
+    "Demander un sursis / sécuriser le recouvrement si applicable",
+    "Rassembler pièces + chronologie (preuves datées)",
+  ];
+  if(flowId === 'passport' || flowId === 'cni') return [
+    "Vérifier RDV mairie / dispositif urgence si départ proche",
+    "Préparer pièces obligatoires (photo, justificatifs…)",
+    "Suivre fabrication / retrait et vérifier validité", 
+  ];
+  if(flowId === 'mariage') return [
+    "Vérifier la liste exacte de pièces de la mairie",
+    "Anticiper délais des actes d'état civil",
+    "Fixer RDV / dépôt et confirmer la date", 
+  ];
+  return [
+    "Identifier l'organisme + le canal officiel",
+    "Conserver preuves (captures, accusés, références)",
+    "Planifier relance si pas de réponse", 
+  ];
+}
+
+function renderUrgency(flowId, result, dossier){
+  const now = new Date();
+  const d1 = parseAnyDate(result?.deadline);
+  const d2 = parseAnyDate(dossier?.answers?.date_deadline);
+  const deadline = d1 || d2;
+  // Cas critique sans deadline : fraude bancaire / sécurité
+  if(!deadline){
+    const isFraud = (flowId==='banque' && (dossier?.answers?.banque_topic==='fraude'));
+    if(!isFraud) return "";
+    const actions = [
+      "Faire opposition (carte / accès) immédiatement",
+      "Contester l’opération (appel + écrit) et conserver les preuves",
+      "Si blocage : médiateur / signalement (Perceval / police selon cas)"
+    ];
+    return `
+      <div class="card" style="padding:14px; margin-top:12px; border:1px solid rgba(255,80,80,.25); background:rgba(255,80,80,.06)">
+        <div class="row" style="align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap">
+          <div>
+            <div class="h2" style="margin:0">⚠️ Mode urgence (fraude bancaire)</div>
+            <div class="small" style="margin-top:4px">Agis maintenant : le temps joue contre toi.</div>
+          </div>
+          <div class="row" style="gap:8px; flex-wrap:wrap">
+            <a class="btn" href="dashboard.html">📁 Dashboard</a>
+            <a class="btn" href="${mapHref()}">🗺️ Contacts locaux</a>
+          </div>
+        </div>
+        <div class="sep" style="margin:10px 0"></div>
+        <div class="small">3 actions prioritaires :</div>
+        <div class="list" style="margin-top:8px">
+          ${actions.map(a=>`<div class="item"><div><strong>•</strong> ${esc(a)}</div></div>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+  const days = Math.ceil((deadline - now) / (1000*3600*24));
+  const overdue = days < 0;
+  const soon = days <= 30;
+  if(!soon && !overdue) return "";
+  const actions = urgencyActionsFor(flowId);
+  const title = overdue ? "⚠️ Délai dépassé" : "⚠️ Mode urgence";
+  const sub = overdue ? `La date limite était le <b>${esc(V30.fmtDate(deadline))}</b> (${Math.abs(days)} j)` : `Date limite : <b>${esc(V30.fmtDate(deadline))}</b> (${days} j)`;
+  return `
+    <div class="card" style="padding:14px; margin-top:12px; border:1px solid rgba(255,80,80,.25); background:rgba(255,80,80,.06)">
+      <div class="row" style="align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap">
+        <div>
+          <div class="h2" style="margin:0">${title}</div>
+          <div class="small" style="margin-top:4px">${sub}</div>
+        </div>
+        <div class="row" style="gap:8px; flex-wrap:wrap">
+          <a class="btn" href="dashboard.html">📁 Dashboard</a>
+          <a class="btn" href="${mapHref()}">🗺️ Contacts locaux</a>
+        </div>
+      </div>
+      <div class="sep" style="margin:10px 0"></div>
+      <div class="small">3 actions prioritaires :</div>
+      <div class="list" style="margin-top:8px">
+        ${actions.map(a=>`<div class="item"><div><strong>•</strong> ${esc(a)}</div></div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderQuickOfficialLinks(sources){
+  if(!sources || !sources.length) return "";
+  const top = sources.slice(0,3);
+  return `
+    <div style="margin-top:12px">
+      <div class="small">Où cliquer (officiel) :</div>
+      <div class="row" style="margin-top:8px; gap:8px; flex-wrap:wrap">
+        ${top.map(s=>`<a class="btn" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function render(){
+  const activeEl = document.activeElement;
+  const activeId = activeEl && activeEl.id ? activeEl.id : null;
+  const selStart = (activeEl && typeof activeEl.selectionStart==='number') ? activeEl.selectionStart : null;
+  const selEnd = (activeEl && typeof activeEl.selectionEnd==='number') ? activeEl.selectionEnd : null;
+
+  flow = flowById(dossier.flow_id);
+  const qs = questionSets[flow.id] || questionSets.generic;
+
+  const expert = (window.VIGIE && window.VIGIE.getExpertMode) ? window.VIGIE.getExpertMode() : false;
+  const keyQ = (qs && qs.length) ? qs[0] : null;
+
+  const host = document.getElementById('host');
+
+  const result = V30.evalFlow(flow, dossier.answers||{});
+  dossier.result = result;
+  dossier.pack_id = result.pack_id;
+  dossier.updated_at = new Date().toISOString();
+  V30.upsertDossier(dossier);
+
+  // V40 : initialise timeline si absente (sans écraser les données existantes)
+  try{
+    ensureTimeline(dossier, flow.id);
+    V30.upsertDossier(dossier);
+  }catch(e){}
+
+  // checklist
+  const clId = result.checklist_id;
+  const clDef = clId ? (window.VIGIE_CHECKLISTS||{})[clId] : null;
+  const clStats = clDef ? V30.checklistStats(clDef, dossier.checklist||{}) : {total:0, ok:0, completeness:0, required_ok:true};
+
+  // geo
+  const cp = (dossier.answers.cp || dossier.cp || "").trim();
+  const geo = cp ? V30.geoLookup(cp) : {found:false};
+
+  // sources
+  const sourcesKey = (result.pack_id === "tax_rectif") ? "tax_rectif" : (flow.id==="passport"?"passport":flow.id==="cni"?"cni":flow.id==="mariage"?"mariage":null);
+  const sources = sourcesKey ? (window.VIGIE_SOURCES||{})[sourcesKey] : [];
+
+  // letters
+  const letterKeys = suggestLetterKeys(flow, result);
+
+  const urgencyHTML = renderUrgency(flow.id, result, dossier);
+  const quickLinksHTML = renderQuickOfficialLinks(sources);
+
+  // V42: one clear next action (red only if truly urgent)
+  const now = new Date();
+  const iso = result.deadline || dossier.answers?.date_deadline || null;
+  let daysLeft = null;
+  if(iso){
+    const dd = new Date(iso);
+    if(isFinite(dd.getTime())) daysLeft = Math.ceil((dd - now) / (1000*3600*24));
+  }
+  const isUrgent = (daysLeft!==null && daysLeft <= 2) || result.severity === 'critique';
+  const isWarn = !isUrgent && (daysLeft!==null && daysLeft <= 7);
+  const cardCls = isUrgent ? 'cardUrgent' : (isWarn ? 'cardWarn' : '');
+  const statusCls = isUrgent ? 'urgent' : (isWarn ? 'warn' : 'progress');
+  const statusLabel = isUrgent ? '🔴 Urgent' : (isWarn ? '🟡 À traiter' : '🔵 Suivi');
+  const nextAction = (result.actions && result.actions[0]) ? result.actions[0] : 'Reprendre la timeline et avancer étape par étape.';
+
+  host.innerHTML = `
+    <div class="card">
+      <div class="row" style="align-items:flex-start; justify-content:space-between">
+        <div>
+          <div class="h2">${esc(flow.label||"Assistant")}</div>
+          ${(window.VIGIE_DEBUG && window.VIGIE_DEBUG()) ? `<div class="tags"><span class="tag">Flow: <b>${esc(flow.id)}</b></span><span class="tag">Dossier: <b>${esc(dossier.id)}</b></span></div>` : ``}
+          <p class="p">${esc(dossier.query||"")}</p>
+        </div>
+        <div style="text-align:right">
+          ${badgeHTML(result.severity, result.severity_badge)}
+          
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="card ${cardCls}" style="margin:0; padding:14px">
+        <div class="cta">
+          <div class="ctaText">
+            <div class="row" style="align-items:center; justify-content:space-between">
+              <span class="status ${statusCls}">${statusLabel}</span>
+              <span class="small">Prochaine action</span>
+            </div>
+            <div class="p" style="margin-top:8px">${esc(nextAction)}</div>
+          </div>
+          <div class="row" style="justify-content:flex-end">
+            <button class="btn ${isUrgent?'danger':'primary'}" onclick="scrollToActions()">Agir maintenant</button>
+            ${result.pack_id ? `<a class="btn" href="pack.html?id=${encodeURIComponent(result.pack_id)}">📦 Pack</a>` : ``}
+          </div>
+        </div>
+      </div>
+
+      ${urgencyHTML}
+
+      <div class="kpi">
+        ${kpiBox("Stratégie", result.strategy_title, "")}
+        ${kpiBox("Deadline", result.deadline_label || "—", result.legal_delay_days ? (result.legal_delay_days + " j (indicatif)") : "")}
+        ${kpiBox("Pack", result.pack_id || "—", "")}
+        ${kpiBox("Dossier complet", clDef ? (clStats.completeness + "%") : "—", clDef ? (clStats.required_ok ? "pièces obligatoires OK" : "pièces obligatoires manquantes") : "")}
+      </div>
+
+      <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap">
+        <button class="btn" onclick="(window.VIGIE&&window.VIGIE.toggleExpertMode)?(window.VIGIE.toggleExpertMode(),render()):null">⚙ ${expert ? "Mode expert : ON" : "Mode expert : OFF"}</button>
+        <a class="btn" href="recours_nationaux.html">🧭 Carte des recours</a>
+      </div>
+
+      ${quickLinksHTML}
+
+      ${renderKeyQuestion(keyQ)}
+
+      <div id="actionsBlock"></div>
+
+      ${clDef ? `
+        ${expert ? `<div style="margin-top:12px">` : `<details style="margin-top:12px" class="card"><summary class="h2" style="cursor:pointer">📌 Pièces & checklist</summary><div style="margin-top:12px">` }
+          <div class="h2">${esc(clDef.title)}</div>
+          <p class="p">Coche les pièces que tu as déjà. Le système valide les pièces <b>obligatoires</b>.</p>
+          <div class="progress"><div id="pbar"></div></div>
+          <div class="small" style="margin-top:6px">${esc(clStats.ok)} / ${esc(clStats.total)} pièces cochées</div>
+          <div class="sep"></div>
+          <div class="list">
+            ${clDef.items.map(it=>`
+              <div class="item">
+                <div style="min-width:0">
+                  <strong style="cursor:pointer" onclick="openDetails(\'${esc(it.id)}\')">${esc(it.label)} ${it.required?'<span class="tag" style="margin-left:6px">obligatoire</span>':''}</strong>
+                  <div class="small">${esc(it.tip||"")}</div>
+                  ${it.details?`<div class="small" style="margin-top:6px"><a href="javascript:void(0)" onclick="openDetails(\'${esc(it.id)}\')">➕ Détails / où faire / exemples</a></div>`:""}
+                </div>
+                <div class="okCol">
+                  <label class="small"><input type="checkbox" ${dossier.checklist?.[it.id]?'checked':''} onchange="toggleCL('${esc(it.id)}', this.checked)"> OK</label>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ${expert ? `` : `</div></details>`}
+      ` : `<p class="p">Aucune checklist associée à ce flow pour le moment.</p>`}
+
+      <div class="sep"></div>
+
+      ${renderTimeline(dossier, flow.id)}
+
+      <div class="sep"></div>
+
+      ${expert ? `<div class="h2">Questions (adaptatives)</div>` : `<details class="card" style="padding:16px"><summary class="h2" style="cursor:pointer">🧩 Affiner ma situation (questions)</summary><div style="margin-top:10px"><div class="h2">Questions (adaptatives)</div>`}
+      <p class="p">Ces réponses ajustent le niveau de gravité, la stratégie et parfois les délais.</p>
+
+      <div class="sep"></div>
+      ${renderQuestions(qs)}
+
+      ${expert ? `<div class="sep"></div>` : `</div></details><div class="sep"></div>`}
+      <div class="row">
+        ${result.pack_id ? `<a class="btn" href="pack.html?id=${encodeURIComponent(result.pack_id)}">Ouvrir le pack</a>` : ``}
+        <a class="btn" href="${mapHref()}">🗺️ Voir sur la carte</a>
+        <button class="btn" onclick="resetDossier()">🔄 Réinitialiser</button>
+      </div>
+
+      ${renderLetters(letterKeys)}
+
+      ${renderGeo(geo, cp)}
+
+      ${sources && sources.length ? `
+        <div class="sep"></div>
+        ${expert ? `<div class="h2">Sources officielles</div>` : `<details class="card" style="padding:16px"><summary class="h2" style="cursor:pointer">📚 Sources officielles</summary><div style="margin-top:10px"><div class="h2">Sources officielles</div>`}
+        <div class="list" style="margin-top:8px">
+          ${sources.map(s=>`
+            <div class="item">
+              <div><strong>${esc(s.label)}</strong><div class="small">${esc(s.url)}</div></div>
+              <div><a class="btn" href="${esc(s.url)}" target="_blank" rel="noopener">Ouvrir</a></div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="small" style="margin-top:8px">Note : les liens s’ouvrent en ligne. Le moteur reste utilisable hors connexion.</div>
+          ${expert ? `` : `</div></details>`}
+      `:""}
+    </div>
+  `;
+
+  // progress bar update
+  const bar = document.getElementById('pbar');
+  if(bar){
+    bar.style.width = pct(clStats.completeness);
+    bar.style.background = clStats.required_ok ? "rgba(20,220,160,.65)" : "rgba(255,80,80,.65)";
+  }
+
+  // restore focus (mobile typing fix)
+  if(activeId){
+    const el = document.getElementById(activeId);
+    if(el){
+      el.focus({preventScroll:true});
+      try{ if(selStart!==null && selEnd!==null && el.setSelectionRange){ el.setSelectionRange(selStart, selEnd);} }catch(e){}
+    }
+  }
+
+}
+
+
+function renderKeyQuestion(q){
+  if(!q) return '';
+  // only choice questions as quick-confirm (safe + simple)
+  if(q.type !== 'choice') return '';
+  return `
+    <div class="card" style="padding:16px">
+      <div class="h2">Question rapide</div>
+      <p class="p">${esc(q.label||'')}</p>
+      <div class="row" style="flex-wrap:wrap; gap:10px">
+        ${(q.options||[]).map(o=>`
+          <button class="btn" onclick="setAnswer('${esc(q.id)}','${esc(o.value)}')">${esc(o.label)}</button>
+        `).join('')}
+      </div>
+      <div class="small" style="margin-top:8px">Astuce : cette réponse ajuste la stratégie automatiquement. Les autres questions restent disponibles.</div>
+    </div>
+  `;
+}
+function renderQuestions(qs){
+  return `
+    <div class="grid">
+      ${qs.map(q=>{
+        const cur = (dossier.answers||{})[q.id] ?? "";
+        const isCP = q.id === "cp";
+        if(q.type==="choice"){
+          return `
+            <div class="card">
+              <div class="small">${esc(q.label)}</div>
+              <div class="row" style="margin-top:8px">
+                ${(q.options||[]).map(o=>{
+                  const active = String(cur)===String(o.value);
+                  return `<button class="btn ${active?'primary':''}" onclick="setAnswer('${esc(q.id)}','${esc(o.value)}')">${esc(o.label)}</button>`;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }
+        if(q.type==="date"){
+          // IMPORTANT: onchange (pas oninput) pour éviter les bugs de saisie année sur mobile + re-render agressif
+          return `
+            <div class="card">
+              <div class="small">${esc(q.label)}</div>
+              <input type="date" value="${esc(cur)}" onchange="setAnswer('${esc(q.id)}', this.value)">
+              <div class="small" style="margin-top:6px">Astuce : si la saisie est pénible, choisis la date via le sélecteur.</div>
+            </div>
+          `;
+        }
+        if(q.type==="textarea"){
+          return `
+            <div class="card">
+              <div class="small">${esc(q.label)}</div>
+              <textarea oninput="setAnswerDebounced('${esc(q.id)}', this.value)" placeholder="${esc(q.placeholder||'')}">${esc(cur)}</textarea>
+            </div>
+          `;
+        }
+        // default text (avec CP renforcé)
+        return `
+          <div class="card">
+            <div class="small">${esc(q.label)}</div>
+            <input
+              value="${esc(cur)}"
+              placeholder="${esc(q.placeholder||'')}"
+              ${isCP ? 'inputmode="numeric" pattern="\d{5}" maxlength="5" autocomplete="postal-code"' : ''}
+              oninput="${isCP ? `setAnswerDebounced('${esc(q.id)}', this.value.replace(/\D/g,'').slice(0,5))` : `setAnswerDebounced('${esc(q.id)}', this.value)`}"
+            >
+            ${isCP ? `<div class="small" style="margin-top:6px">Format attendu : <b>5 chiffres</b> (ex : 75001).</div>` : ``}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderGeo(geo, cp){
+  if(!cp) return `
+    <div class="sep"></div>
+    <div class="h2">Mairie (optionnel)</div>
+    <p class="p">Renseigne un code postal pour suggérer la mairie et l’annuaire officiel.</p>
+  `;
+  if(geo.found && geo.mairie){
+    const m = geo.mairie;
+    return `
+      <div class="sep"></div>
+      <div class="h2">Mairie suggérée (CP ${esc(cp)})</div>
+      <div class="item">
+        <div>
+          <strong>${esc(m.name)}</strong>
+          <div class="small">${esc(m.hint||'')}</div>
+          <div class="small">${esc(m.phone||'')}</div>
+          <div class="small">${esc(m.url||'')}</div>
+        </div>
+        <div><a class="btn" href="${esc(m.url||window.VIGIE_GEO_FALLBACK.mairieSearchUrl)}" target="_blank" rel="noopener">Ouvrir</a></div>
+      </div>
+    `;
+  }
+  return `
+    <div class="sep"></div>
+    <div class="h2">Mairie (CP ${esc(cp)})</div>
+    <p class="p">Mairie spécifique non référencée dans le pack offline. Utilise l’annuaire officiel.</p>
+    <a class="btn" href="${esc(window.VIGIE_GEO_FALLBACK.mairieSearchUrl)}" target="_blank" rel="noopener">🔎 ${esc(window.VIGIE_GEO_FALLBACK.mairieSearchLabel)}</a>
+  `;
+}
+
+function setAnswer(k,v){
+  preserveScroll(()=>{
+  dossier.answers = dossier.answers || {};
+  dossier.answers[k] = v;
+  // keep cp in top-level too
+  if(k==='cp') dossier.cp = v;
+  // if query implies another flow, rematch (only if user changed query field — not used here)
+  V30.upsertDossier(dossier);
+  render();
+  });
+}
+
+function toggleCL(id, checked){
+  preserveScroll(()=>{
+  dossier.checklist = dossier.checklist || {};
+  dossier.checklist[id] = !!checked;
+  V30.upsertDossier(dossier);
+  render();
+  });
+}
+
+function toggleTL(stepId, checked){
+  preserveScroll(()=>{
+    dossier.timeline = dossier.timeline || [];
+    const i = dossier.timeline.findIndex(x=>x.id===stepId);
+    if(i>=0) dossier.timeline[i].done = !!checked;
+    V30.upsertDossier(dossier);
+    render();
+  });
+}
+
+function openDetails(itemId){
+  const clId = (dossier.result && dossier.result.checklist_id) || (dossier.result && dossier.result.pack_id) || null;
+  const clDef = (window.VIGIE_CHECKLISTS||{})[ (dossier.result && dossier.result.checklist_id) || '' ];
+  const def = clDef ? (clDef.items||[]).find(x=>x.id===itemId) : null;
+  if(!def || !def.details){
+    showModal('Info', 'Pas de détails disponibles pour cet élément.');
+    return;
+  }
+  showModal(def.label, (typeof richHTML==='function'? richHTML(def.details): esc(def.details)).replace(/\n/g,'<br>'));
+}
+
+function showModal(title, html){
+  document.getElementById('modalTitle').innerText = title;
+  document.getElementById('modalBody').innerHTML = html;
+  document.getElementById('modal').classList.add('open');
+}
+function hideModal(){ document.getElementById('modal').classList.remove('open'); }
+function closeModal(e){ if(e && e.target && e.target.id==='modal') hideModal(); }
+
+function resetDossier(){
+  dossier.answers = {};
+  dossier.checklist = {};
+  // On conserve la structure timeline mais on décoche tout
+  dossier.timeline = (dossier.timeline||[]).map(x=>({ ...x, done:false }));
+  dossier.todo = {};
+  dossier.result = null;
+  dossier.pack_id = null;
+  V30.upsertDossier(dossier);
+  render();
+}
+
+render();
+
+// V42.1 : surcouche UX (safe, sans perte)
+try{
+  if(window.V42_1){
+    V42_1.collapseDetails && V42_1.collapseDetails();
+    V42_1.injectWizardTopCards && V42_1.injectWizardTopCards(dossier);
+  }
+}catch(e){ console.warn('V42.1 hook failed', e); }
+</script>
+<div class="bottomnav">
+  <a href="index.html">🏠 Accueil</a>
+  <a href="map.html">🗺️ Carte</a>
+  <a href="dashboard.html">📊 Dashboard</a>
+</div>
+<div class="footerNote">
+  ℹ️ Vigie citoyen est un outil d’accompagnement. Les informations fournies sont générales et ne constituent pas un conseil juridique.
+  <br>🔒 Vos données restent sur votre appareil (stockage local). Aucune compilation automatique.
+  <br><a href="mentions.html">Mentions légales</a>
+</div>
+
+<script src="data/strategies_v43.js"></script>
+<script>
+(function(){
+  const u=new URL(location.href);
+  const strategy=u.searchParams.get('strategy')||'';
+  if(!strategy) return;
+  // store in current dossier if present
+  try{
+    const state = JSON.parse(localStorage.getItem('vigie_v30_state')||'{}');
+    if(state && Array.isArray(state.dossiers) && state.dossiers[0]){
+      state.dossiers[0].strategy = strategy;
+      localStorage.setItem('vigie_v30_state', JSON.stringify(state));
+    }
+  }catch(e){}
+  // add a small banner below header
+  const c = document.querySelector('.container');
+  if(!c) return;
+  const div=document.createElement('div');
+  div.className='card';
+  div.innerHTML='<div class="small">🧭 Stratégie sélectionnée : <b>'+strategy+'</b> (modifiable depuis Résultat)</div>' +
+                '<a class="btn" style="margin-top:8px; display:inline-block" href="result.html?q='+encodeURIComponent(u.searchParams.get('q')||'')+'">Modifier ma situation</a>';
+  c.appendChild(div);
+})();
+</script>
+
+</body>
+</html>

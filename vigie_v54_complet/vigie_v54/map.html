@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vigie — Carte des services</title>
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+ integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+  #map{height:56vh;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.10)}
+  .twoCol{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
+  @media (max-width: 860px){ .twoCol{grid-template-columns:1fr} #map{height:50vh} }
+  .pill{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04);cursor:pointer;margin:4px 6px 0 0}
+  .pill input{width:auto}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="brand">
+      <div class="logo">V</div>
+      <div>
+        <div style="font-weight:900">Carte</div>
+        <div class="small">Autour de moi • administrations & services</div>
+      </div>
+    </div>
+    <div class="nav">
+      <a class="btn" href="map.html">🗺️</a>
+      <a class="btn" href="dashboard.html">📊</a>
+      <details class="small"><summary class="btn">☰</summary><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"><a class="btn" href="parcours.html">🧩 Parcours</a><a class="btn" href="pillars.html">🧱 Piliers</a><a class="btn" href="index.html">🏠 Accueil</a><a class="btn" href="wizard.html">🧭 Assistant</a><a class="btn" href="dashboard.html">📁 Dashboard</a></div></details>
+    </div>
+  </div>
+</div>
+
+  <div class="footer">Astuce : depuis l’assistant, on peut ouvrir la carte filtrée (mairie, CAF, CPAM…)</div>
+</div>
+
+<script src="assets/ui.js"></script>
+<script src="assets/map.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+ integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+  MapVigie.init();
+</script>
+<div class="bottomnav">
+  <a href="index.html">🏠 Accueil</a>
+  <a href="map.html">🗺️ Carte</a>
+  <a href="dashboard.html">📊 Dashboard</a>
+</div>
+<div class="footerNote">
+  ℹ️ Vigie citoyen est un outil d’accompagnement. Les informations fournies sont générales et ne constituent pas un conseil juridique.
+  <br>🔒 Vos données restent sur votre appareil (stockage local). Aucune compilation automatique.
+  <br><a href="mentions.html">Mentions légales</a>
+</div>
+</body>
+</html>
