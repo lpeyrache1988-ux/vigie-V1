@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Vigie — Copilote citoyen</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:'Outfit',sans-serif;background:#f0f4ff;color:#111827;min-height:100vh}
+
+/* ── NAV ── */
+.nav{background:#1a3fad;display:flex;padding:0 4px}
+.nav-btn{flex:1;padding:12px 4px 10px;border:none;background:none;color:rgba(255,255,255,.6);font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .12s}
+.nav-btn.on{color:#fff;border-bottom:3px solid #fff}
+.nav-ico{font-size:18px;line-height:1}
+
+/* ── VIEWS ── */
+.view{display:none;padding:16px 14px 60px}
+.view.on{display:block}
+
+/* ── HEADER ── */
+.hero{background:linear-gradient(135deg,#1a3fad,#2563eb);padding:20px 18px 24px;color:#fff;margin:-16px -14px 16px}
+.hero-logo{font-size:18px;font-weight:900;margin-bottom:4px}
+.hero-tag{font-size:12px;opacity:.7;margin-bottom:14px}
+.search-row{display:flex;gap:8px}
+.si{flex:1;padding:12px 14px;border-radius:12px;border:none;font-family:'Outfit',sans-serif;font-size:15px;color:#111827;outline:none}
+.sb{padding:12px 16px;background:#fff;color:#1a3fad;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer}
+
+/* ── FILTERS ── */
+.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.fb{flex-shrink:0;padding:6px 12px;border-radius:999px;border:2px solid #e5e7eb;background:#fff;font-size:11px;font-weight:700;color:#6b7280;cursor:pointer;white-space:nowrap}
+.fb.on{background:#1a3fad;border-color:#1a3fad;color:#fff}
+
+/* ── CARDS ── */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px}
+.card{background:#fff;border:2px solid #e5e7eb;border-radius:16px;padding:14px 10px 12px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:all .12s;-webkit-tap-highlight-color:transparent}
+.card:active,.card.active{border-color:#1a3fad;background:#eff6ff;transform:scale(.97)}
+.card.hidden{display:none}
+.ci{font-size:24px;line-height:1}
+.cl{font-size:12px;font-weight:700;line-height:1.3}
+.cs{font-size:10px;color:#9ca3af;line-height:1.3}
+
+/* ── QUESTIONS ── */
+.quiz-panel{background:#fff;border-radius:18px;border:2px solid #1a3fad;padding:18px;margin-bottom:14px;animation:pop .2s ease}
+.quiz-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.quiz-emoji{font-size:28px}
+.quiz-title{font-size:15px;font-weight:800;color:#1a3fad;line-height:1.3;flex:1}
+.quiz-close{background:none;border:none;font-size:18px;color:#9ca3af;cursor:pointer}
+.question-block{margin-bottom:14px}
+.q-label{font-size:13px;font-weight:700;color:#111827;margin-bottom:8px}
+.q-options{display:flex;flex-direction:column;gap:6px}
+.q-opt{
+  padding:10px 14px;border:2px solid #e5e7eb;border-radius:10px;
+  font-size:13px;font-weight:600;color:#374151;cursor:pointer;
+  text-align:left;background:#fff;font-family:'Outfit',sans-serif;
+  transition:all .12s;
+}
+.q-opt:hover,.q-opt.sel{border-color:#1a3fad;background:#eff6ff;color:#1a3fad}
+.quiz-progress{display:flex;gap:4px;margin-bottom:14px}
+.qp-dot{flex:1;height:4px;border-radius:999px;background:#e5e7eb;transition:background .2s}
+.qp-dot.done{background:#1a3fad}
+.quiz-cta{width:100%;padding:13px;background:#1a3fad;color:#fff;border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px}
+.quiz-cta:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── RESULT ── */
+.result-panel{background:#fff;border-radius:18px;border-left:5px solid #1a3fad;padding:18px;margin-bottom:14px;animation:pop .2s ease;display:none}
+.result-panel.show{display:block}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.rp-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.rp-title{font-size:15px;font-weight:800;color:#1a3fad;flex:1;line-height:1.3;padding-right:8px}
+.rp-close{background:none;border:none;font-size:18px;color:#9ca3af;cursor:pointer}
+.urgency{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:12px}
+.ur{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.ua{background:#fffbeb;color:#d97706;border:1px solid #fde68a}
+.ub{background:#eff6ff;color:#1a3fad;border:1px solid #bfdbfe}
+.ug{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+.bt{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin-bottom:8px}
+.steps{display:grid;gap:7px;margin-bottom:12px}
+.step{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.5}
+.sn{width:22px;height:22px;border-radius:999px;background:#1a3fad;color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;flex-shrink:0;margin-top:2px}
+.dbox{padding:9px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:12px;color:#78350f;margin-bottom:12px;line-height:1.5}
+.wbox{padding:9px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:12px;color:#991b1b;margin-bottom:12px;line-height:1.5;font-weight:600}
+.recs{display:grid;gap:6px;margin-bottom:12px}
+.recs a{display:flex;align-items:center;gap:8px;padding:9px 11px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;text-decoration:none;color:#111827;font-size:13px;font-weight:600}
+.rb{margin-left:auto;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;flex-shrink:0;border:1px solid}
+.rb1{background:#f0fdf4;color:#16a34a;border-color:#bbf7d0}
+.rb2{background:#fffbeb;color:#d97706;border-color:#fde68a}
+.rb3{background:#fef2f2;color:#dc2626;border-color:#fecaca}
+.create-dossier-btn{width:100%;padding:11px;border:2px solid #1a3fad;border-radius:12px;background:none;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:#1a3fad;cursor:pointer}
+
+/* ── TIMELINE ── */
+.tl{position:relative;padding-left:28px;margin-bottom:4px}
+.tl::before{content:'';position:absolute;left:9px;top:0;bottom:0;width:2px;background:#e5e7eb}
+.tl-item{position:relative;padding:10px 0 10px 16px;margin-left:-16px}
+.tl-dot{
+  position:absolute;left:0;top:14px;
+  width:18px;height:18px;border-radius:999px;
+  display:grid;place-items:center;font-size:9px;z-index:1;
+  flex-shrink:0;
+}
+.tl-dot.done{background:#16a34a;border:2px solid #16a34a;color:#fff}
+.tl-dot.now{background:#1a3fad;border:2px solid #1a3fad;color:#fff;box-shadow:0 0 0 4px rgba(26,63,173,.2)}
+.tl-dot.urgent{background:#dc2626;border:2px solid #dc2626;color:#fff;animation:pulse 1.5s infinite}
+.tl-dot.future{background:#fff;border:2px solid #d1d5db;color:#9ca3af}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.4)}50%{box-shadow:0 0 0 8px rgba(220,38,38,0)}}
+.tl-content{padding:8px 12px;background:#fff;border-radius:10px;border:1px solid #e5e7eb}
+.tl-content.tl-now{border-color:#1a3fad;background:#eff6ff}
+.tl-content.tl-urgent{border-color:#dc2626;background:#fef2f2}
+.tl-content.tl-done{opacity:.65}
+.tl-date{font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:2px;font-family:monospace}
+.tl-title{font-size:13px;font-weight:700;color:#111827;margin-bottom:3px}
+.tl-desc{font-size:12px;color:#6b7280;line-height:1.4}
+.tl-badge{display:inline-block;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:700;margin-top:4px}
+.badge-legal{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.badge-rec{background:#fffbeb;color:#d97706;border:1px solid #fde68a}
+.badge-info{background:#eff6ff;color:#1a3fad;border:1px solid #bfdbfe}
+
+/* ── DASHBOARD ── */
+.dos-card{background:#fff;border-radius:16px;border:1px solid #e5e7eb;padding:16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.dos-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.dos-icon{font-size:26px}
+.dos-title{font-size:14px;font-weight:800;flex:1}
+.dos-date{font-size:11px;color:#9ca3af}
+.dos-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+.dbr{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.dba{background:#fffbeb;color:#d97706;border:1px solid #fde68a}
+.dbg{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+.dos-progress{height:6px;background:#f3f4f6;border-radius:999px;overflow:hidden;margin-bottom:8px}
+.dos-bar{height:100%;background:#1a3fad;border-radius:999px;transition:width .4s}
+.dos-next{font-size:12px;color:#6b7280}
+.dos-next strong{color:#1a3fad}
+.dos-open-btn{width:100%;margin-top:10px;padding:9px;border:1px solid #e5e7eb;border-radius:10px;background:#f9fafb;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:#374151;cursor:pointer}
+.empty-state{text-align:center;padding:40px 20px;color:#9ca3af}
+.empty-ico{font-size:40px;margin-bottom:12px}
+.empty-t{font-size:16px;font-weight:700;margin-bottom:6px;color:#6b7280}
+
+/* ── MISC ── */
+.section-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin-bottom:10px}
+.footer-note{text-align:center;font-size:11px;color:#9ca3af;padding:8px 0 4px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAVIGATION ═══ -->
+<div class="nav">
+  <button class="nav-btn on" onclick="showView('home')" id="nav-home">
+    <div class="nav-ico">🔍</div>Recherche
+  </button>
+  <button class="nav-btn" onclick="showView('timeline')" id="nav-timeline">
+    <div class="nav-ico">📅</div>Timeline
+  </button>
+  <button class="nav-btn" onclick="showView('dashboard')" id="nav-dashboard">
+    <div class="nav-ico">📁</div>Dossiers
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     VUE 1 — RECHERCHE + QUESTIONS + RÉSULTAT
+═══════════════════════════════════════════════════ -->
+<div class="view on" id="view-home">
+  <div class="hero">
+    <div class="hero-logo">🛡️ Vigie</div>
+    <div class="hero-tag">Face à l'administration, vous n'êtes pas seul.</div>
+    <div class="search-row">
+      <input class="si" id="q" placeholder="Décrivez votre problème…" autocomplete="off" onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="sb" onclick="doSearch()">→</button>
+    </div>
+  </div>
+
+  <!-- Quiz d'affinage -->
+  <div id="quiz-panel" class="quiz-panel" style="display:none"></div>
+
+  <!-- Résultat -->
+  <div id="result-panel" class="result-panel"></div>
+
+  <!-- Filtres thèmes -->
+  <div class="filters" id="filters"></div>
+  <div class="section-lbl" id="slbl">Choisissez votre situation</div>
+  <div class="cards" id="cards"></div>
+
+  <div class="footer-note">ℹ️ Information générale — pas un conseil juridique.<br>Délais indicatifs — vérifiez votre courrier officiel.</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     VUE 2 — TIMELINE
+═══════════════════════════════════════════════════ -->
+<div class="view" id="view-timeline">
+  <div class="section-lbl">Calculer ma timeline</div>
+
+  <!-- Sélection situation -->
+  <div style="background:#fff;border-radius:16px;border:1px solid #e5e7eb;padding:16px;margin-bottom:12px">
+    <label style="font-size:13px;font-weight:700;display:block;margin-bottom:8px">Ma situation</label>
+    <select id="tl-situation" style="width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #e5e7eb;font-family:'Outfit',sans-serif;font-size:14px;color:#111827;outline:none" onchange="updateTimeline()">
+      <option value="">-- Choisir --</option>
+      <optgroup label="💰 Impôts">
+        <option value="impots_rect">Impôts — Proposition de rectification reçue</option>
+        <option value="impots_satd">Impôts — Saisie bancaire (SATD)</option>
+        <option value="impots_taxe">Impôts — Taxe foncière contestée</option>
+      </optgroup>
+      <optgroup label="👶 CAF">
+        <option value="caf_indu">CAF — Trop-perçu / Indu</option>
+        <option value="caf_apl">CAF — APL suspendue</option>
+        <option value="caf_rsa">CAF — RSA suspendu</option>
+      </optgroup>
+      <optgroup label="💼 France Travail">
+        <option value="ft_radiation">France Travail — Radiation</option>
+        <option value="ft_are">France Travail — ARE refusée</option>
+      </optgroup>
+      <optgroup label="🏦 Banque">
+        <option value="fraude_cb">Banque — Fraude carte bancaire</option>
+        <option value="virement_fraude">Banque — Virement frauduleux</option>
+        <option value="surendettement">Banque — Surendettement</option>
+      </optgroup>
+      <optgroup label="🏠 Logement">
+        <option value="expulsion">Logement — Expulsion / Commandement</option>
+        <option value="caution">Logement — Dépôt de garantie</option>
+      </optgroup>
+      <optgroup label="🩺 Santé">
+        <option value="cpam">CPAM — Remboursement refusé</option>
+        <option value="ald">CPAM — ALD refusée</option>
+      </optgroup>
+      <optgroup label="🛒 Consommation">
+        <option value="garantie">Consommation — Garantie refusée</option>
+        <option value="demarchage">Consommation — Démarchage abusif</option>
+      </optgroup>
+      <optgroup label="⚖️ Justice">
+        <option value="injonction">Justice — Injonction de payer</option>
+      </optgroup>
+    </select>
+
+    <label style="font-size:13px;font-weight:700;display:block;margin:12px 0 8px">Date de réception du courrier</label>
+    <input type="date" id="tl-date" style="width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #e5e7eb;font-family:'Outfit',sans-serif;font-size:14px;color:#111827;outline:none" onchange="updateTimeline()">
+  </div>
+
+  <div id="timeline-output"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     VUE 3 — DASHBOARD
+═══════════════════════════════════════════════════ -->
+<div class="view" id="view-dashboard">
+  <div class="section-lbl">Mes dossiers en cours</div>
+  <div id="dashboard-list"></div>
+
+  <!-- Dossier ouvert -->
+  <div id="dossier-detail" style="display:none">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+      <button onclick="closeDossier()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280">←</button>
+      <div id="dd-title" style="font-size:16px;font-weight:800;flex:1"></div>
+    </div>
+    <div id="dd-timeline"></div>
+    <button onclick="deleteDossier()" style="width:100%;margin-top:12px;padding:10px;border:1px solid #fecaca;border-radius:10px;background:none;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;color:#dc2626;cursor:pointer">🗑️ Supprimer ce dossier</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+// DONNÉES : situations + questions + timelines
+// ════════════════════════════════════════════════════
+
+const SITUATIONS = {
+  impots_rect:{
+    emoji:'💰', label:'Impôts — Rectification', cat:'Impots',
+    questions:[
+      {id:'motif', q:'Pourquoi contestez-vous ?',opts:['Erreur sur mes revenus déclarés','Frais professionnels non pris en compte','Je ne comprends pas les motifs','Je pense avoir raison mais je veux vérifier']},
+      {id:'montant', q:'Quel est le montant réclamé ?',opts:['Moins de 500€','De 500€ à 3 000€','De 3 000€ à 15 000€','Plus de 15 000€']},
+      {id:'delai', q:'Quel délai vous reste-t-il pour répondre ?',opts:['Plus de 2 semaines','Moins de 2 semaines','Le délai est dépassé','Je ne sais pas']},
+    ],
+    getResult:(ans)=>({
+      title:'Impôts — Plan d\'action personnalisé',
+      urgency: ans.delai==='Moins de 2 semaines'?'r': ans.delai==='Le délai est dépassé'?'r':'a',
+      urg: ans.delai==='Le délai est dépassé'?'🚨 Délai dépassé — saisissez le médiateur de Bercy immédiatement': ans.delai==='Moins de 2 semaines'?'🔴 Moins de 2 semaines — répondez cette semaine':'⏱️ Vous avez du temps — préparez une réponse solide',
+      warning: ans.montant==='Plus de 15 000€'?'⚠️ Enjeu élevé : consultez un avocat fiscaliste avant de répondre.':null,
+      steps:[
+        '1. Rassemblez tous vos justificatifs : avis d\'imposition, bulletins de salaire, relevés bancaires',
+        ans.motif==='Frais professionnels non pris en compte'?'2. Rédigez une liste détaillée des frais avec preuves (notes de frais, justificatifs)':'2. Rédigez votre réponse point par point en citant chaque erreur avec preuves',
+        '3. Envoyez en recommandé avec AR à votre SIP (Service des Impôts des Particuliers)',
+        ans.delai==='Le délai est dépassé'?'4. Saisissez le médiateur de Bercy — il peut intervenir même après le délai':'4. Conservez la preuve d\'envoi et notez la date',
+        '5. Demandez un accusé de réception de votre courrier au SIP',
+      ],
+      delay:'Délai de réponse indicatif : généralement 30 jours à compter de la réception du courrier de l\'administration. Vérifiez la date exacte sur votre courrier.',
+      recours:[
+        {l:'Réclamation impots.gouv.fr',u:'https://www.impots.gouv.fr/particulier/deposer-une-reclamation',b:'rb1',bl:'Étape 1'},
+        {l:'Médiateur de Bercy',u:'https://www.economie.gouv.fr/mediateur/je-saisis-le-mediateur',b:'rb2',bl:'Étape 2'},
+        {l:'Tribunal administratif',u:'https://www.service-public.fr/particuliers/vosdroits/F2026',b:'rb3',bl:'Étape 3'},
+      ]
+    }),
+    timeline:[
+      {j:0, label:'Réception du courrier', desc:'Lire attentivement, noter la date limite de réponse, conserver précieusement', type:'now'},
+      {j:3, label:'Analyser le courrier', desc:'Identifier chaque point contestable, rassembler les justificatifs correspondants', type:'action', badge:'info'},
+      {j:7, label:'Rédiger la réponse', desc:'Réponse point par point avec preuves à l\'appui — soyez factuel et précis', type:'action', badge:'info'},
+      {j:14, label:'Envoyer en recommandé avec AR', desc:'Envoi au SIP (Service des Impôts des Particuliers) de votre département', type:'action', badge:'rec'},
+      {j:30, label:'⚠️ Date limite de réponse', desc:'Délai indicatif — vérifiez la date exacte sur votre courrier. Après ce délai, la rectification est tacitement acceptée.', type:'urgent', badge:'legal'},
+      {j:45, label:'Relance si pas de réponse', desc:'Contactez le SIP pour vérifier la réception de votre courrier', type:'action', badge:'info'},
+      {j:60, label:'Médiateur de Bercy si blocage', desc:'Si la réclamation est rejetée ou sans réponse : saisir le médiateur (gratuit)', type:'action', badge:'rec'},
+      {j:180, label:'Tribunal administratif', desc:'Dernier recours si médiation infructueuse — délai total 2 ans depuis l\'imposition', type:'action', badge:'legal'},
+    ]
+  },
+
+  impots_satd:{
+    emoji:'🔒', label:'Impôts — SATD (Saisie)', cat:'Impots',
+    questions:[
+      {id:'connait', q:'Reconnaissez-vous la dette ?',opts:['Je reconnais la dette','Je conteste en partie','Je ne dois rien — c\'est une erreur','J\'ai déjà payé']},
+      {id:'urgence', q:'Avez-vous accès à votre compte bancaire ?',opts:['Mon compte est totalement bloqué','Une partie seulement est bloquée','Pas encore bloqué mais j\'ai reçu l\'avis']},
+      {id:'ressources', q:'Êtes-vous dans une situation financière difficile ?',opts:['Oui — revenus très limités','Situation moyenne','Je peux payer mais en plusieurs fois','Je peux payer en totalité']},
+    ],
+    getResult:(ans)=>({
+      title:'SATD — Plan d\'action urgent',
+      urgency:'r', urg:'🚨 Agir immédiatement — chaque jour compte',
+      warning: ans.connait==='J\'ai déjà payé'?'⚠️ Si vous avez déjà payé, fournissez immédiatement la preuve au SIP — la saisie sera levée rapidement.':null,
+      steps:[
+        '1. Appelez ou allez au guichet de votre SIP le jour même en expliquant la situation',
+        ans.connait==='Je ne dois rien — c\'est une erreur'?'2. Apportez TOUTES les preuves que vous ne devez pas cette somme':'2. Demandez un échelonnement de paiement par écrit',
+        ans.ressources==='Oui — revenus très limités'?'3. Mentionnez votre situation financière — un sursis peut être accordé':'3. Proposez un calendrier de remboursement réaliste',
+        '4. Demandez une lettre de mainlevée si accord trouvé',
+        '5. Si refus injustifié : médiateur de Bercy dans les 48h',
+      ],
+      delay:'La saisie peut être levée en 24 à 48h si vous apportez la preuve du paiement ou obtenez un accord. Indicatif.',
+      recours:[
+        {l:'Contacter votre SIP — impots.gouv.fr',u:'https://www.impots.gouv.fr/contacts',b:'rb1',bl:'Urgent'},
+        {l:'Médiateur de Bercy',u:'https://www.economie.gouv.fr/mediateur/je-saisis-le-mediateur',b:'rb2',bl:'Si blocage'},
+      ]
+    }),
+    timeline:[
+      {j:0, label:'Réception de l\'avis SATD', desc:'Votre banque est notifiée — le blocage peut intervenir sous 15 jours', type:'now', badge:'legal'},
+      {j:1, label:'🚨 Contacter le SIP immédiatement', desc:'Se présenter au guichet ou appeler — expliquer la situation et demander un sursis', type:'urgent', badge:'legal'},
+      {j:3, label:'Fournir les justificatifs', desc:'Preuve de paiement, de contestation en cours, ou de difficultés financières', type:'action', badge:'rec'},
+      {j:7, label:'Demande d\'échelonnement formelle', desc:'Courrier recommandé avec proposition de calendrier de remboursement', type:'action', badge:'info'},
+      {j:15, label:'⚠️ Blocage effectif si pas d\'accord', desc:'Sans accord avec le SIP, la banque bloque les fonds à hauteur de la dette', type:'urgent', badge:'legal'},
+      {j:20, label:'Médiateur de Bercy si refus', desc:'Saisine du médiateur si le SIP refuse tout arrangement', type:'action', badge:'rec'},
+    ]
+  },
+
+  caf_indu:{
+    emoji:'👶', label:'CAF — Trop-perçu', cat:'CAF',
+    questions:[
+      {id:'raison', q:'Pourquoi pensez-vous y avoir droit ou contester ?',opts:['C\'est une erreur de calcul de la CAF','J\'ai déclaré un changement mais la CAF ne l\'a pas pris en compte','Je n\'ai pas déclaré un changement — c\'était involontaire','Je ne comprends pas le motif']},
+      {id:'montant', q:'Quel est le montant du trop-perçu ?',opts:['Moins de 300€','De 300€ à 1 000€','De 1 000€ à 3 000€','Plus de 3 000€']},
+      {id:'periode', q:'Quand avez-vous reçu la notification ?',opts:['Il y a moins d\'un mois','Il y a 1 à 2 mois','Il y a plus de 2 mois']},
+    ],
+    getResult:(ans)=>({
+      title:'CAF Trop-perçu — Plan personnalisé',
+      urgency: ans.periode==='Il y a plus de 2 mois'?'r':'a',
+      urg: ans.periode==='Il y a plus de 2 mois'?'🔴 Délai de 2 mois probablement dépassé — saisissez le Défenseur des droits':'⏱️ Agissez avant les 2 mois pour la CRA',
+      warning: ans.raison==='Je n\'ai pas déclaré un changement — c\'était involontaire'?'⚠️ Si votre omission était involontaire (bonne foi), vous pouvez demander une remise gracieuse — c\'est souvent accordé.':null,
+      steps:[
+        '1. Demander par courrier recommandé le détail du calcul et la période concernée',
+        ans.raison==='C\'est une erreur de calcul de la CAF'?'2. Comparer avec vos revenus réels et identifier l\'erreur précise':'2. Rassembler vos preuves : revenus, situation familiale, logement sur la période',
+        ans.raison==='Je n\'ai pas déclaré un changement — c\'était involontaire'?'3. Demander une remise gracieuse en expliquant votre bonne foi et vos difficultés':'3. Rédiger votre contestation point par point',
+        '4. Saisir la Commission de Recours Amiable (CRA) de la CAF dans les 2 mois',
+        ans.montant==='Plus de 3 000€'?'5. Contacter une assistante sociale ou le Défenseur des droits pour vous accompagner':'5. Si accord sur la dette : demander un échelonnement sur 24 mois (droit légal)',
+      ],
+      delay: ans.periode==='Il y a plus de 2 mois'?'⚠️ Le délai de 2 mois pour la CRA est probablement dépassé. Vous pouvez tout de même saisir le Défenseur des droits. Indicatif.':'Délai indicatif : 2 mois après la notification pour saisir la CRA. Vérifiez la date exacte sur votre courrier.',
+      recours:[
+        {l:'Réclamation écrite à la CAF',u:'https://www.caf.fr',b:'rb1',bl:'Étape 1 — Amiable'},
+        {l:'CRA CAF (Commission Recours Amiable)',u:'https://www.caf.fr',b:'rb2',bl:'Étape 2 — 2 mois'},
+        {l:'Défenseur des droits',u:'https://formulaire.defenseurdesdroits.fr/',b:'rb2',bl:'Étape 3'},
+        {l:'Tribunal judiciaire pôle social',u:'https://www.service-public.fr/particuliers/vosdroits/N160',b:'rb3',bl:'Dernier recours'},
+      ]
+    }),
+    timeline:[
+      {j:0, label:'Réception de la notification CAF', desc:'Lire attentivement, noter le montant, la période concernée et la date', type:'now'},
+      {j:5, label:'Demander le détail du calcul', desc:'Courrier recommandé à la CAF pour obtenir l\'explication précise du trop-perçu', type:'action', badge:'info'},
+      {j:15, label:'Préparer la contestation ou remise gracieuse', desc:'Rassembler preuves de revenus, situation familiale, bulletins de la période concernée', type:'action', badge:'info'},
+      {j:30, label:'Envoyer la contestation en recommandé', desc:'CRA ou demande de remise gracieuse selon votre situation', type:'action', badge:'rec'},
+      {j:60, label:'⚠️ DATE LIMITE CRA', desc:'Délai légal indicatif pour saisir la Commission de Recours Amiable — vérifiez la date sur votre courrier', type:'urgent', badge:'legal'},
+      {j:90, label:'Défenseur des droits si refus', desc:'Si la CAF rejette votre demande : saisine gratuite et efficace', type:'action', badge:'rec'},
+      {j:120, label:'Tribunal judiciaire pôle social', desc:'Dernier recours si toutes les voies amiables ont échoué', type:'action', badge:'legal'},
+    ]
+  },
+
+  ft_radiation:{
+    emoji:'🚫', label:'France Travail — Radiation', cat:'Travail',
+    questions:[
+      {id:'motif', q:'Quel est le motif indiqué de la radiation ?',opts:['Absence à une convocation','Absence à un entretien employeur','Refus d\'une offre d\'emploi raisonnable','Motif non précisé ou que je conteste']},
+      {id:'quand', q:'Quand avez-vous reçu la notification ?',opts:['Il y a moins de 2 semaines','Il y a 2 à 4 semaines','Il y a 1 à 2 mois','Il y a plus de 2 mois']},
+      {id:'situation', q:'Quelle est votre situation actuelle ?',opts:['Je n\'ai aucun revenu depuis la radiation','J\'ai retrouvé un emploi partiellement','Je touche encore une partie des allocations','Je suis pris en charge autrement']},
+    ],
+    getResult:(ans)=>({
+      title:'Radiation France Travail — Plan personnalisé',
+      urgency: ans.quand==='Il y a plus de 2 mois'?'r':'r',
+      urg: ans.quand==='Il y a plus de 2 mois'?'🔴 Délai de 2 mois probablement dépassé — saisissez le médiateur immédiatement':'🔴 Agissez cette semaine — délai de 2 mois',
+      warning: ans.situation==='Je n\'ai aucun revenu depuis la radiation'?'⚠️ Situation d\'urgence financière : vous pouvez bénéficier du RSA pendant la contestation. Contactez la CAF.':null,
+      steps:[
+        '1. Demander par écrit à France Travail le motif précis et la base légale de la radiation',
+        ans.motif==='Absence à une convocation'?'2. Fournir la preuve que vous ne pouviez pas vous déplacer (certificat médical, urgence familiale…)':'2. Expliquer par écrit pourquoi la décision est injustifiée',
+        '3. Contester formellement par courrier recommandé à France Travail',
+        '4. Saisir la CRA (Commission de Recours Amiable) dans les 2 mois suivant la notification',
+        ans.situation==='Je n\'ai aucun revenu depuis la radiation'?'5. Déposer une demande de RSA à la CAF en urgence — ne pas rester sans ressources':'5. Suivre votre dossier — demander accusé de réception à chaque étape',
+      ],
+      delay:'Délai indicatif : 2 mois après la notification pour la CRA. Le tribunal compétent est le tribunal judiciaire (pas administratif). Vérifiez votre courrier.',
+      recours:[
+        {l:'Contestation écrite France Travail',u:'https://www.francetravail.fr',b:'rb1',bl:'Étape 1'},
+        {l:'CRA France Travail — 2 mois',u:'https://www.francetravail.fr/candidat/vos-services-en-ligne/le-mediateur.html',b:'rb2',bl:'Étape 2'},
+        {l:'Médiateur France Travail',u:'https://www.francetravail.fr/candidat/vos-services-en-ligne/le-mediateur.html',b:'rb2',bl:'Étape 3'},
+        {l:'Tribunal judiciaire (pas administratif)',u:'https://www.service-public.fr/particuliers/vosdroits/N269',b:'rb3',bl:'Dernier recours'},
+      ]
+    }),
+    timeline:[
+      {j:0, label:'Réception de la notification de radiation', desc:'Lire, noter la date, identifier le motif exact invoqué par France Travail', type:'now'},
+      {j:3, label:'Rassembler les preuves', desc:'Toute preuve que la radiation est injustifiée ou que vous aviez un motif légitime', type:'action', badge:'info'},
+      {j:7, label:'Demander les motifs précis par écrit', desc:'Courrier recommandé à France Travail — indispensable avant de contester', type:'action', badge:'rec'},
+      {j:14, label:'Envoyer la contestation', desc:'Courrier recommandé avec AR à France Travail — contestation formelle avec preuves', type:'action', badge:'rec'},
+      {j:60, label:'⚠️ DATE LIMITE CRA', desc:'Délai légal indicatif pour la Commission de Recours Amiable — vérifiez la date sur votre courrier', type:'urgent', badge:'legal'},
+      {j:75, label:'Médiateur France Travail si refus', desc:'Saisine gratuite du médiateur si la CRA rejette votre demande', type:'action', badge:'rec'},
+      {j:120, label:'Tribunal judiciaire', desc:'Compétence exclusive du tribunal judiciaire (et non administratif) pour les litiges ARE/radiation', type:'action', badge:'legal'},
+    ]
+  },
+
+  fraude_cb:{
+    emoji:'💳', label:'Fraude carte bancaire', cat:'Banque',
+    questions:[
+      {id:'type', q:'Quel type d\'opération frauduleuse ?',opts:['Paiement en ligne non reconnu','Paiement en magasin non reconnu','Retrait d\'espèces non reconnu','Abonnement / prélèvement non autorisé']},
+      {id:'montant', q:'Quel est le montant total frauduleux ?',opts:['Moins de 200€','200€ à 1 000€','1 000€ à 5 000€','Plus de 5 000€']},
+      {id:'delai', q:'Quand avez-vous constaté la fraude ?',opts:['Aujourd\'hui ou hier','Il y a moins d\'une semaine','Il y a 1 à 4 semaines','Il y a plus d\'un mois']},
+    ],
+    getResult:(ans)=>({
+      title:'Fraude CB — Plan d\'action personnalisé',
+      urgency:'r', urg: ans.delai==='Aujourd\'hui ou hier'?'🚨 Agir maintenant — opposition immédiate':'🔴 Agir rapidement — délai légal 13 mois',
+      warning: ans.montant==='Plus de 5 000€'?'⚠️ Montant élevé : déposez plainte et conservez TOUS les relevés. La banque peut demander une enquête interne.':null,
+      steps:[
+        ans.delai==='Aujourd\'hui ou hier'?'1. MAINTENANT : faire opposition (numéro au dos de la carte ou votre application bancaire)':'1. Si pas encore fait : faire opposition immédiatement',
+        '2. Contester par écrit à la banque avec la liste précise de toutes les opérations frauduleuses',
+        '3. Déposer plainte — en ligne sur Perceval (fraude CB) ou au commissariat',
+        '4. Conserver tous les justificatifs : relevés, confirmation de commandes, échanges avec la banque',
+        ans.montant==='1 000€ à 5 000€'||ans.montant==='Plus de 5 000€'?'5. Si la banque refuse : médiateur bancaire dans les 2 mois suivant le refus':'5. La banque doit rembourser sous 1 jour ouvré si fraude prouvée (L.133-18 CMF)',
+      ],
+      delay:'Délai légal indicatif : 13 mois pour contester une fraude carte (L.133-18 CMF). La banque doit rembourser sous 1 jour ouvré en principe. Vérifiez votre courrier.',
+      recours:[
+        {l:'Opposition + réclamation banque',u:'https://www.service-public.fr/particuliers/vosdroits/F31324',b:'rb1',bl:'Immédiat'},
+        {l:'Perceval — Fraude CB en ligne',u:'https://www.masecurite.interieur.gouv.fr',b:'rb1',bl:'Signalement'},
+        {l:'Médiateur bancaire',u:'https://www.economie.gouv.fr/particuliers/litige-avec-sa-banque',b:'rb2',bl:'Si refus banque'},
+      ]
+    }),
+    timeline:[
+      {j:0, label:'🚨 Opposition immédiate', desc:'Appeler le numéro d\'opposition ou bloquer via l\'application bancaire — gratuit et immédiat', type:'urgent', badge:'legal'},
+      {j:1, label:'Contestation écrite à la banque', desc:'Lettre ou email listant toutes les opérations frauduleuses — demander remboursement sous L.133-18', type:'action', badge:'rec'},
+      {j:2, label:'Déposer plainte', desc:'Sur Perceval.fr (fraude CB) ou au commissariat / gendarmerie', type:'action', badge:'info'},
+      {j:5, label:'Suivi du remboursement', desc:'La banque doit rembourser sous 1 jour ouvré. Relancer si pas de nouvelles.', type:'action', badge:'info'},
+      {j:14, label:'Si refus banque : mise en demeure', desc:'Courrier recommandé réclamant le remboursement et citant L.133-18 CMF', type:'action', badge:'rec'},
+      {j:60, label:'Médiateur bancaire si toujours refus', desc:'Saisine gratuite après épuisement du recours interne à la banque', type:'action', badge:'rec'},
+      {j:395, label:'⚠️ Délai légal maximum', desc:'13 mois pour contester une fraude CB à compter de la date de débit. Indicatif.', type:'urgent', badge:'legal'},
+    ]
+  },
+
+  expulsion:{
+    emoji:'🚪', label:'Logement — Expulsion', cat:'Logement',
+    questions:[
+      {id:'stade', q:'À quel stade en êtes-vous ?',opts:['Lettre d\'avertissement du propriétaire','Commandement de payer reçu','Assignation au tribunal reçue','Décision du juge rendue — délai pour quitter']},
+      {id:'dette', q:'Y a-t-il des loyers impayés ?',opts:['Non — litige sur autre chose','Oui — moins de 2 mois de loyer','Oui — plus de 2 mois de loyer','Je suis à jour mais le propriétaire veut récupérer le logement']},
+      {id:'situation', q:'Votre situation familiale',opts:['Seul·e, pas d\'enfants','En couple ou avec enfants','Avec enfants mineurs','Situation précaire (RSA, chômage)']},
+    ],
+    getResult:(ans)=>({
+      title:'Expulsion — Plan d\'action personnalisé',
+      urgency:'r',
+      urg: ans.stade==='Décision du juge rendue — délai pour quitter'?'🚨 Décision rendue — contactez immédiatement le SIAO et une ADIL': ans.stade==='Assignation au tribunal reçue'?'🔴 Audience à venir — consultez une ADIL maintenant':'🔴 Agir immédiatement — délai court',
+      warning: ans.situation.includes('enfants')?'⚠️ Présence d\'enfants mineurs : une trêve hivernale (novembre à mars) protège les familles. Mentionnez-le systématiquement.':null,
+      steps:[
+        ans.stade==='Commandement de payer reçu'?'1. Contacter immédiatement une ADIL (conseil juridique logement gratuit)':'1. Consulter une ADIL ou un avocat en urgence',
+        ans.dette!=='Non — litige sur autre chose'?'2. Essayer de régulariser la dette en urgence — contacter le FSL (Fonds Solidarité Logement)':'2. Préparer votre défense : vérifier la légalité de la procédure',
+        '3. Saisir le juge des contentieux de la protection pour demander un délai',
+        ans.situation==='Situation précaire (RSA, chômage)'?'4. Contacter le CCAS de votre mairie pour un accompagnement social d\'urgence':'4. Identifier une solution de relogement en parallèle',
+        '5. Si trêve hivernale (nov-mars) : vous êtes protégé — aucune expulsion physique possible',
+      ],
+      delay:'Les délais varient selon la procédure. Consultez une ADIL immédiatement — c\'est gratuit et urgent.',
+      recours:[
+        {l:'ADIL — Conseil juridique gratuit',u:'https://www.anil.org/lanil-et-les-adil/votre-adil/',b:'rb1',bl:'Urgent'},
+        {l:'FSL — Aide loyers impayés',u:'https://www.service-public.fr/particuliers/vosdroits/F1609',b:'rb1',bl:'Aide financière'},
+        {l:'Conciliateur de justice',u:'https://www.conciliateurs.fr/Trouver-une-permanence',b:'rb2',bl:'Médiation'},
+        {l:'Tribunal judiciaire',u:'https://www.service-public.fr/particuliers/vosdroits/F31435',b:'rb3',bl:'Recours'},
+      ]
+    }),
+    timeline:[
+      {j:0, label:'Réception du courrier', desc:'Lire et identifier le type de document : simple avertissement, commandement ou assignation', type:'now'},
+      {j:1, label:'🚨 Contacter une ADIL', desc:'Association Départementale pour l\'Information sur le Logement — conseil gratuit et urgent', type:'urgent', badge:'legal'},
+      {j:5, label:'Tenter de régulariser la dette', desc:'Proposer un paiement immédiat ou un plan d\'apurement au propriétaire', type:'action', badge:'rec'},
+      {j:10, label:'Contacter le FSL', desc:'Fonds de Solidarité Logement — peut rembourser les dettes locatives sous conditions', type:'action', badge:'info'},
+      {j:60, label:'⚠️ Délai commandement de payer', desc:'Après ce délai, le propriétaire peut saisir le tribunal. Indicatif.', type:'urgent', badge:'legal'},
+      {j:90, label:'Audience au tribunal', desc:'Si assignation : se présenter avec toutes les preuves, possibilité de demander un délai au juge', type:'action', badge:'legal'},
+      {j:120, label:'Délai d\'expulsion après jugement', desc:'Le juge peut accorder 1 à 36 mois de délai. La trêve hivernale suspend toute expulsion.', type:'action', badge:'info'},
+    ]
+  },
+};
+
+// ════════════════════════════════════════════════════
+// DONNÉES CARDS (version simplifiée pour grille)
+// ════════════════════════════════════════════════════
+const CARDS = [
+  {id:'impots_rect',cat:'Impots',e:'💰',l:'Impôts\nRectification',s:'Redressement reçu'},
+  {id:'impots_satd',cat:'Impots',e:'🔒',l:'Saisie\nbancaire',s:'Compte bloqué impôts'},
+  {id:'impots_taxe',cat:'Impots',e:'🏡',l:'Taxe foncière\ncontestée',s:'Avis erroné'},
+  {id:'caf_indu',cat:'CAF',e:'👶',l:'CAF\nTrop-perçu',s:'On me demande de rembourser'},
+  {id:'caf_apl',cat:'CAF',e:'🏠',l:'APL\nsuspendue',s:'Aides logement coupées'},
+  {id:'caf_rsa',cat:'CAF',e:'💶',l:'RSA\nsuspendu',s:'Supprimé sans explication'},
+  {id:'fraude_cb',cat:'Banque',e:'💳',l:'Fraude\ncarte bancaire',s:'Paiement non reconnu'},
+  {id:'virement_fraude',cat:'Banque',e:'📤',l:'Virement\nfrauduleux',s:'Virement non autorisé'},
+  {id:'surendettement',cat:'Banque',e:'💸',l:'Surendettement',s:'Je ne peux plus rembourser'},
+  {id:'expulsion',cat:'Logement',e:'🚪',l:'Expulsion\nLogement',s:'Commandement reçu'},
+  {id:'caution',cat:'Logement',e:'🔑',l:'Dépôt\ngarantie',s:'Caution non rendue'},
+  {id:'insalubre',cat:'Logement',e:'🏚️',l:'Logement\nInsalubre',s:'Dangereux ou dégradé'},
+  {id:'ft_radiation',cat:'Travail',e:'🚫',l:'France Travail\nRadiation',s:'Radié de Pôle Emploi'},
+  {id:'ft_are',cat:'Travail',e:'📋',l:'ARE refusée\nChômage',s:'Allocations refusées'},
+  {id:'licenciement',cat:'Travail',e:'📝',l:'Licenciement\ncontesté',s:'Licenciement injustifié'},
+  {id:'cpam',cat:'Sante',e:'🩺',l:'CPAM\nRemboursement',s:'Sécu refuse'},
+  {id:'ald',cat:'Sante',e:'💊',l:'ALD\nrefusée',s:'Maladie longue durée'},
+  {id:'mutuelle',cat:'Sante',e:'🏥',l:'Mutuelle\nRefuse',s:'Complément non remboursé'},
+  {id:'retraite_trim',cat:'Retraite',e:'👴',l:'Trimestres\nmanquants',s:'Relevé incomplet'},
+  {id:'reversion',cat:'Retraite',e:'🕊️',l:'Pension\nréversion',s:'Conjoint décédé'},
+  {id:'garantie',cat:'Conso',e:'📦',l:'Garantie\nrefusée',s:'Vendeur refuse'},
+  {id:'colis',cat:'Conso',e:'📬',l:'Colis\nnon reçu',s:'Commande disparue'},
+  {id:'demarchage',cat:'Conso',e:'⛔',l:'Démarchage\nabusif',s:'Signé sous pression'},
+  {id:'passeport',cat:'Identite',e:'🪪',l:'Passeport\nCNI',s:'Renouvellement, perte'},
+  {id:'titre_sejour',cat:'Identite',e:'📋',l:'Titre de séjour\nRefusé',s:'Préfecture bloquée'},
+  {id:'divorce',cat:'Identite',e:'💔',l:'Divorce\nSéparation',s:'Démarches après'},
+  {id:'injonction',cat:'Justice',e:'⚖️',l:'Injonction\nde payer',s:'Reçu huissier'},
+  {id:'aide_juridique',cat:'Justice',e:'🏛️',l:'Avocat\ngratuit',s:'Aide juridictionnelle'},
+  {id:'arnaque',cat:'Arnaques',e:'⚠️',l:'Arnaque\nPhishing',s:'Lien frauduleux'},
+  {id:'usurpation',cat:'Arnaques',e:'👤',l:'Usurpation\nidentité',s:'Quelqu\'un me vole'},
+];
+
+// ════════════════════════════════════════════════════
+// RÉSULTATS SIMPLES (pour cards sans quiz détaillé)
+// ════════════════════════════════════════════════════
+const SIMPLE_RESULTS = {
+  impots_taxe:{title:'Taxe foncière contestée',urgency:'a',urg:'⏱️ Délai jusqu\'au 31 décembre N+1',steps:['Vérifier les bases de calcul sur impots.gouv.fr','Comparer avec votre situation réelle','Contester en ligne ou par courrier au SIP','Joindre les justificatifs'],delay:'Délai indicatif de réclamation : au plus tard le 31 décembre de l\'année suivant la mise en recouvrement.',recours:[{l:'Réclamation impots.gouv.fr',u:'https://www.impots.gouv.fr/particulier/je-veux-contester-un-impot-je-fais-une-reclamation',b:'rb1',bl:'Amiable'},{l:'Médiateur de Bercy',u:'https://www.economie.gouv.fr/mediateur/je-saisis-le-mediateur',b:'rb2',bl:'Médiation'}]},
+  caf_apl:{title:'CAF — APL suspendue',urgency:'a',urg:'⏱️ Envoyer les pièces demandées rapidement',steps:['Vérifier dans votre espace CAF quelles pièces sont manquantes','Transmettre via Mon Compte CAF','Contester si la suspension semble injustifiée','Vérifier que votre situation de logement est à jour'],delay:'Souvent levée dès réception des pièces. Indicatif.',recours:[{l:'Mon Compte CAF',u:'https://www.caf.fr/allocataires/mes-services-en-ligne/bienvenue-sur-mon-compte',b:'rb1',bl:'Amiable'},{l:'Défenseur des droits',u:'https://formulaire.defenseurdesdroits.fr/',b:'rb2',bl:'Médiation'}]},
+  caf_rsa:{title:'CAF — RSA suspendu',urgency:'r',urg:'🔴 Revenus vitaux — agir rapidement',steps:['Vérifier dans Mon Compte CAF le motif','Mettre à jour votre situation','Contester par courrier recommandé','Saisir le Défenseur des droits si blocage'],delay:'Délai indicatif : 2 mois pour contester.',recours:[{l:'Mon Compte CAF',u:'https://www.caf.fr',b:'rb1',bl:'Amiable'},{l:'Défenseur des droits',u:'https://formulaire.defenseurdesdroits.fr/',b:'rb2',bl:'Médiation'}]},
+  virement_fraude:{title:'Virement frauduleux',urgency:'r',urg:'🚨 Délai très court — 2 mois (indicatif)',steps:['Contacter la banque en urgence pour rappel','Contester par écrit : je n\'ai pas autorisé ce virement','Déposer plainte immédiatement','Si vous avez validé un code : expliquer la manipulation'],delay:'Délai indicatif : 2 mois pour contester (L.133-19 CMF).',recours:[{l:'Urgence banque',u:'https://www.economie.gouv.fr/particuliers/litige-avec-sa-banque',b:'rb1',bl:'Amiable'},{l:'Médiateur bancaire',u:'https://www.economie.gouv.fr/particuliers/litige-avec-sa-banque',b:'rb2',bl:'Médiation'}]},
+  surendettement:{title:'Surendettement — Banque de France',urgency:'b',urg:'ℹ️ Déposer un dossier stoppe les poursuites',steps:['Rassembler justificatifs de dettes et revenus','Déposer un dossier à la Banque de France (gratuit)','Les poursuites sont suspendues pendant l\'instruction','Si recevable : plan ou effacement partiel'],delay:'Délai de traitement indicatif : environ 3 mois.',recours:[{l:'Banque de France — Surendettement',u:'https://www.banque-france.fr/fr/particuliers/difficultes-bancaires/le-surendettement',b:'rb1',bl:'Démarche'}]},
+  caution:{title:'Dépôt de garantie non rendu',urgency:'a',urg:'⏱️ Délai légal : 1 à 2 mois pour le proprio',steps:['Vérifier la date de remise des clés et calculer le délai','Envoyer une mise en demeure par recommandé','Saisir la commission de conciliation (gratuit)','Tribunal de proximité si refus'],delay:'Délai légal indicatif : 1 mois si état des lieux conforme, 2 mois sinon.',recours:[{l:'Mise en demeure',u:'https://www.service-public.fr/particuliers/vosdroits/F31269',b:'rb1',bl:'Amiable'},{l:'Commission de conciliation',u:'https://www.service-public.fr/particuliers/vosdroits/F12226',b:'rb2',bl:'Médiation'}]},
+  insalubre:{title:'Logement insalubre — Vos droits',urgency:'a',urg:'⚠️ Le propriétaire est légalement obligé d\'agir',steps:['Documenter : photos datées, descriptions précises','Mise en demeure au propriétaire par recommandé','Signaler à la mairie (service hygiène) ou à l\'ARS','Saisir le juge si inaction'],delay:'Pas de délai fixe mais l\'urgence sanitaire peut accélérer.',recours:[{l:'Signalement mairie',u:'https://www.service-public.fr/particuliers/vosdroits/F31604',b:'rb1',bl:'Signalement'},{l:'ADIL — Conseil logement',u:'https://www.anil.org/lanil-et-les-adil/votre-adil/',b:'rb2',bl:'Médiation'}]},
+  ft_are:{title:'France Travail — ARE refusée',urgency:'a',urg:'⏱️ Délai 2 mois pour contester',steps:['Vérifier les conditions d\'affiliation','Demander une explication écrite','Saisir la CRA dans les 2 mois','Médiateur si blocage'],delay:'Délai indicatif : 2 mois pour la CRA.',recours:[{l:'CRA France Travail',u:'https://www.francetravail.fr/candidat/vos-services-en-ligne/le-mediateur.html',b:'rb1',bl:'Amiable'},{l:'Médiateur France Travail',u:'https://www.francetravail.fr/candidat/vos-services-en-ligne/le-mediateur.html',b:'rb2',bl:'Médiation'}]},
+  licenciement:{title:'Licenciement contesté',urgency:'r',urg:'🔴 Délai 12 mois pour les Prud\'hommes',steps:['Analyser la lettre de licenciement','Rassembler tous les documents','Contacter avocat ou syndicat','Saisir le Conseil de Prud\'hommes dans les 12 mois'],delay:'Délai indicatif : 12 mois après la rupture.',recours:[{l:'Conseil de Prud\'hommes',u:'https://www.service-public.fr/particuliers/vosdroits/F2360',b:'rb3',bl:'Judiciaire'}]},
+  cpam:{title:'CPAM — Remboursement refusé',urgency:'a',urg:'⏱️ Délai 2 mois pour la CRA',steps:['Vérifier vos droits sur Ameli.fr','Demander les motifs par écrit','Saisir la CRA dans les 2 mois','Médiateur ou tribunal si refus'],delay:'Délai indicatif : 2 mois pour la CRA.',recours:[{l:'Réclamation CPAM',u:'https://www.ameli.fr/assure/droits-demarches/difficultes-acces-aux-soins/contacter-votre-caisse',b:'rb1',bl:'Amiable'},{l:'Défenseur des droits',u:'https://formulaire.defenseurdesdroits.fr/',b:'rb2',bl:'Médiation'}]},
+  ald:{title:'ALD refusée',urgency:'a',urg:'⏱️ Délai 2 mois pour contester',steps:['Demander les motifs du refus','Obtenir un certificat médical détaillé','Contester auprès de la CPAM','Expertise médicale indépendante si besoin'],delay:'Délai indicatif : 2 mois pour contester.',recours:[{l:'Contestation CPAM',u:'https://www.ameli.fr/assure/droits-demarches/maladie-accident-hospitalisation/affection-longue-duree-ald',b:'rb1',bl:'Amiable'}]},
+  mutuelle:{title:'Mutuelle — Remboursement refusé',urgency:'b',urg:'ℹ️ Vérifiez les délais de prescription',steps:['Relire votre contrat : garanties, exclusions','Contester au service réclamations','Médiateur de l\'assurance si refus','Tribunal judiciaire en dernier recours'],delay:'Délai indicatif de prescription : souvent 2 ans selon le contrat.',recours:[{l:'Réclamation mutuelle',u:'https://www.service-public.fr/particuliers/vosdroits/F20744',b:'rb1',bl:'Amiable'},{l:'Médiateur assurance',u:'https://www.mediation-assurance.org/Saisir-le-mediateur',b:'rb2',bl:'Médiation'}]},
+  retraite_trim:{title:'Retraite — Trimestres manquants',urgency:'b',urg:'ℹ️ Agir avant 55 ans — plus facile',steps:['Télécharger le relevé de carrière sur info-retraite.fr','Identifier les périodes manquantes','Contacter la caisse avec justificatifs','Recours si refus'],delay:'Agissez tôt : les preuves sont plus faciles à trouver. Indicatif.',recours:[{l:'Info-retraite.fr',u:'https://www.info-retraite.fr',b:'rb1',bl:'Démarche'}]},
+  reversion:{title:'Pension de réversion',urgency:'a',urg:'⏱️ Demande non automatique — agir tôt',steps:['Identifier toutes les caisses du défunt','Rassembler acte de mariage, décès, ressources','Déposer une demande à chaque caisse','Contester si refus'],delay:'Non automatique. Plus tôt vous demandez, plus tôt elle est versée. Indicatif.',recours:[{l:'Info-retraite.fr — Réversion',u:'https://www.info-retraite.fr/portail-services/home/ma-retraite-de-base/ma-situation-personnelle/pension-de-reversion.html',b:'rb1',bl:'Démarche'}]},
+  garantie:{title:'Garantie légale refusée',urgency:'a',urg:'⏱️ 2 ans de garantie légale obligatoire',steps:['Signaler le défaut par écrit au vendeur','Rappeler art. L.217-1 : garantie légale obligatoire','Médiateur de la consommation si refus','Tribunal de proximité'],delay:'2 ans à compter de la livraison. Indicatif.',recours:[{l:'Réclamation au vendeur',u:'https://www.service-public.fr/particuliers/vosdroits/F11094',b:'rb1',bl:'Amiable'},{l:'Médiateur consommation',u:'https://www.economie.gouv.fr/mediation-conso/liste-des-mediateurs-references',b:'rb2',bl:'Médiation'}]},
+  colis:{title:'Colis non reçu',urgency:'b',urg:'ℹ️ Rétractation : 14 jours',steps:['Contacter le vendeur par écrit','Ouvrir un litige sur la marketplace','Chargeback auprès de votre banque','SignalConso si le vendeur ne répond pas'],delay:'Remboursement sous 14 jours si rétractation valide. Indicatif.',recours:[{l:'Réclamation au vendeur',u:'https://www.service-public.fr/particuliers/vosdroits/F10485',b:'rb1',bl:'Amiable'},{l:'SignalConso',u:'https://signal.conso.gouv.fr/',b:'rb1',bl:'Signalement'}]},
+  demarchage:{title:'Démarchage abusif — Rétractation',urgency:'r',urg:'🔴 Délai strict : 14 jours',steps:['Envoyer la lettre de rétractation par recommandé','Le pro ne peut pas exiger un numéro surtaxé','Contester tout prélèvement auprès de la banque','Signaler sur SignalConso'],delay:'14 jours calendaires depuis la signature. Strict. Indicatif.',recours:[{l:'Lettre de rétractation',u:'https://www.service-public.fr/particuliers/vosdroits/F10485',b:'rb1',bl:'Amiable'},{l:'SignalConso',u:'https://signal.conso.gouv.fr/',b:'rb1',bl:'Signalement'}]},
+  passeport:{title:'Passeport / Carte d\'identité',urgency:'b',urg:'ℹ️ Anticiper — délais parfois longs',steps:['Pré-demande en ligne sur ants.gouv.fr','Rendez-vous en mairie (3 à 6 semaines)','Apporter toutes les pièces à l\'original','Urgence : signaler au guichet'],delay:'Variable selon la mairie. 3 à 6 semaines en période chargée. Indicatif.',recours:[{l:'Pré-demande ANTS',u:'https://passeport.ants.gouv.fr',b:'rb1',bl:'Démarche'}]},
+  titre_sejour:{title:'Titre de séjour — Refus ou blocage',urgency:'r',urg:'🔴 2 mois — OQTF : immédiat',steps:['Analyser le courrier de refus','Recours gracieux à la préfecture dans les 2 mois','OQTF : avocat ou association immédiatement','Tribunal administratif dans les 2 mois'],delay:'Délai indicatif : 2 mois pour recours contentieux. OQTF : très court.',recours:[{l:'Recours gracieux préfecture',u:'https://www.service-public.fr/particuliers/vosdroits/N110',b:'rb1',bl:'Amiable'},{l:'Défenseur des droits',u:'https://formulaire.defenseurdesdroits.fr/',b:'rb2',bl:'Médiation'},{l:'Tribunal administratif',u:'https://www.service-public.fr/particuliers/vosdroits/N110',b:'rb3',bl:'Contentieux'}]},
+  divorce:{title:'Divorce / Séparation — Démarches',urgency:'a',urg:'⏱️ Mettre à jour la CAF dans le mois',steps:['Mettre à jour la CAF dans le mois','Mettre à jour le prélèvement à la source','Ouvrir un compte bancaire personnel','Vérifier droits RSA / Prime d\'activité'],delay:'Délai impératif : déclarer à la CAF dans le mois pour éviter trop-perçu. Indicatif.',recours:[{l:'Mise à jour CAF',u:'https://www.caf.fr',b:'rb1',bl:'Démarche'},{l:'Médiation familiale',u:'https://www.service-public.fr/particuliers/vosdroits/F10553',b:'rb2',bl:'Médiation'}]},
+  injonction:{title:'Injonction de payer reçue',urgency:'r',urg:'🔴 1 mois pour faire opposition (indicatif)',steps:['Lire et noter la date d\'échéance','Si vous contestez : opposition au tribunal','Si vous reconnaissez la dette : négocier','Conciliateur de justice pour un accord amiable'],delay:'Délai indicatif : 1 mois pour faire opposition. Passé ce délai, définitif.',recours:[{l:'Conciliateur de justice',u:'https://www.conciliateurs.fr/Trouver-une-permanence',b:'rb2',bl:'Médiation'},{l:'Opposition au tribunal',u:'https://www.service-public.fr/particuliers/vosdroits/F1787',b:'rb3',bl:'Judiciaire'}]},
+  aide_juridique:{title:'Aide juridictionnelle — Avocat gratuit',urgency:'g',urg:'✅ Gratuit sous conditions de ressources',steps:['Vérifier les conditions sur le simulateur','Remplir le formulaire cerfa 15626','Déposer au Bureau d\'Aide Juridictionnelle','L\'État prend en charge tout ou partie des frais'],delay:'Délai de traitement indicatif : 1 à 3 mois.',recours:[{l:'Simulateur de ressources',u:'https://www.service-public.fr/simulateur/calcul/AideJuridictionnelle',b:'rb1',bl:'Vérifier'},{l:'Infos aide juridictionnelle',u:'https://www.service-public.fr/particuliers/vosdroits/F18074',b:'rb1',bl:'Info'}]},
+  arnaque:{title:'Arnaque / Phishing',urgency:'r',urg:'🚨 Sécuriser ses comptes immédiatement',steps:['Changer les mots de passe des comptes concernés','Contacter la banque si coordonnées transmises','Signaler sur Cybermalveillance.gouv.fr','Déposer plainte'],delay:'Agissez immédiatement.',recours:[{l:'Cybermalveillance.gouv.fr',u:'https://www.cybermalveillance.gouv.fr/',b:'rb1',bl:'Aide'},{l:'Perceval',u:'https://www.masecurite.interieur.gouv.fr',b:'rb1',bl:'Signalement'}]},
+  usurpation:{title:'Usurpation d\'identité',urgency:'r',urg:'🚨 Déposer plainte immédiatement',steps:['Déposer plainte au commissariat ou en ligne','Signaler à la CNIL si données compromises','Alerter banque, CAF, impôts','Surveiller son dossier de crédit'],delay:'Agissez immédiatement.',recours:[{l:'Plainte en ligne',u:'https://www.pre-plainte-en-ligne.gouv.fr/',b:'rb3',bl:'Judiciaire'},{l:'CNIL',u:'https://www.cnil.fr/fr/plaintes',b:'rb2',bl:'Signalement'}]},
+};
+
+// ════════════════════════════════════════════════════
+// ÉTAT APPLICATION
+// ════════════════════════════════════════════════════
+let currentSitId = null;
+let quizAnswers = {};
+let quizStep = 0;
+let dossiers = JSON.parse(localStorage.getItem('vigie_v3_dossiers')||'[]');
+let openDossierId = null;
+
+// ════════════════════════════════════════════════════
+// NAV
+// ════════════════════════════════════════════════════
+function showView(name){
+  ['home','timeline','dashboard'].forEach(v=>{
+    document.getElementById('view-'+v).classList.toggle('on', v===name);
+    document.getElementById('nav-'+v).classList.toggle('on', v===name);
+  });
+  if(name==='dashboard') renderDashboard();
+}
+
+// ════════════════════════════════════════════════════
+// VUE 1 — FILTRES + CARDS
+// ════════════════════════════════════════════════════
+const CATS=['Tout','Impots','CAF','Banque','Logement','Travail','Sante','Retraite','Conso','Identite','Justice','Arnaques'];
+const CLABELS={Tout:'Tout',Impots:'💰 Impôts',CAF:'👶 CAF',Banque:'🏦 Banque',Logement:'🏠 Logement',Travail:'💼 Travail',Sante:'🩺 Santé',Retraite:'👴 Retraite',Conso:'🛒 Conso',Identite:'🪪 Identité',Justice:'⚖️ Justice',Arnaques:'⚠️ Arnaques'};
+let af='Tout';
+const fe=document.getElementById('filters');
+CATS.forEach(c=>{
+  const b=document.createElement('button');
+  b.className='fb'+(c==='Tout'?' on':'');
+  b.innerHTML=CLABELS[c];
+  b.onclick=()=>{
+    af=c;
+    document.querySelectorAll('.fb').forEach(x=>x.classList.toggle('on',x===b));
+    document.getElementById('slbl').innerHTML=CLABELS[c];
+    document.querySelectorAll('.card').forEach(x=>x.classList.toggle('hidden',c!=='Tout'&&x.dataset.cat!==c));
+    // Close quiz/result
+    document.getElementById('quiz-panel').style.display='none';
+    document.getElementById('result-panel').classList.remove('show');
+  };
+  fe.appendChild(b);
+});
+
+const grid=document.getElementById('cards');
+CARDS.forEach((d,i)=>{
+  const c=document.createElement('div');
+  c.className='card';c.dataset.cat=d.cat;c.dataset.id=d.id;
+  c.innerHTML='<div class="ci">'+d.e+'</div><div class="cl">'+d.l.replace('\n','<br>')+'</div><div class="cs">'+d.s+'</div>';
+  c.onclick=()=>selectSituation(d.id,c);
+  grid.appendChild(c);
+});
+
+// ════════════════════════════════════════════════════
+// SÉLECTION D'UNE SITUATION → QUIZ
+// ════════════════════════════════════════════════════
+function selectSituation(sitId, cardEl){
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
+  if(cardEl) cardEl.classList.add('active');
+  currentSitId = sitId;
+  quizAnswers = {};
+  quizStep = 0;
+  document.getElementById('result-panel').classList.remove('show');
+
+  const sit = SITUATIONS[sitId];
+  if(sit && sit.questions && sit.questions.length){
+    renderQuiz(sit);
+    document.getElementById('quiz-panel').style.display='block';
+    document.getElementById('quiz-panel').scrollIntoView({behavior:'smooth',block:'start'});
+  } else {
+    document.getElementById('quiz-panel').style.display='none';
+    showSimpleResult(sitId);
+  }
+}
+
+function renderQuiz(sit){
+  const panel = document.getElementById('quiz-panel');
+  const q = sit.questions[quizStep];
+  const total = sit.questions.length;
+  const pct = quizStep;
+
+  panel.innerHTML = `
+    <div class="quiz-header">
+      <div class="quiz-emoji">${sit.emoji}</div>
+      <div class="quiz-title">${sit.label}</div>
+      <button class="quiz-close" onclick="closeQuiz()">✕</button>
+    </div>
+    <div class="quiz-progress">
+      ${sit.questions.map((_,i)=>`<div class="qp-dot${i<quizStep?' done':''}"></div>`).join('')}
+    </div>
+    <div style="font-size:11px;color:#9ca3af;margin-bottom:12px">Question ${quizStep+1} sur ${total}</div>
+    <div class="question-block">
+      <div class="q-label">${q.q}</div>
+      <div class="q-options">
+        ${q.opts.map(opt=>`<button class="q-opt" onclick="selectAnswer('${q.id}','${opt.replace(/'/g,"\\'")}',this)">${opt}</button>`).join('')}
+      </div>
+    </div>
+    <button class="quiz-cta" id="quiz-next" onclick="nextQuestion()" disabled>
+      ${quizStep === total-1 ? 'Voir mon plan d\'action →' : 'Question suivante →'}
+    </button>
+  `;
+}
+
+function selectAnswer(qid, value, btn){
+  quizAnswers[qid] = value;
+  document.querySelectorAll('.q-opt').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  document.getElementById('quiz-next').disabled = false;
+}
+
+function nextQuestion(){
+  const sit = SITUATIONS[currentSitId];
+  if(!sit) return;
+  quizStep++;
+  if(quizStep >= sit.questions.length){
+    // Afficher le résultat
+    document.getElementById('quiz-panel').style.display='none';
+    const result = sit.getResult(quizAnswers);
+    showResult(result, currentSitId);
+  } else {
+    renderQuiz(sit);
+  }
+}
+
+function closeQuiz(){
+  document.getElementById('quiz-panel').style.display='none';
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
+}
+
+// ════════════════════════════════════════════════════
+// AFFICHAGE RÉSULTAT
+// ════════════════════════════════════════════════════
+function showResult(r, sitId){
+  const panel = document.getElementById('result-panel');
+  const uc = {r:'ur',a:'ua',b:'ub',g:'ug'}[r.urgency]||'ub';
+  const stepsHtml = r.steps.map((s,i)=>`<div class="step"><div class="sn">${i+1}</div><div>${s}</div></div>`).join('');
+  const recoursHtml = r.recours.map(rc=>`<a href="${rc.u}" target="_blank" rel="noopener">${rc.l}<span class="rb ${rc.b}">${rc.bl}</span></a>`).join('');
+
+  panel.innerHTML = `
+    <div class="rp-top">
+      <div class="rp-title">${r.title}</div>
+      <button class="rp-close" onclick="closeResult()">✕</button>
+    </div>
+    ${r.warning?`<div class="wbox">⚠️ ${r.warning}</div>`:''}
+    <div class="urgency ${uc}">${r.urg}</div>
+    <div class="bt">Plan d'action personnalisé</div>
+    <div class="steps">${stepsHtml}</div>
+    <div class="dbox">⏱️ ${r.delay}</div>
+    <div class="bt">Recours disponibles</div>
+    <div class="recs">${recoursHtml}</div>
+    <button class="create-dossier-btn" onclick="createDossier('${sitId}')">📁 Créer un dossier de suivi pour cette situation</button>
+  `;
+  panel.classList.add('show');
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function showSimpleResult(sitId){
+  const r = SIMPLE_RESULTS[sitId];
+  if(!r) return;
+  showResult(r, sitId);
+}
+
+function closeResult(){
+  document.getElementById('result-panel').classList.remove('show');
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
+}
+
+// ════════════════════════════════════════════════════
+// RECHERCHE
+// ════════════════════════════════════════════════════
+const KW = {
+  impots_rect:['impot','rectification','redressement','controle fiscal','dgfip'],
+  impots_satd:['satd','saisie bancaire','compte bloque','atd','tiers detenteur'],
+  impots_taxe:['taxe fonciere','taxe habitation','impot local'],
+  caf_indu:['caf','trop percu','indu','rembourser caf','dette caf'],
+  caf_apl:['apl','aide logement','apl suspendue','allocation logement'],
+  caf_rsa:['rsa','revenu solidarite','rsa suspendu'],
+  fraude_cb:['fraude carte','fraude cb','paiement frauduleux','achat non reconnu'],
+  virement_fraude:['virement frauduleux','virement non autorise'],
+  surendettement:['surendettement','dettes','banque de france'],
+  expulsion:['expulsion','expulse','commandement quitter'],
+  caution:['caution','depot garantie'],
+  insalubre:['insalubre','moisissures','logement dangereux'],
+  ft_radiation:['radiation','radie','pole emploi','france travail radie'],
+  ft_are:['are','allocation chomage','chomage refuse'],
+  licenciement:['licenciement','licencie','prud'],
+  cpam:['cpam','secu','ameli','remboursement refuse'],
+  ald:['ald','affection longue duree','100 pour cent'],
+  mutuelle:['mutuelle','complementaire sante'],
+  retraite_trim:['retraite','trimestres','releve carriere'],
+  reversion:['reversion','conjoint decede','veuf veuve'],
+  garantie:['garantie','produit defectueux','garantie legale'],
+  colis:['colis','commande non recue','livraison'],
+  demarchage:['demarchage','retractation','signe sous pression'],
+  passeport:['passeport','carte identite','cni'],
+  titre_sejour:['titre sejour','prefecture','anef','oqtf'],
+  divorce:['divorce','separation','apres divorce'],
+  injonction:['injonction payer','huissier','ordonnance payer'],
+  aide_juridique:['aide juridictionnelle','avocat gratuit'],
+  arnaque:['arnaque','phishing','escroque'],
+    usurpation:['usurpation identite','vol identite'],
+  impots_declaration_erreur:['declaration revenus','erreur declaration','rectifier declaration'],
+  impots_pas_erreur:['prelevement source','taux pas','trop preleve'],
+  impots_credit_remboursement:['credit impot','remboursement impot non recu'],
+  impots_exoneration:['exoneration taxe fonciere','personne agee taxe','handicap exoneration'],
+  impots_urssaf:['urssaf','auto entrepreneur cotisations','micro entreprise'],
+  caf_allocations_familiales:['allocations familiales','aide famille caf','allocations enfants'],
+  caf_prime_naissance:['prime naissance','paje naissance','aide naissance'],
+  caf_prime_activite:['prime activite','pa caf','prime emploi'],
+  caf_pension_alimentaire:['pension alimentaire','ex ne paie pas','asf caf'],
+  logement_voisinage:['voisinage bruit','nuisances voisin','trouble voisinage'],
+  logement_travaux_proprio:['travaux proprietaire refuse','logement degrade','reparations'],
+  logement_loyer_abusif:['loyer trop cher','augmentation loyer abusive','encadrement loyers'],
+  logement_hlm:['hlm','logement social','habitation loyer modere','dalo'],
+  logement_maprimereno:['maprimereno','prime renovation','aide travaux anah'],
+  logement_achat_vices:['vices caches','achat immobilier probleme','defaut logement'],
+  travail_rupture_conv:['rupture conventionnelle','rc travail','quitter emploi accord'],
+  travail_harcelement:['harcelement moral','harcelement sexuel','harcelement travail'],
+  travail_heures_sup:['heures supplementaires','heures sup non payees'],
+  travail_conge_maternite:['conge maternite','conge paternite','grossesse emploi'],
+  sante_refus_soins:['refus soins','medecin refuse soigner'],
+  sante_desert_medical:['desert medical','medecin traitant introuvable','pas de medecin'],
+  sante_hospit_facture:['facture hopital','hospitalisation facturation'],
+  sante_arret_maladie:['arret maladie ijss','indemnites journalieres refus'],
+  sante_accident_medical:['accident medical','erreur medicale','prejudice soin'],
+  edu_inscription_refus:['inscription ecole refusee','scolarisation probleme'],
+  edu_harcelement_scolaire:['harcelement scolaire','3020','enfant harcelé'],
+  edu_bourse:['bourse scolaire refusee','bourse etudiant','aide scolaire'],
+  edu_parcoursup:['parcoursup refus','caes','universite refuse'],
+  permis_amende:['amende antai','contestation amende','radar pv','stationnement'],
+  permis_points:['retrait points permis','permis points','telepoints'],
+  permis_suspension:['suspension permis','permis suspendu'],
+  transport_carte_grise:['carte grise','ants immatriculation','vehicule immatriculation'],
+  banque_droit_compte:['compte bancaire refuse','droit au compte','banque refuse'],
+  banque_frais_abusifs:['frais bancaires abusifs','frais banque'],
+  banque_fichage_ficp:['ficp','fichage bancaire','interdit bancaire'],
+  mdph_premier_dossier:['mdph dossier','premier dossier handicap'],
+  mdph_aah:['aah','allocation adultes handicapes','aah refus'],
+  mdph_rqth:['rqth','reconnaissance handicap emploi'],
+  energie_coupure:['coupure electricite','coupure gaz','treve hivernale'],
+  energie_facture:['facture edf','facture gaz','facture energie'],
+  telecom_litige:['operateur telephone','litige sfr orange','telecom internet'],
+  assurance_habitation:['assurance habitation','mrh sinistre refus'],
+  assurance_auto:['assurance voiture','auto accident refuse'],
+  etat_civil_prenom:['changer prenom','changement prenom'],
+  etat_civil_erreur:['erreur acte naissance','correction etat civil'],
+  naturalisation:['naturalisation','nationalite francaise refus'],
+  asile:['asile','demande asile','ofpra','refugie'],
+  justice_divorce:['divorce procedure','se divorcer'],
+  justice_garde_enfant:['garde enfant modifier','droit visite'],
+  justice_succession:['succession bloquee','heritage heritiers'],
+  justice_plainte:['plainte classee sans suite','procureur recours'],
+  justice_victime:['victime infraction','civi indemnisation'],
+  apa_refus:['apa','allocation personnes agees','dependance aide'],
+  ehpad_abus:['ehpad facturation','maison retraite facture'],
+  urbanisme_permis_refus:['permis construire refus','construction refus'],
+  retraite_aspa:['aspa','minimum vieillesse','solidarite vieillesse'],
+};
+
+function n(s){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ');}
+
+function doSearch(){
+  const q = document.getElementById('q').value.trim();
+  if(!q) return;
+  const qn = n(q);
+  let best=null, bs=0, bi=-1;
+  Object.entries(KW).forEach(([id,kws])=>{
+    const sc = kws.filter(k=>qn.includes(n(k))).reduce((a,k)=>a+k.length,0);
+    if(sc>bs){bs=sc;best=id;}
+  });
+  if(best){
+    const cardEl = document.querySelector(`.card[data-id="${best}"]`);
+    af='Tout';
+    document.querySelectorAll('.fb').forEach((b,i)=>b.classList.toggle('on',i===0));
+    document.querySelectorAll('.card').forEach(c=>c.classList.remove('hidden'));
+    selectSituation(best, cardEl);
+  } else {
+    document.getElementById('result-panel').innerHTML = `
+      <div class="rp-top"><div class="rp-title">🤔 Situation non reconnue</div><button class="rp-close" onclick="closeResult()">✕</button></div>
+      <p style="font-size:14px;color:#6b7280;margin-bottom:12px;line-height:1.5">Essayez de choisir une carte ci-dessous ou utilisez ces recours universels :</p>
+      <div class="recs">
+        <a href="https://formulaire.defenseurdesdroits.fr/" target="_blank" rel="noopener">🛡️ Défenseur des droits<span class="rb rb2">Gratuit</span></a>
+        <a href="https://www.conciliateurs.fr/Trouver-une-permanence" target="_blank" rel="noopener">🤝 Conciliateur de justice<span class="rb rb2">Gratuit</span></a>
+      </div>`;
+    document.getElementById('result-panel').classList.add('show');
+    document.getElementById('result-panel').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+}
+
+// ════════════════════════════════════════════════════
+// VUE 2 — TIMELINE
+// ════════════════════════════════════════════════════
+function updateTimeline(){
+  const sitId = document.getElementById('tl-situation').value;
+  const dateStr = document.getElementById('tl-date').value;
+  const out = document.getElementById('timeline-output');
+
+  if(!sitId){ out.innerHTML=''; return; }
+
+  const sit = SITUATIONS[sitId];
+  if(!sit || !sit.timeline){ out.innerHTML='<p style="color:#9ca3af;font-size:14px;padding:20px 0">Timeline non disponible pour cette situation. Bientôt disponible.</p>'; return; }
+
+  const dateRef = dateStr ? new Date(dateStr) : null;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  let html = `<div style="font-size:15px;font-weight:800;margin-bottom:14px;color:#1a3fad">${sit.emoji} ${sit.label}</div>`;
+
+  if(dateRef){
+    html += `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px;color:#1a3fad;font-weight:600">📅 Référence : courrier reçu le <strong>${dateRef.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</strong></div>`;
+  } else {
+    html += `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px;color:#78350f">⬆️ Indiquez la date de réception pour voir les dates exactes</div>`;
+  }
+
+  html += '<div class="tl">';
+
+  sit.timeline.forEach(item=>{
+    let itemDate = null;
+    if(dateRef){
+      itemDate = new Date(dateRef);
+      itemDate.setDate(itemDate.getDate() + item.j);
+    }
+
+    let status = 'future';
+    if(dateRef){
+      if(itemDate < today) status = 'done';
+      else if(item.j === 0) status = 'now';
+      else{
+        const daysLeft = Math.ceil((itemDate - today) / 86400000);
+        if(daysLeft <= 7 && item.badge === 'legal') status = 'urgent';
+        else if(item.j === 0 || item.type === 'now') status = 'now';
+      }
+    } else {
+      status = item.type || 'future';
+    }
+
+    const dotClass = status;
+    const contentClass = status==='urgent'?'tl-urgent':status==='done'?'tl-done':status==='now'?'tl-now':'';
+    const dotLabel = status==='done'?'✓':status==='urgent'||status==='now'?'!':'·';
+
+    let badgeHtml = '';
+    if(item.badge){
+      const badgeTxt = {legal:'⚠️ Délai légal',rec:'Action recommandée',info:'Information'}[item.badge]||item.badge;
+      badgeHtml = `<span class="tl-badge badge-${item.badge}">${badgeTxt}</span>`;
+    }
+
+    const dateLabel = itemDate ? `<div class="tl-date">${item.j === 0 ? 'J+0 — ' : `J+${item.j} — `}${itemDate.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}</div>` : `<div class="tl-date">J+${item.j}</div>`;
+
+    html += `
+      <div class="tl-item">
+        <div class="tl-dot ${dotClass}">${dotLabel}</div>
+        <div class="tl-content ${contentClass}">
+          ${dateLabel}
+          <div class="tl-title">${item.label}</div>
+          <div class="tl-desc">${item.desc}</div>
+          ${badgeHtml}
+        </div>
+      </div>`;
+  });
+
+  html += '</div>';
+
+  html += `
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+      <button onclick="saveDossierFromTimeline('${sitId}')" style="flex:1;padding:11px;background:#1a3fad;color:#fff;border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer">
+        📁 Sauvegarder comme dossier
+      </button>
+    </div>
+    <div style="font-size:11px;color:#9ca3af;margin-top:10px;line-height:1.5">
+      ⚠️ Les délais affichés sont indicatifs. Vérifiez toujours les dates exactes sur votre courrier officiel.
+    </div>`;
+
+  out.innerHTML = html;
+}
+
+function saveDossierFromTimeline(sitId){
+  const dateStr = document.getElementById('tl-date').value;
+  createDossierWithDate(sitId, dateStr);
+  showView('dashboard');
+}
+
+// ════════════════════════════════════════════════════
+// VUE 3 — DASHBOARD
+// ════════════════════════════════════════════════════
+function createDossier(sitId){
+  const dateStr = new Date().toISOString().split('T')[0];
+  createDossierWithDate(sitId, dateStr);
+  showView('dashboard');
+}
+
+function createDossierWithDate(sitId, dateStr){
+  const sit = SITUATIONS[sitId];
+  const card = CARDS.find(c=>c.id===sitId);
+  const label = sit ? sit.label : (card ? card.l.replace('\n',' ') : sitId);
+  const emoji = sit ? sit.emoji : (card ? card.e : '📋');
+
+  const dos = {
+    id: 'dos_'+Date.now(),
+    sitId,
+    label,
+    emoji,
+    dateReception: dateStr || new Date().toISOString().split('T')[0],
+    createdAt: new Date().toISOString(),
+    stepsDone: [],
+  };
+  dossiers.unshift(dos);
+  saveDossiers();
+}
+
+function saveDossiers(){
+  localStorage.setItem('vigie_v3_dossiers', JSON.stringify(dossiers));
+}
+
+function renderDashboard(){
+  const list = document.getElementById('dashboard-list');
+  const detail = document.getElementById('dossier-detail');
+  if(openDossierId){ detail.style.display='block'; list.style.display='none'; return; }
+  detail.style.display='none'; list.style.display='block';
+
+  if(!dossiers.length){
+    list.innerHTML = `<div class="empty-state"><div class="empty-ico">📁</div><div class="empty-t">Aucun dossier</div><p style="font-size:13px;color:#9ca3af;line-height:1.5">Créez un dossier depuis une situation ou la timeline pour suivre l'avancement de votre procédure.</p></div>`;
+    return;
+  }
+
+  list.innerHTML = dossiers.map(dos=>{
+    const sit = SITUATIONS[dos.sitId];
+    const tl = sit && sit.timeline ? sit.timeline : [];
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dateRef = dos.dateReception ? new Date(dos.dateReception) : null;
+
+    // Calcul de l'avancement
+    let nextStep = null;
+    let urgentStep = null;
+    let pct = 0;
+
+    if(tl.length && dateRef){
+      const done = tl.filter(t => dos.stepsDone.includes(t.label)).length;
+      pct = Math.round(done/tl.length*100);
+
+      const remaining = tl.filter(t => !dos.stepsDone.includes(t.label));
+      nextStep = remaining[0] || null;
+
+      const urgentItems = remaining.filter(t=>{
+        const d = new Date(dateRef);
+        d.setDate(d.getDate()+t.j);
+        const dl = Math.ceil((d-today)/86400000);
+        return dl <= 14 && t.badge === 'legal';
+      });
+      urgentStep = urgentItems[0] || null;
+    }
+
+    const badge = urgentStep ? `<span class="dos-badge dbr">⚠️ Urgent</span>` : pct===100 ? `<span class="dos-badge dbg">✅ Terminé</span>` : `<span class="dos-badge dba">En cours</span>`;
+
+    return `<div class="dos-card">
+      <div class="dos-top">
+        <div class="dos-icon">${dos.emoji}</div>
+        <div>
+          <div class="dos-title">${dos.label}</div>
+          <div class="dos-date">Courrier reçu le ${dos.dateReception ? new Date(dos.dateReception).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}) : 'date inconnue'}</div>
+        </div>
+        ${badge}
+      </div>
+      ${tl.length ? `<div class="dos-progress"><div class="dos-bar" style="width:${pct}%"></div></div>` : ''}
+      ${nextStep ? `<div class="dos-next">Prochaine étape : <strong>${nextStep.label}</strong></div>` : ''}
+      ${urgentStep ? `<div style="font-size:12px;color:#dc2626;font-weight:700;margin-top:4px">⚠️ Délai urgent : ${urgentStep.label}</div>` : ''}
+      <button class="dos-open-btn" onclick="openDossier('${dos.id}')">📅 Voir la timeline →</button>
+    </div>`;
+  }).join('');
+}
+
+function openDossier(dosId){
+  openDossierId = dosId;
+  const dos = dossiers.find(d=>d.id===dosId);
+  if(!dos) return;
+
+  document.getElementById('dashboard-list').style.display='none';
+  document.getElementById('dossier-detail').style.display='block';
+  document.getElementById('dd-title').textContent = dos.emoji + ' ' + dos.label;
+
+  const sit = SITUATIONS[dos.sitId];
+  if(!sit || !sit.timeline){ document.getElementById('dd-timeline').innerHTML='<p style="color:#9ca3af;font-size:14px">Timeline non disponible.</p>'; return; }
+
+  const dateRef = dos.dateReception ? new Date(dos.dateReception) : null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  let html = '<div class="tl">';
+
+  sit.timeline.forEach(item=>{
+    const isDone = dos.stepsDone.includes(item.label);
+    let itemDate = null;
+    if(dateRef){ itemDate = new Date(dateRef); itemDate.setDate(itemDate.getDate()+item.j); }
+
+    const daysLeft = itemDate ? Math.ceil((itemDate-today)/86400000) : null;
+    let status = isDone ? 'done' : (daysLeft !== null && daysLeft <= 0 && item.badge==='legal') ? 'urgent' : item.type==='now' ? 'now' : 'future';
+
+    const dotLabel = isDone ? '✓' : status==='urgent' ? '!' : '·';
+    const contentClass = isDone ? 'tl-done' : status==='urgent' ? 'tl-urgent' : status==='now' ? 'tl-now' : '';
+    const dateLabel = itemDate ? `<div class="tl-date">J+${item.j} — ${itemDate.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}${daysLeft !== null && !isDone ? ` (${daysLeft>0?`dans ${daysLeft}j`:daysLeft===0?'aujourd\'hui':Math.abs(daysLeft)+'j de retard'})` : ''}</div>` : `<div class="tl-date">J+${item.j}</div>`;
+
+    let badgeHtml = '';
+    if(item.badge){ const bt = {legal:'⚠️ Délai légal',rec:'Recommandé',info:'Info'}[item.badge]||''; badgeHtml = `<span class="tl-badge badge-${item.badge}">${bt}</span>`; }
+
+    html += `
+      <div class="tl-item">
+        <div class="tl-dot ${isDone?'done':status}"><span>${dotLabel}</span></div>
+        <div class="tl-content ${contentClass}" style="cursor:pointer" onclick="toggleStep('${dosId}','${item.label.replace(/'/g,"\\'")}')">
+          ${dateLabel}
+          <div class="tl-title">${item.label}</div>
+          <div class="tl-desc">${item.desc}</div>
+          ${badgeHtml}
+          <div style="font-size:11px;margin-top:6px;color:${isDone?'#16a34a':'#9ca3af'}">${isDone?'✓ Étape accomplie — cliquer pour décocher':'○ Cliquer pour marquer comme fait'}</div>
+        </div>
+      </div>`;
+  });
+
+  html += '</div>';
+  document.getElementById('dd-timeline').innerHTML = html;
+}
+
+function toggleStep(dosId, stepLabel){
+  const dos = dossiers.find(d=>d.id===dosId);
+  if(!dos) return;
+  const idx = dos.stepsDone.indexOf(stepLabel);
+  if(idx>=0) dos.stepsDone.splice(idx,1);
+  else dos.stepsDone.push(stepLabel);
+  saveDossiers();
+  openDossier(dosId);
+}
+
+function closeDossier(){
+  openDossierId = null;
+  renderDashboard();
+}
+
+function deleteDossier(){
+  if(!confirm('Supprimer ce dossier ?')) return;
+  dossiers = dossiers.filter(d=>d.id!==openDossierId);
+  saveDossiers();
+  openDossierId = null;
+  renderDashboard();
+  closeDossier();
+}
+
+
+// ── Nouvelles situations V4 ──────────────────────────────────────
+const NEW_CARDS = [
+  // Impôts
+  {id:'impots_declaration_erreur',cat:'Impots',e:'📝',l:'Déclaration revenus<br>erreur',s:'Erreur ou oubli déclaration'},
+  {id:'impots_pas_erreur',cat:'Impots',e:'💸',l:'Prélèvement source<br>taux erroné',s:'Mon taux PAS est faux'},
+  {id:'impots_credit_remboursement',cat:'Impots',e:'💰',l:'Crédit d'impôt<br>non remboursé',s:'Je n'ai pas reçu le remboursement'},
+  {id:'impots_exoneration',cat:'Impots',e:'🏡',l:'Exonération taxe<br>foncière',s:'Personnes âgées / handicap'},
+  {id:'impots_urssaf',cat:'Impots',e:'🏢',l:'URSSAF<br>Auto-entrepreneur',s:'Cotisations contestées'},
+  // CAF
+  {id:'caf_allocations_familiales',cat:'CAF',e:'👨‍👩‍👧',l:'Allocations<br>familiales',s:'Contestation ou erreur'},
+  {id:'caf_prime_naissance',cat:'CAF',e:'🍼',l:'Prime de naissance<br>refusée',s:'PAJE prime naissance'},
+  {id:'caf_prime_activite',cat:'CAF',e:'💼',l:'Prime d'activité<br>refusée',s:'Je travaille mais refus'},
+  {id:'caf_pension_alimentaire',cat:'CAF',e:'⚖️',l:'Pension alimentaire<br>non versée',s:'Mon ex ne paie pas — ASF'},
+  // Logement
+  {id:'logement_voisinage',cat:'Logement',e:'🔊',l:'Trouble de<br>voisinage',s:'Bruit, nuisances, conflits'},
+  {id:'logement_travaux_proprio',cat:'Logement',e:'🔧',l:'Travaux non faits<br>par le proprio',s:'Propriétaire refuse de réparer'},
+  {id:'logement_loyer_abusif',cat:'Logement',e:'📈',l:'Augmentation loyer<br>abusive',s:'Mon loyer a trop augmenté'},
+  {id:'logement_hlm',cat:'Logement',e:'🏘️',l:'Logement social<br>HLM',s:'Demande ou refus attribution'},
+  {id:'logement_maprimereno',cat:'Logement',e:'🌱',l:'MaPrimeRénov<br>Bloquée',s:'Refus ou retard de prime'},
+  {id:'logement_achat_vices',cat:'Logement',e:'🏚️',l:'Vices cachés<br>Achat immobilier',s:'Défaut découvert après achat'},
+  // Travail
+  {id:'travail_rupture_conv',cat:'Travail',e:'🤝',l:'Rupture<br>conventionnelle',s:'Refus ou problème procédure'},
+  {id:'travail_harcelement',cat:'Travail',e:'🚨',l:'Harcèlement<br>moral / sexuel',s:'Au travail — signaler'},
+  {id:'travail_heures_sup',cat:'Travail',e:'⏰',l:'Heures sup<br>non payées',s:'Mon employeur ne paye pas'},
+  {id:'travail_conge_maternite',cat:'Travail',e:'🤱',l:'Congé maternité<br>Paternité refusé',s:'Droit absolu — refus illégal'},
+  // Santé
+  {id:'sante_refus_soins',cat:'Sante',e:'🏥',l:'Refus de soins<br>par un médecin',s:'Médecin refuse de me soigner'},
+  {id:'sante_desert_medical',cat:'Sante',e:'🗺️',l:'Désert médical<br>Médecin traitant',s:'Impossible de trouver un médecin'},
+  {id:'sante_hospit_facture',cat:'Sante',e:'🧾',l:'Hospitalisation<br>Facture contestée',s:'Ma facture d'hôpital est incorrecte'},
+  {id:'sante_arret_maladie',cat:'Sante',e:'🛌',l:'Arrêt maladie<br>IJSS refusées',s:'Je ne reçois pas mes indemnités'},
+  {id:'sante_accident_medical',cat:'Sante',e:'⚕️',l:'Accident médical<br>Indemnisation',s:'Préjudice lié à un soin'},
+  // Éducation
+  {id:'edu_inscription_refus',cat:'Education',e:'🏫',l:'Inscription scolaire<br>refusée',s:'La mairie ou l'école refuse'},
+  {id:'edu_harcelement_scolaire',cat:'Education',e:'🛡️',l:'Harcèlement<br>scolaire',s:'Mon enfant est harcelé'},
+  {id:'edu_bourse',cat:'Education',e:'🎓',l:'Bourse scolaire<br>refusée',s:'Demande de bourse refusée'},
+  {id:'edu_parcoursup',cat:'Education',e:'📚',l:'Parcoursup<br>Recours',s:'Refus de toutes les formations'},
+  // Transport
+  {id:'permis_amende',cat:'Transport',e:'📸',l:'Amende<br>contestée',s:'Radar, stationnement, ANTAI'},
+  {id:'permis_points',cat:'Transport',e:'🚗',l:'Retrait de points<br>permis',s:'Je conteste un retrait'},
+  {id:'permis_suspension',cat:'Transport',e:'🚫',l:'Suspension<br>de permis',s:'Mon permis est suspendu'},
+  {id:'transport_carte_grise',cat:'Transport',e:'📄',l:'Carte grise<br>Problème ANTS',s:'Blocage sur le site ANTS'},
+  // Banque
+  {id:'banque_droit_compte',cat:'Banque',e:'🏦',l:'Compte bancaire<br>refusé',s:'Droit au compte — BDF'},
+  {id:'banque_frais_abusifs',cat:'Banque',e:'💸',l:'Frais bancaires<br>abusifs',s:'Des frais injustifiés'},
+  {id:'banque_fichage_ficp',cat:'Banque',e:'🚫',l:'Fichage FICP<br>abusif',s:'Fichage bancaire erroné'},
+  // Handicap
+  {id:'mdph_premier_dossier',cat:'Handicap',e:'♿',l:'MDPH<br>Premier dossier',s:'Je dépose mon premier dossier'},
+  {id:'mdph_aah',cat:'Handicap',e:'💶',l:'AAH refusée<br>ou réduite',s:'Allocation adultes handicapés'},
+  {id:'mdph_rqth',cat:'Handicap',e:'💼',l:'RQTH refusée',s:'Reconnaissance handicap emploi'},
+  // Énergie / Conso
+  {id:'energie_coupure',cat:'Conso',e:'⚡',l:'Coupure<br>d'énergie',s:'Électricité ou gaz coupé'},
+  {id:'energie_facture',cat:'Conso',e:'📊',l:'Facture énergie<br>contestée',s:'Ma facture EDF/Gaz est anormale'},
+  {id:'telecom_litige',cat:'Conso',e:'📱',l:'Opérateur télécom<br>litige',s:'Problème avec mon opérateur'},
+  {id:'assurance_habitation',cat:'Conso',e:'🏠',l:'Assurance habitation<br>Refus sinistre',s:'Mon assureur refuse'},
+  {id:'assurance_auto',cat:'Conso',e:'🚗',l:'Assurance auto<br>Refus sinistre',s:'Après un accident'},
+  // État civil
+  {id:'etat_civil_prenom',cat:'Identite',e:'📛',l:'Changement<br>de prénom',s:'Je veux changer mon prénom'},
+  {id:'etat_civil_erreur',cat:'Identite',e:'✏️',l:'Erreur acte<br>de naissance',s:'Mon acte contient une erreur'},
+  {id:'naturalisation',cat:'Identite',e:'🇫🇷',l:'Naturalisation<br>refusée',s:'Demande de nationalité rejetée'},
+  {id:'asile',cat:'Identite',e:'🕊️',l:'Demande<br>d'asile',s:'Protection en France'},
+  // Justice
+  {id:'justice_divorce',cat:'Justice',e:'👨‍👩‍👧',l:'Divorce<br>Procédure',s:'Je veux divorcer'},
+  {id:'justice_garde_enfant',cat:'Justice',e:'👶',l:'Garde d'enfant<br>Modification',s:'Modifier le jugement de garde'},
+  {id:'justice_succession',cat:'Justice',e:'🏛️',l:'Succession<br>bloquée',s:'Héritage bloqué entre héritiers'},
+  {id:'justice_plainte',cat:'Justice',e:'🚓',l:'Plainte classée<br>sans suite',s:'Ma plainte n'a pas abouti'},
+  {id:'justice_victime',cat:'Justice',e:'⚖️',l:'Victime infraction<br>Indemnisation',s:'Je suis victime d'une infraction'},
+  // Personnes âgées
+  {id:'apa_refus',cat:'PersonnesAgees',e:'👵',l:'APA refusée<br>Personne âgée',s:'Allocation personnalisée autonomie'},
+  {id:'ehpad_abus',cat:'PersonnesAgees',e:'🏥',l:'EHPAD<br>Facturation abusive',s:'Ma facture EHPAD est contestée'},
+  // Urbanisme
+  {id:'urbanisme_permis_refus',cat:'Urbanisme',e:'🏗️',l:'Permis de construire<br>Refusé',s:'Ma demande est rejetée'},
+  // Retraite
+  {id:'retraite_aspa',cat:'Retraite',e:'👴',l:'Minimum vieillesse<br>ASPA refusé',s:'Solidarité vieillesse refusée'},
+];
+
+// ── Nouveaux résultats V4 ────────────────────────────────────────
+const NEW_SIMPLE_RESULTS = {
+  impots_declaration_erreur:{title:'Déclaration revenus — Erreur ou oubli',urgency:'a',urg:'⏱️ Correction jusqu'au 15 décembre',steps:['Identifier l'erreur précise dans votre déclaration','Corriger en ligne sur impots.gouv.fr — rubrique Corriger ma déclaration','Si délai dépassé : déposer une réclamation contentieuse avec justificatifs','Régularisation volontaire = pénalités réduites voire supprimées'],delay:'Correction en ligne possible jusqu'au 15 décembre de l'année de déclaration. Après : réclamation dans les 2 ans. Indicatif.',recours:[{l:'Corriger ma déclaration',u:'https://www.impots.gouv.fr',b:'rb1',bl:'En ligne'},{l:'Service-Public — Corriger déclaration',u:'https://www.service-public.fr/particuliers/vosdroits/F3173',b:'rb1',bl:'Info'}]},
+  impots_pas_erreur:{title:'Prélèvement à la source — Taux erroné',urgency:'b',urg:'ℹ️ Modification possible à tout moment',steps:['Se connecter à impots.gouv.fr — Gérer mon prélèvement à la source','Modifier le taux si vos revenus ont baissé','Demander un taux individualisé si couple avec revenus inégaux','Trop-prélevé : remboursement automatique en fin d'année'],delay:'La modification est prise en compte sous 1 à 2 mois. Indicatif.',recours:[{l:'Gérer mon PAS',u:'https://www.impots.gouv.fr',b:'rb1',bl:'Démarche'}]},
+  impots_credit_remboursement:{title:'Crédit d'impôt non remboursé',urgency:'a',urg:'⏱️ Contacter le SIP si délai > 3 mois',steps:['Vérifier le statut sur impots.gouv.fr — Suivre mes remboursements','Vérifier que votre RIB est à jour dans votre espace','Contacter votre SIP si aucun virement sous 3 mois','Saisir le médiateur de Bercy si blocage inexpliqué'],delay:'Délai de remboursement indicatif : 1 à 3 mois après la déclaration.',recours:[{l:'Espace particulier',u:'https://www.impots.gouv.fr',b:'rb1',bl:'Vérifier'},{l:'Médiateur de Bercy',u:'https://www.economie.gouv.fr/mediateur/je-saisis-le-mediateur',b:'rb2',bl:'Si blocage'}]},
+  impots_exoneration:{title:'Exonération taxe foncière — Personnes âgées / handicap',urgency:'b',urg:'ℹ️ Demande avant le 31 décembre',steps:['Vérifier les conditions : +75 ans, AAH, ou invalide','Vérifier les plafonds de ressources sur impots.gouv.fr','L'exonération est souvent automatique — vérifier votre avis','Si non appliquée : contacter votre SIP avec justificatifs'],delay:'Demande à formuler avant le 31 décembre pour l'année suivante. Indicatif.',recours:[{l:'Exonération taxe foncière',u:'https://www.service-public.fr/particuliers/vosdroits/F59',b:'rb1',bl:'Info'},{l:'Contacter votre SIP',u:'https://www.impots.gouv.fr/contacts',b:'rb1',bl:'Démarche'}]},
+  impots_urssaf:{title:'URSSAF — Auto-entrepreneur cotisations',urgency:'a',urg:'⏱️ Contester dans les 30 jours',steps:['Vérifier le calcul sur autoentrepreneur.urssaf.fr','Identifier l'erreur : taux, base de calcul, période','Envoyer une réclamation écrite à l'URSSAF','Saisir le médiateur URSSAF si refus'],delay:'Délai de réclamation indicatif : 30 jours après la notification.',recours:[{l:'Mon espace auto-entrepreneur',u:'https://www.autoentrepreneur.urssaf.fr',b:'rb1',bl:'Vérifier'},{l:'Médiateur URSSAF',u:'https://www.urssaf.fr/portail/home/praticien/mes-services/reclamation-et-conciliation.html',b:'rb2',bl:'Médiation'}]},
+  caf_allocations_familiales:{title:'Allocations familiales — Contestation',urgency:'a',urg:'⏱️ 2 mois pour contester',steps:['Vérifier le détail du calcul dans Mon Compte CAF','Identifier l'erreur : nombre d'enfants, ressources, situation','Contester par recommandé avec justificatifs','Saisir la CRA dans les 2 mois'],delay:'Délai indicatif : 2 mois après la notification pour la CRA.',recours:[{l:'Mon Compte CAF',u:'https://www.caf.fr',b:'rb1',bl:'Amiable'},{l:'Défenseur des droits',u:'https://formulaire.defenseurdesdroits.fr/',b:'rb2',bl:'Médiation'}]},
+  caf_prime_naissance:{title:'Prime de naissance refusée — PAJE',urgency:'a',urg:'⏱️ Demande dans les 6 mois',steps:['Vérifier : déclaration grossesse avant 14 semaines à CAF et CPAM','Vérifier les plafonds de ressources','Contacter la CAF par écrit pour les motifs du refus','Contester si les conditions étaient remplies'],delay:'Prime à demander dans les 6 mois suivant la naissance. Indicatif.',recours:[{l:'CAF — PAJE prime naissance',u:'https://www.caf.fr/allocataires/mes-droits-et-prestations/les-prestations/petite-enfance/la-prestation-d-accueil-du-jeune-enfant-paje',b:'rb1',bl:'Info'}]},
+  caf_prime_activite:{title:'Prime d'activité refusée',urgency:'a',urg:'⏱️ Contester dans les 2 mois',steps:['Vérifier les conditions : travailler en France, +18 ans, revenus modestes','Utiliser le simulateur CAF','Contester le refus avec vos bulletins de salaire','CRA dans les 2 mois si refus maintenu'],delay:'Délai indicatif : 2 mois pour contester. Prime versée trimestriellement.',recours:[{l:'Simulateur prime activité',u:'https://www.caf.fr/allocataires/mes-droits-et-prestations/les-prestations/solidarite-et-insertion/prime-d-activite-quelles-sont-les-conditions',b:'rb1',bl:'Vérifier'},{l:'Défenseur des droits',u:'https://formulaire.defenseurdesdroits.fr/',b:'rb2',bl:'Médiation'}]},
+  caf_pension_alimentaire:{title:'Pension alimentaire non versée — ASF',urgency:'r',urg:'🔴 L'ASF remplace la pension non versée',steps:['Demander l'ASF à la CAF — elle remplace la pension non versée','La CAF récupère la pension auprès du débiteur à votre place','Signaler tout paiement partiel ou irrégulier','En parallèle : juge aux affaires familiales pour forcer le paiement'],delay:'L'ASF peut être versée rapidement. La CAF gère le recouvrement.',recours:[{l:'CAF — ASF',u:'https://www.caf.fr/allocataires/mes-droits-et-prestations/les-prestations/solidarite-et-insertion/l-allocation-de-soutien-familial-asf',b:'rb1',bl:'Démarche'},{l:'ARIPA — Recouvrement',u:'https://www.aripa.services.gouv.fr',b:'rb1',bl:'Recouvrement'}]},
+  logement_voisinage:{title:'Trouble de voisinage — Bruit, nuisances',urgency:'b',urg:'ℹ️ Commencer par le dialogue',steps:['Documenter les nuisances : dates, heures, nature, témoins','Envoyer un courrier recommandé au voisin ou au propriétaire','Saisir un conciliateur de justice (gratuit)','Porter plainte si nuisances nocturnes répétées'],delay:'Pas de délai strict. La conciliation est souvent efficace et rapide.',recours:[{l:'Conciliateur de justice',u:'https://www.conciliateurs.fr/Trouver-une-permanence',b:'rb2',bl:'Médiation'},{l:'Service-Public — Trouble voisinage',u:'https://www.service-public.fr/particuliers/vosdroits/F612',b:'rb1',bl:'Info'}]},
+  logement_travaux_proprio:{title:'Travaux non faits par le propriétaire',urgency:'a',urg:'⏱️ Mise en demeure par recommandé',steps:['Lister les réparations dues (art. 6 loi 1989)','Envoyer une mise en demeure par recommandé avec AR','Saisir la commission de conciliation si pas de réponse sous 2 semaines','Consigner les loyers ou saisir le juge en cas d'urgence (avec ADIL)'],delay:'Le propriétaire est obligé d'assurer la décence. Indicatif.',recours:[{l:'ADIL — Conseil logement',u:'https://www.anil.org/lanil-et-les-adil/votre-adil/',b:'rb1',bl:'Conseil'},{l:'Commission de conciliation',u:'https://www.service-public.fr/particuliers/vosdroits/F12226',b:'rb2',bl:'Médiation'}]},
+  logement_loyer_abusif:{title:'Augmentation de loyer abusive',urgency:'a',urg:'⏱️ Contester dans les 3 mois',steps:['Vérifier si votre commune est en zone tendue (encadrement loyers)','Comparer avec le loyer de référence de l'observatoire local','Contester par recommandé au propriétaire en citant les textes','Saisir la commission de conciliation si refus'],delay:'Délai indicatif : 3 mois pour contester une augmentation. Vérifiez votre bail.',recours:[{l:'Encadrement des loyers',u:'https://www.service-public.fr/particuliers/vosdroits/F1142',b:'rb1',bl:'Info'},{l:'ADIL',u:'https://www.anil.org/lanil-et-les-adil/votre-adil/',b:'rb1',bl:'Conseil'}]},
+  logement_hlm:{title:'Logement social HLM — Demande ou refus',urgency:'b',urg:'ℹ️ DALO possible si attente anormale',steps:['Vérifier votre numéro de demande sur demande-logement-social.gouv.fr','En cas de refus : demander les motifs écrits','Saisir la commission de médiation DALO si délai anormalement long','Le DALO donne un droit au logement opposable'],delay:'Délais variables. Le DALO peut être saisi après 6 à 18 mois selon la zone. Indicatif.',recours:[{l:'Demande logement social',u:'https://www.demande-logement-social.gouv.fr',b:'rb1',bl:'Démarche'},{l:'DALO — Commission médiation',u:'https://www.service-public.fr/particuliers/vosdroits/F18005',b:'rb2',bl:'Médiation'}]},
+  logement_maprimereno:{title:'MaPrimeRénov — Refus ou retard',urgency:'a',urg:'⏱️ Contacter l'ANAH si délai > 6 mois',steps:['Vérifier le statut sur maprimerenov.gouv.fr','Vérifier que tous les documents ont été transmis','Contacter le service ANAH si délai excessif','Saisir le Défenseur des droits si blocage injustifié'],delay:'Délai de traitement indicatif : 2 à 6 mois. Travaux par artisan RGE obligatoire.',recours:[{l:'MaPrimeRénov — ANAH',u:'https://www.maprimerenov.gouv.fr',b:'rb1',bl:'Démarche'}]},
+  logement_achat_vices:{title:'Vices cachés — Achat immobilier',urgency:'r',urg:'🔴 Délai : 2 ans à compter de la découverte',steps:['Faire constater les vices par un expert dès leur découverte','Rassembler acte de vente, diagnostics, correspondances','Mettre en demeure le vendeur par recommandé','Saisir le tribunal judiciaire dans les 2 ans'],delay:'Délai légal STRICT : 2 ans à compter de la découverte du vice (art. 1648 CC). Indicatif.',recours:[{l:'Service-Public — Vices cachés',u:'https://www.service-public.fr/particuliers/vosdroits/F21128',b:'rb1',bl:'Info'},{l:'Tribunal judiciaire',u:'https://www.service-public.fr/particuliers/vosdroits/F31435',b:'rb3',bl:'Judiciaire'}]},
+  travail_rupture_conv:{title:'Rupture conventionnelle — Droits',urgency:'a',urg:'⏱️ 15 jours pour se rétracter',steps:['Vérifier que vous êtes bien en CDI (RC inapplicable au CDD)','Demander la convocation à l'entretien par recommandé','Vérifier le calcul de l'indemnité (au moins l'indemnité légale)','Délai de rétractation : 15 jours calendaires'],delay:'Délai de rétractation : 15 jours. Homologation DDETS : 15 jours ouvrables. Indicatif.',recours:[{l:'Service-Public — Rupture conventionnelle',u:'https://www.service-public.fr/particuliers/vosdroits/F19030',b:'rb1',bl:'Info'},{l:'Conseil de Prud'hommes',u:'https://www.service-public.fr/particuliers/vosdroits/F2360',b:'rb3',bl:'Recours'}]},
+  travail_harcelement:{title:'Harcèlement moral / Sexuel au travail',urgency:'r',urg:'🚨 Documenter et signaler immédiatement',steps:['Documenter : dates, témoins, messages, courriels — conserver tout','Signaler par écrit à l'employeur (recommandé ou mail avec AR)','Saisir les représentants du personnel ou le CHSCT','Contacter l'inspection du travail ou déposer plainte pénale'],delay:'La prescription pénale est de 6 ans pour le harcèlement moral. Agissez sans attendre. Indicatif.',recours:[{l:'Défenseur des droits',u:'https://formulaire.defenseurdesdroits.fr/',b:'rb2',bl:'Signalement'},{l:'Inspection du travail',u:'https://www.service-public.fr/particuliers/vosdroits/F1905',b:'rb1',bl:'Signalement'},{l:'Conseil de Prud'hommes',u:'https://www.service-public.fr/particuliers/vosdroits/F2360',b:'rb3',bl:'Judiciaire'}]},
+  travail_heures_sup:{title:'Heures supplémentaires non payées',urgency:'a',urg:'⏱️ Réclamer par écrit — délai 3 ans',steps:['Rassembler les preuves : planning, badges, emails, témoignages','Calculer le montant dû (25% pour les 8 premières, 50% ensuite)','Envoyer une mise en demeure par recommandé à l'employeur','Saisir le Conseil de Prud'hommes dans les 3 ans'],delay:'Délai de prescription : 3 ans pour les salaires impayés. Indicatif.',recours:[{l:'Inspection du travail',u:'https://www.service-public.fr/particuliers/vosdroits/F1905',b:'rb1',bl:'Signalement'},{l:'Conseil de Prud'hommes',u:'https://www.service-public.fr/particuliers/vosdroits/F2360',b:'rb3',bl:'Judiciaire'}]},
+  travail_conge_maternite:{title:'Congé maternité / Paternité refusé',urgency:'r',urg:'🔴 Droit absolu — refus illégal',steps:['Rappeler que le congé maternité est un droit absolu — l'employeur ne peut pas s'y opposer','Envoyer déclaration grossesse et certificat médical par recommandé','Si refus maintenu : saisir l'inspection du travail immédiatement','Tout licenciement pendant grossesse est nul sauf faute grave'],delay:'Le congé maternité ne peut être refusé. Toute obstruction est illégale.',recours:[{l:'Inspection du travail',u:'https://www.service-public.fr/particuliers/vosdroits/F1905',b:'rb1',bl:'Urgence'},{l:'Défenseur des droits',u:'https://formulaire.defenseurdesdroits.fr/',b:'rb2',bl:'Discrimination'}]},
+  sante_refus_soins:{title:'Refus de soins par un médecin',urgency:'r',urg:'🔴 Signaler à l'Ordre des médecins',steps:['Signaler le refus à l'Ordre départemental des médecins (en ligne)','Contacter la CPAM qui peut intervenir auprès du médecin','Si urgence vitale : appeler le 15 (SAMU) ou le 3114','Saisir le Défenseur des droits si discrimination'],delay:'Signalement à l'Ordre recommandé rapidement.',recours:[{l:'Ordre des médecins',u:'https://www.conseil-national.medecin.fr/les-patients/le-refus-de-soins',b:'rb1',bl:'Signalement'},{l:'Défenseur des droits',u:'https://formulaire.defenseurdesdroits.fr/',b:'rb2',bl:'Discrimination'}]},
+  sante_desert_medical:{title:'Désert médical — Trouver un médecin',urgency:'b',urg:'ℹ️ Des solutions existent',steps:['Utiliser le moteur Ameli pour trouver un médecin acceptant','Contacter votre CPAM pour orientation','Utiliser maisons de santé, centres de santé, télémédecine','Signaler à votre CPAM si refus répété'],delay:'Sans médecin traitant vous êtes moins bien remboursé. Régulariser dès que possible.',recours:[{l:'Trouver un médecin — Ameli',u:'https://www.ameli.fr/assure/sante/medecin-generaliste/choisir-medecin-traitant',b:'rb1',bl:'Démarche'},{l:'Doctolib',u:'https://www.doctolib.fr',b:'rb1',bl:'Trouver'}]},
+  sante_hospit_facture:{title:'Hospitalisation — Facturation contestée',urgency:'a',urg:'⏱️ Contester dans les 4 ans',steps:['Demander le détail de la facturation à l'établissement','Vérifier que les actes facturés correspondent aux soins reçus','Contester par recommandé au service facturation','Saisir la CRUQPC (Commission des Relations avec les Usagers)'],delay:'Délai de prescription : 4 ans. Indicatif.',recours:[{l:'CRUQPC — Droits usagers',u:'https://www.service-public.fr/particuliers/vosdroits/F700',b:'rb1',bl:'Réclamation'},{l:'Défenseur des droits',u:'https://formulaire.defenseurdesdroits.fr/',b:'rb2',bl:'Médiation'}]},
+  sante_arret_maladie:{title:'Arrêt maladie — IJSS refusées',urgency:'r',urg:'🔴 Vérifier la transmission de l'attestation',steps:['Vérifier que votre employeur a transmis l'attestation de salaire à la CPAM','Contacter la CPAM si rien reçu après 8 jours (hors délai carence)','Vérifier vos droits : 150h dans les 3 mois ou 600h dans l'année','Contester le calcul si le montant semble erroné'],delay:'Les IJSS doivent être versées dans les 2-3 semaines. Délai carence : 3 jours. Indicatif.',recours:[{l:'Ameli — Indemnités journalières',u:'https://www.ameli.fr/assure/remboursements/indemnites-journalieres/arret-de-travail-maladie-droit-commun',b:'rb1',bl:'Info'},{l:'Réclamation CPAM',u:'https://www.ameli.fr/assure/droits-demarches/difficultes-acces-aux-soins/contacter-votre-caisse',b:'rb1',bl:'Contact'}]},
+  sante_accident_medical:{title:'Accident médical — Indemnisation',urgency:'a',urg:'⏱️ Saisir la CCI dans les 10 ans',steps:['Demander votre dossier médical complet (délai légal : 8 jours)','Faire évaluer le préjudice par un médecin expert indépendant','Saisir la CCI (Commission Conciliation et Indemnisation) — gratuit','L'ONIAM indemnise les accidents médicaux graves non fautifs'],delay:'Délai de prescription : 10 ans à compter de la consolidation du préjudice. Indicatif.',recours:[{l:'CCI — Commission conciliation',u:'https://www.oniam.fr/cci',b:'rb2',bl:'Médiation'},{l:'ONIAM — Indemnisation',u:'https://www.oniam.fr',b:'rb1',bl:'Indemnisation'}]},
+  edu_inscription_refus:{title:'Inscription scolaire refusée',urgency:'r',urg:'🔴 Scolarisation obligatoire jusqu'à 16 ans',steps:['La mairie doit délivrer un certificat d'inscription — c'est obligatoire','Contacter l'Inspection Académique si la mairie refuse','Si refus du directeur : saisir l'inspecteur de l'éducation nationale','Saisir le Défenseur des droits si discrimination'],delay:'La scolarisation est un droit jusqu'à 16 ans. Agissez immédiatement.',recours:[{l:'Service-Public — Inscription école',u:'https://www.service-public.fr/particuliers/vosdroits/F1864',b:'rb1',bl:'Info'},{l:'Défenseur des droits',u:'https://formulaire.defenseurdesdroits.fr/',b:'rb2',bl:'Discrimination'}]},
+  edu_harcelement_scolaire:{title:'Harcèlement scolaire — Signaler',urgency:'r',urg:'🚨 Signaler immédiatement — 3020',steps:['Appeler le 3020 (numéro national harcèlement — gratuit)','Signaler à la direction de l'établissement par recommandé','Demander une réunion d'urgence avec l'équipe pédagogique','Si inaction : saisir l'inspection académique'],delay:'Agissez immédiatement. Le 3020 est disponible lundi-vendredi 9h-20h.',recours:[{l:'3020 — Non au harcèlement',u:'https://www.nonauharcelement.education.gouv.fr/',b:'rb1',bl:'Urgence'},{l:'Service-Public',u:'https://www.service-public.fr/particuliers/vosdroits/F31228',b:'rb1',bl:'Info'}]},
+  edu_bourse:{title:'Bourse scolaire refusée',urgency:'a',urg:'⏱️ Contester avant la rentrée',steps:['Vérifier les plafonds de ressources et le quotient familial CAF','Demander les motifs du refus par écrit','Contester auprès du Rectorat / DSDEN avec justificatifs','Bourses universitaires : contacter le CROUS directement'],delay:'Délais courts — agir dès réception du refus.',recours:[{l:'Service-Public — Bourse scolaire',u:'https://www.service-public.fr/particuliers/vosdroits/F984',b:'rb1',bl:'Info'},{l:'CROUS — Bourses étudiants',u:'https://www.etudiant.gouv.fr',b:'rb1',bl:'Étudiants'}]},
+  edu_parcoursup:{title:'Parcoursup — Recours / Refus partout',urgency:'r',urg:'🔴 Commission d'accès — délai court',steps:['Contacter immédiatement la Commission d'Accès à l'Enseignement Supérieur (CAES)','La CAES propose des formations dans le délai imparti','Préparer un dossier argumenté sur vos motivations','Explorer formations en apprentissage, BTS, BUT'],delay:'La CAES intervient après la phase principale — délai très court (juillet-août).',recours:[{l:'Parcoursup — CAES',u:'https://www.parcoursup.gouv.fr',b:'rb1',bl:'Démarche'},{l:'Étudiant.gouv.fr',u:'https://www.etudiant.gouv.fr',b:'rb1',bl:'Info'}]},
+  permis_amende:{title:'Amende contestée — ANTAI',urgency:'r',urg:'🔴 45 jours pour payer au tarif minoré',steps:['Décider : payer au tarif minoré (45j), désigner le conducteur, ou contester','Pour contester : requête en exonération par recommandé à l'OMP','Désignation conducteur : faire dans les 45 jours sur antai.gouv.fr','En cas de forclusion : contacter l'OMP'],delay:'Délai de paiement minoré : 45 jours. Délai de contestation : 45 jours. Indicatif.',recours:[{l:'ANTAI — Contester une amende',u:'https://www.antai.gouv.fr',b:'rb1',bl:'Démarche'},{l:'Service-Public — Amende',u:'https://www.service-public.fr/particuliers/vosdroits/F1803',b:'rb1',bl:'Info'}]},
+  permis_points:{title:'Retrait de points permis — Contestation',urgency:'a',urg:'⏱️ Contester l'infraction ou faire un stage',steps:['Vérifier votre solde de points sur telepoints.interieur.gouv.fr','Contester l'infraction à la source si injustifiée','Faire un stage de récupération de points (jusqu'à 4 points)','Permis invalidé : tribunal administratif dans les 2 mois'],delay:'Points récupérés selon durée sans infraction. Stage possible à tout moment. Indicatif.',recours:[{l:'Solde de points — Télépoints',u:'https://www.telepoints.interieur.gouv.fr',b:'rb1',bl:'Vérifier'},{l:'Service-Public — Points permis',u:'https://www.service-public.fr/particuliers/vosdroits/F1707',b:'rb1',bl:'Info'}]},
+  permis_suspension:{title:'Suspension de permis',urgency:'r',urg:'🔴 Recours dans les 2 mois',steps:['Identifier le type : administrative (préfet) ou judiciaire (tribunal)','Suspension administrative : recours tribunal administratif dans les 2 mois','Contacter un avocat spécialisé en droit routier','Suspension judiciaire : appel dans les 10 jours'],delay:'Délai indicatif : 2 mois pour recours administratif, 10 jours pour appel judiciaire.',recours:[{l:'Service-Public — Suspension permis',u:'https://www.service-public.fr/particuliers/vosdroits/F1727',b:'rb1',bl:'Info'},{l:'Tribunal administratif',u:'https://www.service-public.fr/particuliers/vosdroits/F2026',b:'rb3',bl:'Recours'}]},
+  transport_carte_grise:{title:'Carte grise — Problème ANTS',urgency:'a',urg:'⏱️ Obligation dans les 30 jours (achat)',steps:['Vérifier les pièces requises sur ants.gouv.fr avant de commencer','Blocage technique : contacter l'assistance ANTS (0806 000 109)','Document manquant : rassembler la pièce et reprendre','Passer par un professionnel agréé (garage, concessionnaire)'],delay:'Obligation légale de mise à jour : 30 jours après un achat. Indicatif.',recours:[{l:'ANTS — Carte grise',u:'https://immatriculation.ants.gouv.fr',b:'rb1',bl:'Démarche'},{l:'Assistance ANTS — 0806 000 109',u:'https://ants.gouv.fr/contacter-l-ants',b:'rb1',bl:'Aide'}]},
+  banque_droit_compte:{title:'Compte bancaire refusé — Droit au compte',urgency:'b',urg:'ℹ️ La Banque de France désigne une banque',steps:['Obtenir une lettre de refus de la banque (obligatoire)','Saisir la Banque de France — désigne une banque dans les 3 jours','La banque désignée DOIT ouvrir le compte','Les services de base sont gratuits'],delay:'Banque de France désigne une banque en 3 jours ouvrés. Indicatif.',recours:[{l:'Droit au compte — Banque de France',u:'https://www.banque-france.fr/fr/particuliers/difficultes-bancaires/le-droit-au-compte',b:'rb1',bl:'Démarche'},{l:'Service-Public — Droit au compte',u:'https://www.service-public.fr/particuliers/vosdroits/F2417',b:'rb1',bl:'Info'}]},
+  banque_frais_abusifs:{title:'Frais bancaires abusifs',urgency:'a',urg:'⏱️ Contester dans les 2 mois',steps:['Identifier les frais contestés et vérifier les plafonds légaux','Contester par écrit au service réclamations','Frais rejet prélèvement plafonnés : 20€ (virement) ou 8€ (hors virement)','Médiateur bancaire dans les 2 mois si refus'],delay:'Délai de prescription : 5 ans pour contester des frais bancaires. Indicatif.',recours:[{l:'Réclamation à votre banque',u:'https://www.economie.gouv.fr/particuliers/litige-avec-sa-banque',b:'rb1',bl:'Amiable'},{l:'Médiateur bancaire',u:'https://www.economie.gouv.fr/particuliers/litige-avec-sa-banque',b:'rb2',bl:'Médiation'}]},
+  banque_fichage_ficp:{title:'Fichage FICP abusif',urgency:'r',urg:'🔴 Demander la régularisation immédiatement',steps:['Demander votre fichier FICP à la Banque de France (gratuit)','Si inscription erronée : contacter l'organisme qui vous a fiché','Demander la rectification par recommandé avec preuve de régularisation','Saisir la CNIL si l'organisme refuse de corriger'],delay:'Le fichage FICP dure 5 ans max ou jusqu'au remboursement complet. Indicatif.',recours:[{l:'Banque de France — FICP',u:'https://www.banque-france.fr/fr/particuliers/difficultes-bancaires/les-fichiers-de-la-banque-de-france',b:'rb1',bl:'Consulter'},{l:'CNIL — Rectification',u:'https://www.cnil.fr/fr/les-droits-pour-maitriser-vos-donnees-personnelles',b:'rb2',bl:'Rectification'}]},
+  mdph_premier_dossier:{title:'MDPH — Premier dossier handicap',urgency:'b',urg:'ℹ️ Délai de traitement : 4 mois',steps:['Télécharger le formulaire cerfa 15692 sur le site de votre MDPH','Rassembler : certificat médical récent (- 6 mois), pièce d'identité, justificatif domicile','Déposer ou envoyer le dossier complet à la MDPH','Attendre la décision (4 mois max)'],delay:'Délai légal de traitement : 4 mois. Silence = rejet implicite. Indicatif.',recours:[{l:'Trouver votre MDPH',u:'https://www.service-public.fr/particuliers/vosdroits/F3626',b:'rb1',bl:'Démarche'},{l:'Formulaire cerfa 15692',u:'https://www.formulaires.service-public.fr/gf/cerfa_15692.do',b:'rb1',bl:'Formulaire'}]},
+  mdph_aah:{title:'AAH refusée ou réduite',urgency:'a',urg:'⏱️ 2 mois pour contester',steps:['Demander les motifs précis du refus','Vérifier les conditions : taux incapacité ≥ 80% ou 50-79% avec restriction emploi','Faire appel au tribunal judiciaire (pôle social) dans les 2 mois','Défenseur des droits si discrimination'],delay:'Délai indicatif : 2 mois pour contester.',recours:[{l:'Service-Public — AAH',u:'https://www.service-public.fr/particuliers/vosdroits/N12230',b:'rb1',bl:'Info'},{l:'Tribunal judiciaire pôle social',u:'https://www.service-public.fr/particuliers/vosdroits/N160',b:'rb3',bl:'Recours'},{l:'Défenseur des droits',u:'https://formulaire.defenseurdesdroits.fr/',b:'rb2',bl:'Médiation'}]},
+  mdph_rqth:{title:'RQTH refusée — Reconnaissance handicap emploi',urgency:'a',urg:'⏱️ 2 mois pour faire appel',steps:['Demander les motifs précis du refus','Faire appel devant le tribunal judiciaire pôle social dans les 2 mois','Contacter Cap Emploi pour accompagnement emploi','L'AGEFIPH peut aider même sans RQTH formelle'],delay:'Délai indicatif : 2 mois pour faire appel. RQTH valable 1 à 5 ans.',recours:[{l:'Cap Emploi',u:'https://www.capemploi.com',b:'rb1',bl:'Accompagnement'},{l:'AGEFIPH',u:'https://www.agefiph.fr',b:'rb1',bl:'Aide emploi'},{l:'Tribunal judiciaire pôle social',u:'https://www.service-public.fr/particuliers/vosdroits/N160',b:'rb3',bl:'Recours'}]},
+  energie_coupure:{title:'Coupure d'énergie — Droits',urgency:'r',urg:'🚨 Trêve hivernale : coupure illégale oct-avril',steps:['Entre le 1er novembre et le 31 mars : la coupure est illégale — signaler immédiatement','Contacter le médiateur de l'énergie en cas de coupure litigieuse','Demander le FSL énergie à votre département','Demander le chèque énergie si revenus modestes'],delay:'Trêve hivernale : 1er novembre au 31 mars — aucune coupure possible même pour impayés.',recours:[{l:'Médiateur de l'énergie',u:'https://www.energie-mediateur.fr',b:'rb2',bl:'Médiation'},{l:'Chèque énergie',u:'https://www.chequeenergie.gouv.fr',b:'rb1',bl:'Aide'},{l:'FSL énergie',u:'https://www.service-public.fr/particuliers/vosdroits/F1609',b:'rb1',bl:'Aide financière'}]},
+  energie_facture:{title:'Facture énergie contestée',urgency:'a',urg:'⏱️ Contester par écrit au fournisseur',steps:['Comparer consommation réelle avec la facture (estimation vs relevé réel)','Vérifier que votre compteur Linky est bien enregistré à votre nom','Contester par écrit en demandant un relevé contradictoire','Saisir le médiateur de l'énergie si refus'],delay:'Délai de prescription des factures énergie : 2 ans. Indicatif.',recours:[{l:'Médiateur de l'énergie',u:'https://www.energie-mediateur.fr',b:'rb2',bl:'Médiation'},{l:'SignalConso',u:'https://signal.conso.gouv.fr/',b:'rb1',bl:'Signalement'}]},
+  telecom_litige:{title:'Litige opérateur télécom',urgency:'a',urg:'⏱️ Médiateur si pas de réponse sous 2 mois',steps:['Contacter le service client par écrit','Conserver toutes les preuves','Si pas de réponse sous 2 mois : saisir le médiateur des télécoms ARCEP','SignalConso pour les pratiques abusives'],delay:'Le médiateur doit être saisi dans 1 an après la réclamation initiale. Indicatif.',recours:[{l:'Médiateur des télécoms — ARCEP',u:'https://www.mediateur-telecom.fr',b:'rb2',bl:'Médiation'},{l:'SignalConso',u:'https://signal.conso.gouv.fr/',b:'rb1',bl:'Signalement'}]},
+  assurance_habitation:{title:'Assurance habitation — Refus de sinistre',urgency:'r',urg:'🔴 Délai de déclaration : 2 à 5 jours',steps:['Vérifier votre contrat : garanties, exclusions, franchises, délais déclaration','Contester le refus par recommandé en citant les clauses','Rassembler toutes les preuves du sinistre','Saisir le médiateur de l'assurance si refus maintenu'],delay:'Délai de déclaration : 2 jours pour vol, 5 jours standard. Prescription 2 ans. Indicatif.',recours:[{l:'Médiateur de l'assurance',u:'https://www.mediation-assurance.org/Saisir-le-mediateur',b:'rb2',bl:'Médiation'},{l:'Service-Public — Assurance habitation',u:'https://www.service-public.fr/particuliers/vosdroits/F2692',b:'rb1',bl:'Info'}]},
+  assurance_auto:{title:'Assurance auto — Refus remboursement',urgency:'r',urg:'🔴 Déclarer dans les 5 jours',steps:['Vérifier la déclaration dans les délais (5 jours en général)','Remplir le constat amiable si possible','Contester le refus par recommandé en citant le contrat','Médiateur de l'assurance si refus maintenu'],delay:'Délai de déclaration : 5 jours. Prescription : 2 ans. Indicatif.',recours:[{l:'Médiateur de l'assurance',u:'https://www.mediation-assurance.org/Saisir-le-mediateur',b:'rb2',bl:'Médiation'},{l:'Service-Public — Accident',u:'https://www.service-public.fr/particuliers/vosdroits/F2353',b:'rb1',bl:'Info'}]},
+  etat_civil_prenom:{title:'Changement de prénom',urgency:'b',urg:'ℹ️ Démarche en mairie',steps:['Préparer un dossier motivant la demande (usage habituel, identité de genre...)','Déposer la demande en mairie avec acte de naissance et pièce d'identité','Si refus du maire : tribunal judiciaire','La modification est reportée sur tous vos documents'],delay:'Délai variable selon les mairies. Modification état civil : plusieurs mois. Indicatif.',recours:[{l:'Service-Public — Changement prénom',u:'https://www.service-public.fr/particuliers/vosdroits/F10547',b:'rb1',bl:'Démarche'}]},
+  etat_civil_erreur:{title:'Erreur acte de naissance — Rectification',urgency:'b',urg:'ℹ️ Rectification administrative ou judiciaire',steps:['Erreur matérielle simple : demande de rectification administrative à la mairie','Fournir les preuves de l'erreur (documents officiels, carnet de santé...)','Erreur complexe : requête au tribunal judiciaire','La rectification est reportée sur tous les documents d'identité'],delay:'Pas de délai de prescription. La procédure peut durer 3 à 12 mois. Indicatif.',recours:[{l:'Service-Public — Rectification état civil',u:'https://www.service-public.fr/particuliers/vosdroits/F1427',b:'rb1',bl:'Démarche'}]},
+  naturalisation:{title:'Naturalisation refusée',urgency:'a',urg:'⏱️ 2 mois pour recours gracieux',steps:['Demander les motifs précis du refus à la préfecture','Recours gracieux auprès du ministre de la Justice dans les 2 mois','Recours contentieux devant le tribunal administratif dans les 2 mois','Vérifier avec un avocat si les conditions étaient remplies'],delay:'Délai indicatif : 2 mois pour le recours administratif. Procédure : 1 à 2 ans. Indicatif.',recours:[{l:'Service-Public — Naturalisation',u:'https://www.service-public.fr/particuliers/vosdroits/N111',b:'rb1',bl:'Info'},{l:'Tribunal administratif',u:'https://www.service-public.fr/particuliers/vosdroits/F2026',b:'rb3',bl:'Recours'}]},
+  asile:{title:'Demande d'asile en France',urgency:'r',urg:'🔴 Déposer à la préfecture dès l'arrivée',steps:['Se présenter en préfecture dès l'arrivée pour obtenir un rendez-vous','Déposer le dossier à l'OFPRA dans les 21 jours après enregistrement','Rejet OFPRA : appel devant la CNDA dans les 30 jours','Contacter France Terre d'Asile ou Croix-Rouge pour accompagnement'],delay:'Délai IMPÉRATIF : 21 jours pour dossier OFPRA, 30 jours pour appel CNDA. Indicatif.',recours:[{l:'OFPRA',u:'https://www.ofpra.gouv.fr',b:'rb1',bl:'Démarche'},{l:'France Terre d'Asile',u:'https://www.france-terre-asile.org',b:'rb2',bl:'Accompagnement'},{l:'CNDA — Recours',u:'https://www.cnda.fr',b:'rb3',bl:'Appel'}]},
+  justice_divorce:{title:'Divorce — Procédure',urgency:'b',urg:'ℹ️ Consentement mutuel ou contentieux',steps:['Consentement mutuel : 2 avocats (un chacun), signature convention','Contentieux : saisir le tribunal judiciaire — JAF','Demander aide juridictionnelle si revenus insuffisants','Penser aux mesures urgentes : garde provisoire, prestation compensatoire'],delay:'Consentement mutuel : 1 à 3 mois. Contentieux : 1 à 3 ans. Indicatif.',recours:[{l:'Service-Public — Divorce',u:'https://www.service-public.fr/particuliers/vosdroits/N159',b:'rb1',bl:'Info'},{l:'Aide juridictionnelle',u:'https://www.service-public.fr/particuliers/vosdroits/F18074',b:'rb1',bl:'Aide'},{l:'Médiation familiale',u:'https://www.service-public.fr/particuliers/vosdroits/F10553',b:'rb2',bl:'Médiation'}]},
+  justice_garde_enfant:{title:'Garde d'enfant — Modification jugement',urgency:'a',urg:'⏱️ Changement de circonstances requis',steps:['Documenter le changement de circonstances (déménagement, travail...)','Tenter la médiation familiale en premier','Saisir le JAF du tribunal judiciaire','Demander l'aide juridictionnelle si revenus insuffisants'],delay:'Juge statue en urgence si intérêt enfant menacé. Sinon : 3 à 12 mois. Indicatif.',recours:[{l:'Médiation familiale',u:'https://www.service-public.fr/particuliers/vosdroits/F10553',b:'rb2',bl:'Médiation'},{l:'Tribunal judiciaire — JAF',u:'https://www.service-public.fr/particuliers/vosdroits/N159',b:'rb3',bl:'Judiciaire'}]},
+  justice_succession:{title:'Succession bloquée — Héritiers en désaccord',urgency:'a',urg:'⏱️ Déclaration succession dans les 6 mois',steps:['Contacter un notaire immédiatement — pivot de la succession','Déclaration de succession aux impôts dans les 6 mois (France)','Désaccord entre héritiers : médiation successorale avant procès','Dernier recours : action en partage judiciaire'],delay:'Délai fiscal : 6 mois après le décès pour la déclaration. Indicatif.',recours:[{l:'Notaires de France',u:'https://www.notaires.fr/fr/annuaires-notaires',b:'rb1',bl:'Notaire'},{l:'Service-Public — Succession',u:'https://www.service-public.fr/particuliers/vosdroits/N135',b:'rb1',bl:'Info'}]},
+  justice_plainte:{title:'Plainte classée sans suite — Recours',urgency:'a',urg:'⏱️ Recours dans les 3 mois',steps:['Demander les motifs du classement par recommandé au Procureur','Recours hiérarchique auprès du Procureur Général dans les 3 mois','Plainte avec constitution de partie civile devant le juge d'instruction','Contacter France Victimes (116 006) pour accompagnement'],delay:'Délai de recours : 3 mois après la notification du classement. Indicatif.',recours:[{l:'France Victimes — 116 006',u:'https://www.france-victimes.fr',b:'rb2',bl:'Aide'},{l:'Service-Public — Classement sans suite',u:'https://www.service-public.fr/particuliers/vosdroits/F1489',b:'rb1',bl:'Info'}]},
+  justice_victime:{title:'Victime d'infraction — Indemnisation',urgency:'a',urg:'⏱️ CIVI dans les 3 ans',steps:['Déposer plainte immédiatement','Se constituer partie civile pour dommages et intérêts','Saisir la CIVI si auteur inconnu ou insolvable','France Victimes (116 006) pour accompagnement gratuit'],delay:'Délai pour saisir la CIVI : 3 ans après l'infraction. Indicatif.',recours:[{l:'France Victimes — 116 006',u:'https://www.france-victimes.fr',b:'rb2',bl:'Accompagnement'},{l:'CIVI — Indemnisation victimes',u:'https://www.service-public.fr/particuliers/vosdroits/F1209',b:'rb1',bl:'Indemnisation'}]},
+  apa_refus:{title:'APA refusée — Allocation Personnalisée Autonomie',urgency:'a',urg:'⏱️ 2 mois pour contester',steps:['L'APA est attribuée selon la grille AGGIR (GIR 1 à 4)','Demander les motifs du refus au département','Contester auprès du président du Conseil Départemental','Tribunal administratif en dernier recours'],delay:'Délai indicatif : 2 mois pour contester.',recours:[{l:'Service-Public — APA',u:'https://www.service-public.fr/particuliers/vosdroits/N392',b:'rb1',bl:'Info'},{l:'Défenseur des droits',u:'https://formulaire.defenseurdesdroits.fr/',b:'rb2',bl:'Médiation'}]},
+  ehpad_abus:{title:'EHPAD — Facturation abusive',urgency:'a',urg:'⏱️ Contester dans les 2 mois',steps:['Demander le détail de la facturation et vérifier les tarifs autorisés','Les tarifs hébergement EHPAD publics sont fixés par arrêté','Contester par recommandé à la direction','Saisir l'ARS si les abus persistent'],delay:'EHPAD publics : tarifs réglementés. EHPAD privés : plus de liberté. Indicatif.',recours:[{l:'Service-Public — EHPAD',u:'https://www.service-public.fr/particuliers/vosdroits/F763',b:'rb1',bl:'Info'},{l:'ARS — Signalement',u:'https://www.ars.sante.fr',b:'rb1',bl:'Signalement'}]},
+  urbanisme_permis_refus:{title:'Permis de construire refusé',urgency:'a',urg:'⏱️ 2 mois pour recours gracieux',steps:['Analyser les motifs du refus — souvent liés au PLU','Recours gracieux auprès du maire dans les 2 mois','Recours contentieux devant le tribunal administratif dans les 2 mois','Consulter un avocat en droit de l'urbanisme'],delay:'Délai indicatif : 2 mois pour recours gracieux, puis 2 mois pour contentieux. Cumulatifs.',recours:[{l:'Service-Public — Permis construire',u:'https://www.service-public.fr/particuliers/vosdroits/F1986',b:'rb1',bl:'Info'},{l:'Tribunal administratif',u:'https://www.service-public.fr/particuliers/vosdroits/F2026',b:'rb3',bl:'Recours'}]},
+  retraite_aspa:{title:'Minimum vieillesse — ASPA refusé',urgency:'a',urg:'⏱️ Contester dans les 2 mois',steps:['Vérifier les conditions : résider en France, +65 ans (ou 62 ans invalide)','Vérifier les plafonds de ressources mensuels','Contester auprès de votre caisse retraite par recommandé','Tribunal judiciaire pôle social si refus maintenu'],delay:'Délai indicatif : 2 mois pour contester. L'ASPA est récupérable sur succession > 100 000€.',recours:[{l:'Service-Public — ASPA',u:'https://www.service-public.fr/particuliers/vosdroits/F16871',b:'rb1',bl:'Info'},{l:'Tribunal judiciaire pôle social',u:'https://www.service-public.fr/particuliers/vosdroits/N160',b:'rb3',bl:'Recours'}]},
+};
+
+// Ajouter les nouvelles cards à CARDS
+CARDS.push(...NEW_CARDS);
+
+// Ajouter les nouveaux résultats à SIMPLE_RESULTS
+Object.assign(SIMPLE_RESULTS, NEW_SIMPLE_RESULTS);
+
+// Ajouter les nouveaux filtres
+const NEW_CATS = ['Education','Transport','Handicap','PersonnesAgees','Urbanisme'];
+const NEW_CLABELS = {Education:'🎓 Éducation',Transport:'🚗 Transport',Handicap:'♿ Handicap',PersonnesAgees:'👵 Personnes âgées',Urbanisme:'🏗️ Urbanisme'};
+
+// Ajouter les nouvelles catégories aux filtres
+NEW_CATS.forEach(c=>{
+  const b=document.createElement('button');
+  b.className='fb';
+  b.innerHTML=NEW_CLABELS[c];
+  b.onclick=()=>{
+    af=c;
+    document.querySelectorAll('.fb').forEach(x=>x.classList.toggle('on',x===b));
+    document.getElementById('slbl').innerHTML=NEW_CLABELS[c];
+    document.querySelectorAll('.card').forEach(x=>x.classList.toggle('hidden',c!=='Tout'&&x.dataset.cat!==c));
+  };
+  fe.appendChild(b);
+});
+
+// Init
+renderDashboard();
+
+</script>
+</body>
+</html>
