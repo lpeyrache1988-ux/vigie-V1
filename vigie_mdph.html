@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Vigie Handicap — Guide MDPH complet</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#0d5c63;
+  --teal-l:#e6f4f5;
+  --teal-m:#b3dde0;
+  --amber:#c96f1e;
+  --amber-l:#fef3e8;
+  --red:#b91c1c;
+  --red-l:#fef2f2;
+  --green:#166534;
+  --green-l:#f0fdf4;
+  --purple:#6b21a8;
+  --purple-l:#faf5ff;
+  --slate:#64748b;
+  --border:#e2e8f0;
+  --bg:#f8fafc;
+  --ink:#0f172a;
+  --ink2:#334155;
+}
+html,body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.6}
+
+/* ── HEADER ── */
+.hero{
+  background:linear-gradient(135deg,var(--teal) 0%,#0a3d42 100%);
+  padding:28px 20px 32px;color:#fff;
+  position:relative;overflow:hidden;
+}
+.hero::after{
+  content:'';position:absolute;right:-60px;top:-60px;
+  width:220px;height:220px;border-radius:50%;
+  background:rgba(255,255,255,.05);
+}
+.hero-back{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:13px;color:rgba(255,255,255,.6);
+  text-decoration:none;margin-bottom:16px;
+  background:rgba(255,255,255,.1);padding:5px 12px;border-radius:999px;
+}
+.hero-back:hover{color:#fff;background:rgba(255,255,255,.2)}
+.hero-title{
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(26px,5vw,38px);
+  line-height:1.15;margin-bottom:8px;
+}
+.hero-sub{font-size:14px;opacity:.75;max-width:420px;line-height:1.5}
+.hero-stats{
+  display:flex;gap:0;margin-top:20px;
+  background:rgba(255,255,255,.1);border-radius:12px;overflow:hidden;
+}
+.hstat{
+  flex:1;padding:12px 16px;text-align:center;
+  border-right:1px solid rgba(255,255,255,.1);
+}
+.hstat:last-child{border-right:none}
+.hstat-num{font-size:22px;font-weight:700;line-height:1}
+.hstat-lbl{font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+
+/* ── TABS ── */
+.tabs{
+  display:flex;background:#fff;border-bottom:1px solid var(--border);
+  overflow-x:auto;scrollbar-width:none;
+  position:sticky;top:0;z-index:10;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex-shrink:0;padding:13px 18px;border:none;background:none;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
+  color:var(--slate);cursor:pointer;border-bottom:3px solid transparent;
+  transition:all .15s;white-space:nowrap;
+}
+.tab.on{color:var(--teal);border-bottom-color:var(--teal)}
+.tab:hover:not(.on){color:var(--ink2)}
+
+/* ── VIEWS ── */
+.view{display:none;padding:18px 16px 50px}
+.view.on{display:block}
+
+/* ── SECTION HEADER ── */
+.sec-head{margin-bottom:16px}
+.sec-title{
+  font-family:'DM Serif Display',serif;
+  font-size:22px;color:var(--teal);margin-bottom:4px;
+}
+.sec-sub{font-size:13px;color:var(--slate);line-height:1.5}
+
+/* ── SITUATION CARDS ── */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.sit-card{
+  background:#fff;border:1.5px solid var(--border);border-radius:14px;
+  padding:14px 12px 12px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:7px;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);transition:all .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.sit-card:hover,.sit-card.active{border-color:var(--teal);background:var(--teal-l);transform:scale(.97)}
+.sit-card.active{box-shadow:0 0 0 3px rgba(13,92,99,.15)}
+.sit-card.hidden{display:none}
+.sc-ico{font-size:24px;line-height:1}
+.sc-lbl{font-size:12px;font-weight:700;line-height:1.3;color:var(--ink)}
+.sc-sub{font-size:10px;color:var(--slate);line-height:1.3}
+.sc-badge{
+  font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;
+  text-transform:uppercase;letter-spacing:.05em;
+}
+.badge-adult{background:#dbeafe;color:#1e40af}
+.badge-child{background:#fce7f3;color:#9d174d}
+.badge-emploi{background:#ecfdf5;color:#065f46}
+
+/* ── RESULT ── */
+.result-panel{
+  display:none;background:#fff;border-radius:16px;
+  border-left:5px solid var(--teal);
+  padding:20px;margin-bottom:16px;
+  box-shadow:0 4px 24px rgba(13,92,99,.12);
+  animation:slideUp .2s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.result-panel.show{display:block}
+.rp-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.rp-title{
+  font-family:'DM Serif Display',serif;
+  font-size:18px;color:var(--teal);flex:1;line-height:1.3;padding-right:8px;
+}
+.rp-close{background:none;border:none;font-size:20px;color:#94a3b8;cursor:pointer}
+
+.urg-strip{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:10px 12px;border-radius:10px;font-size:13px;font-weight:600;
+  margin-bottom:14px;line-height:1.4;
+}
+.ur{background:var(--red-l);color:var(--red);border:1px solid #fecaca}
+.ua{background:var(--amber-l);color:var(--amber);border:1px solid #fde68a}
+.ub{background:var(--teal-l);color:var(--teal);border:1px solid var(--teal-m)}
+.ug{background:var(--green-l);color:var(--green);border:1px solid #bbf7d0}
+.up{background:var(--purple-l);color:var(--purple);border:1px solid #e9d5ff}
+
+.warning-box{
+  padding:10px 12px;background:#fff7ed;border:1px solid #fed7aa;
+  border-radius:10px;font-size:13px;color:#92400e;margin-bottom:14px;
+  line-height:1.5;
+}
+.info-box{
+  padding:10px 12px;background:var(--teal-l);border:1px solid var(--teal-m);
+  border-radius:10px;font-size:13px;color:var(--teal);margin-bottom:14px;
+  line-height:1.5;
+}
+
+.blk-title{
+  font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;color:#94a3b8;margin-bottom:8px;
+}
+.steps{display:grid;gap:8px;margin-bottom:14px}
+.step{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.5}
+.sn{
+  width:24px;height:24px;border-radius:999px;
+  background:var(--teal);color:#fff;font-size:11px;font-weight:700;
+  display:grid;place-items:center;flex-shrink:0;margin-top:1px;
+}
+.delay-box{
+  padding:10px 12px;background:#fffbeb;border:1px solid #fde68a;
+  border-radius:10px;font-size:12px;color:#78350f;margin-bottom:14px;line-height:1.5;
+}
+.recs{display:grid;gap:7px;margin-bottom:14px}
+.recs a{
+  display:flex;align-items:center;gap:8px;padding:10px 12px;
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  text-decoration:none;color:var(--ink);font-size:13px;font-weight:600;
+  transition:all .12s;
+}
+.recs a:hover{border-color:var(--teal);background:var(--teal-l)}
+.rbadge{
+  margin-left:auto;font-size:10px;font-weight:700;
+  padding:2px 7px;border-radius:999px;flex-shrink:0;border:1px solid;
+}
+.rb1{background:var(--green-l);color:var(--green);border-color:#bbf7d0}
+.rb2{background:var(--amber-l);color:var(--amber);border-color:#fde68a}
+.rb3{background:var(--red-l);color:var(--red);border-color:#fecaca}
+.rbt{background:var(--teal-l);color:var(--teal);border-color:var(--teal-m)}
+
+.glossary-btn{
+  width:100%;padding:10px;background:none;
+  border:1.5px solid var(--teal-m);border-radius:10px;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
+  color:var(--teal);cursor:pointer;margin-top:4px;
+}
+
+/* ── LEXIQUE ── */
+.lex-item{
+  background:#fff;border:1px solid var(--border);border-radius:12px;
+  padding:14px 16px;margin-bottom:8px;
+}
+.lex-term{
+  font-weight:700;color:var(--teal);font-size:14px;margin-bottom:4px;
+}
+.lex-def{font-size:13px;color:var(--ink2);line-height:1.5}
+.lex-tag{
+  display:inline-block;font-size:10px;font-weight:700;
+  padding:2px 7px;border-radius:999px;margin-top:5px;
+}
+
+/* ── GUIDE DOSSIER ── */
+.checklist-step{
+  background:#fff;border:1px solid var(--border);border-radius:12px;
+  padding:14px 16px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;
+}
+.cs-num{
+  width:28px;height:28px;border-radius:999px;background:var(--teal);
+  color:#fff;font-weight:700;font-size:13px;display:grid;place-items:center;
+  flex-shrink:0;
+}
+.cs-title{font-weight:700;font-size:14px;margin-bottom:3px}
+.cs-desc{font-size:13px;color:var(--slate);line-height:1.5}
+.cs-docs{
+  margin-top:6px;padding:7px 10px;background:var(--teal-l);
+  border-radius:8px;font-size:12px;color:var(--teal);
+}
+
+/* ── FOOTER ── */
+.foot{
+  text-align:center;font-size:11px;color:#94a3b8;
+  padding:12px 16px 20px;line-height:1.5;
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="hero">
+  <a href="index.html" class="hero-back">← Retour Vigie</a>
+  <div class="hero-title">Guide MDPH<br><em>Handicap &amp; Droits</em></div>
+  <div class="hero-sub">Adultes, enfants, emploi, scolarisation — tous les recours expliqués.</div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-num">34</div><div class="hstat-lbl">Situations</div></div>
+    <div class="hstat"><div class="hstat-num">8</div><div class="hstat-lbl">Domaines</div></div>
+    <div class="hstat"><div class="hstat-num">4</div><div class="hstat-lbl">Mois délai MDPH</div></div>
+  </div>
+</div>
+
+<!-- ── NAVIGATION ── -->
+<div class="tabs">
+  <button class="tab on" onclick="showTab('adultes')">🧑 Adultes</button>
+  <button class="tab" onclick="showTab('enfants')">👦 Enfants</button>
+  <button class="tab" onclick="showTab('emploi')">💼 Emploi</button>
+  <button class="tab" onclick="showTab('quotidien')">🏠 Vie quotidienne</button>
+  <button class="tab" onclick="showTab('dossier')">📋 Préparer le dossier</button>
+  <button class="tab" onclick="showTab('lexique')">📖 Lexique</button>
+</div>
+
+<!-- ══════════ PANEL RÉSULTAT (partagé) ══════════ -->
+<div style="padding:0 16px" id="result-wrap">
+  <div class="result-panel" id="result-panel">
+    <div class="rp-top">
+      <div class="rp-title" id="rp-title"></div>
+      <button class="rp-close" onclick="closeResult()">✕</button>
+    </div>
+    <div id="rp-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     VUE ADULTES
+══════════════════════════════════════════════ -->
+<div class="view on" id="view-adultes">
+  <div class="sec-head">
+    <div class="sec-title">Droits et prestations adultes</div>
+    <div class="sec-sub">AAH, PCH, orientation, carte mobilité… — tous les recours face à la MDPH.</div>
+  </div>
+  <div class="grid" id="grid-adultes"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     VUE ENFANTS
+══════════════════════════════════════════════ -->
+<div class="view" id="view-enfants">
+  <div class="sec-head">
+    <div class="sec-title">Scolarisation &amp; droits enfants</div>
+    <div class="sec-sub">AEEH, AESH, PPS, IME, ULIS, transport adapté — défendre les droits de votre enfant.</div>
+  </div>
+  <div class="grid" id="grid-enfants"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     VUE EMPLOI
+══════════════════════════════════════════════ -->
+<div class="view" id="view-emploi">
+  <div class="sec-head">
+    <div class="sec-title">Emploi &amp; handicap</div>
+    <div class="sec-sub">Aménagements, discrimination, invalidité, AGEFIPH — vos droits au travail.</div>
+  </div>
+  <div class="grid" id="grid-emploi"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     VUE VIE QUOTIDIENNE
+══════════════════════════════════════════════ -->
+<div class="view" id="view-quotidien">
+  <div class="sec-head">
+    <div class="sec-title">Vie quotidienne &amp; accessibilité</div>
+    <div class="sec-sub">Aide humaine, aide technique, logement adapté, stationnement — les droits concrets.</div>
+  </div>
+  <div class="grid" id="grid-quotidien"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     VUE DOSSIER MDPH
+══════════════════════════════════════════════ -->
+<div class="view" id="view-dossier">
+  <div class="sec-head">
+    <div class="sec-title">Préparer son dossier MDPH</div>
+    <div class="sec-sub">Guide étape par étape pour constituer un dossier complet et maximiser ses chances.</div>
+  </div>
+
+  <div style="background:var(--teal-l);border:1px solid var(--teal-m);border-radius:12px;padding:14px;margin-bottom:16px;font-size:13px;color:var(--teal);line-height:1.5">
+    💡 <strong>Un dossier complet est décisif.</strong> La CDAPH (Commission des Droits) ne dispose que des éléments que vous lui fournissez. Plus votre dossier est précis et documenté, meilleures sont vos chances.
+  </div>
+
+  <div class="checklist-step">
+    <div class="cs-num">1</div>
+    <div>
+      <div class="cs-title">Télécharger le formulaire cerfa 15692</div>
+      <div class="cs-desc">C'est le formulaire unique pour toutes les demandes MDPH (AAH, PCH, RQTH, CMI, scolarisation…). Il est mis à jour régulièrement — utiliser la dernière version.</div>
+      <div class="cs-docs">📄 Sur votre MDPH départementale ou formulaires.service-public.fr</div>
+    </div>
+  </div>
+
+  <div class="checklist-step">
+    <div class="cs-num">2</div>
+    <div>
+      <div class="cs-title">Faire remplir le certificat médical (partie 4)</div>
+      <div class="cs-desc">Le certificat médical de moins de <strong>6 mois</strong> est la pièce la plus importante. Il doit être rempli par un médecin qui vous connaît bien. Demandez-lui d'être le plus précis et exhaustif possible sur les limitations fonctionnelles — pas seulement le diagnostic.</div>
+      <div class="cs-docs">⚠️ Le diagnostic seul ne suffit pas — les limitations du quotidien sont ce qui compte</div>
+    </div>
+  </div>
+
+  <div class="checklist-step">
+    <div class="cs-num">3</div>
+    <div>
+      <div class="cs-title">Rédiger le projet de vie (partie 5)</div>
+      <div class="cs-desc">Décrivez en détail ce que vous ne pouvez plus faire seul, ce qui a changé dans votre vie quotidienne, vos besoins réels. Soyez concret et honnête. Ce n'est pas un CV — décrivez vos <em>difficultés</em>, pas vos capacités.</div>
+      <div class="cs-docs">💬 "Je ne peux pas me lever seul le matin / préparer mes repas / sortir sans accompagnement"</div>
+    </div>
+  </div>
+
+  <div class="checklist-step">
+    <div class="cs-num">4</div>
+    <div>
+      <div class="cs-title">Rassembler les pièces justificatives</div>
+      <div class="cs-desc">Pièce d'identité, justificatif de domicile, numéro de Sécurité Sociale, et selon votre demande : bilans orthophoniques, neuropsychologiques, comptes-rendus hospitaliers, bulletins scolaires, justificatifs de ressources.</div>
+      <div class="cs-docs">📎 Plus de preuves = moins de risques de refus</div>
+    </div>
+  </div>
+
+  <div class="checklist-step">
+    <div class="cs-num">5</div>
+    <div>
+      <div class="cs-title">Envoyer en recommandé avec AR</div>
+      <div class="cs-desc">Toujours envoyer en recommandé et conserver le récépissé. Ce document fait foi pour la date de dépôt — le délai légal de 4 mois commence à partir de cette date.</div>
+      <div class="cs-docs">📬 Conserver une copie complète de tout le dossier envoyé</div>
+    </div>
+  </div>
+
+  <div class="checklist-step">
+    <div class="cs-num">6</div>
+    <div>
+      <div class="cs-title">Suivre l'avancement et relancer</div>
+      <div class="cs-desc">Le délai légal de traitement est de <strong>4 mois</strong>. Après 4 mois sans réponse, la décision est réputée de rejet implicite — vous pouvez faire appel. Relancez par écrit si pas de nouvelles après 3 mois.</div>
+      <div class="cs-docs">⏱️ J+90 : relance écrite. J+120 : si toujours silence → recours</div>
+    </div>
+  </div>
+
+  <div class="checklist-step">
+    <div class="cs-num">7</div>
+    <div>
+      <div class="cs-title">En cas de refus : faire appel dans les 2 mois</div>
+      <div class="cs-desc">Tout refus de la CDAPH peut être contesté devant le tribunal judiciaire pôle social dans les <strong>2 mois</strong> suivant la notification. Le recours est gratuit et vous pouvez demander l'aide juridictionnelle.</div>
+      <div class="cs-docs">⚖️ Saisine : tribunal judiciaire (pôle social) — délai indicatif 2 mois</div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:16px">
+    <div style="font-weight:700;font-size:14px;margin-bottom:10px;color:var(--teal)">📞 Contacts utiles</div>
+    <div class="recs">
+      <a href="https://www.service-public.fr/particuliers/vosdroits/F3626" target="_blank" rel="noopener">🏢 Trouver votre MDPH<span class="rbadge rbt">Démarche</span></a>
+      <a href="https://formulaire.defenseurdesdroits.fr/" target="_blank" rel="noopener">🛡️ Défenseur des droits<span class="rbadge rb2">Si blocage</span></a>
+      <a href="https://www.apf-francehandicap.org" target="_blank" rel="noopener">♿ APF France Handicap<span class="rbadge rb1">Accompagnement</span></a>
+      <a href="https://www.unapei.org" target="_blank" rel="noopener">🤝 UNAPEI (handicap mental)<span class="rbadge rb1">Accompagnement</span></a>
+      <a href="https://www.cnsa.fr" target="_blank" rel="noopener">📋 CNSA — Info MDPH<span class="rbadge rbt">Info nationale</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     VUE LEXIQUE
+══════════════════════════════════════════════ -->
+<div class="view" id="view-lexique">
+  <div class="sec-head">
+    <div class="sec-title">Lexique MDPH</div>
+    <div class="sec-sub">Les sigles et termes clés pour comprendre et défendre vos droits.</div>
+  </div>
+  <div id="lexique-list"></div>
+</div>
+
+<div class="foot">
+  ℹ️ Information générale — pas un conseil juridique personnalisé.<br>
+  Délais toujours indicatifs — vérifiez vos courriers officiels.
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DONNÉES — 34 situations MDPH / Handicap
+// ═══════════════════════════════════════════════════════════
+
+const SITUATIONS = {
+
+  // ─── ADULTES ───────────────────────────────────────────────
+  mdph_premier_dossier: {
+    tab:'adultes', badge:'adult', ico:'📋',
+    label:'Premier dossier\nMDPH', sub:'Je dépose ma première demande',
+    title:'MDPH — Premier dossier : bien démarrer',
+    urgency:'b', urg:'ℹ️ Délai légal de traitement : 4 mois',
+    info:'Le dossier MDPH permet d\'accéder à l\'AAH, la PCH, la RQTH, la CMI, et les orientations scolaires ou professionnelles. Un seul formulaire pour toutes ces demandes.',
+    steps:[
+      'Télécharger le formulaire cerfa 15692 sur le site de votre MDPH',
+      'Faire remplir le certificat médical (partie 4) par votre médecin — moins de 6 mois',
+      'Rédiger le projet de vie (partie 5) en décrivant vos difficultés au quotidien — soyez précis',
+      'Envoyer en recommandé avec AR à la MDPH de votre département',
+      'Consulter l\'onglet "Préparer le dossier" pour les conseils détaillés',
+    ],
+    delay:'Délai légal de traitement : 4 mois. Après 4 mois sans réponse : rejet implicite = vous pouvez faire appel. Indicatif.',
+    recours:[
+      {l:'Trouver votre MDPH', u:'https://www.service-public.fr/particuliers/vosdroits/F3626', b:'rb1', bl:'Démarche'},
+      {l:'Formulaire cerfa 15692', u:'https://www.formulaires.service-public.fr/gf/cerfa_15692.do', b:'rbt', bl:'Formulaire'},
+      {l:'APF France Handicap', u:'https://www.apf-francehandicap.org', b:'rb1', bl:'Accompagnement'},
+    ]
+  },
+
+  mdph_aah: {
+    tab:'adultes', badge:'adult', ico:'💶',
+    label:'AAH refusée\nou réduite', sub:'Allocation adultes handicapés',
+    title:'AAH — Allocation Adultes Handicapés refusée',
+    urgency:'r', urg:'🔴 2 mois pour faire appel',
+    warning:'La CDAPH évalue le taux d\'incapacité sur la base du certificat médical. Si votre médecin n\'a pas décrit vos limitations fonctionnelles concrètes, le taux peut être sous-évalué.',
+    steps:[
+      'Demander les motifs précis du refus par courrier recommandé à la MDPH',
+      'Vérifier les conditions : taux d\'incapacité ≥ 80% OU 50-79% avec restriction substantielle et durable d\'accès à l\'emploi (RSDAE)',
+      'Rassembler de nouveaux éléments médicaux plus détaillés sur vos limitations fonctionnelles',
+      'Faire appel devant le tribunal judiciaire (pôle social) dans les 2 mois suivant la notification',
+      'Contacter une association (APF, UNAPEI) pour vous aider à constituer le recours',
+    ],
+    delay:'Délai indicatif : 2 mois pour faire appel devant le tribunal judiciaire pôle social. Le recours est suspensif pour les droits en cours. Vérifiez votre courrier.',
+    recours:[
+      {l:'Service-Public — AAH', u:'https://www.service-public.fr/particuliers/vosdroits/N12230', b:'rbt', bl:'Info'},
+      {l:'Tribunal judiciaire pôle social', u:'https://www.service-public.fr/particuliers/vosdroits/N160', b:'rb3', bl:'Recours'},
+      {l:'Défenseur des droits', u:'https://formulaire.defenseurdesdroits.fr/', b:'rb2', bl:'Médiation'},
+    ]
+  },
+
+  mdph_pch: {
+    tab:'adultes', badge:'adult', ico:'🤝',
+    label:'PCH refusée', sub:'Prestation de Compensation du Handicap',
+    title:'PCH — Prestation de Compensation du Handicap refusée',
+    urgency:'r', urg:'🔴 Recours dans les 2 mois',
+    info:'La PCH couvre 5 volets : aide humaine, aide technique, aménagement du logement et du véhicule, surcoûts liés au handicap, aides animalières.',
+    steps:[
+      'Demander les motifs précis du refus — vérifier quel volet a été refusé et pourquoi',
+      'Vérifier les conditions d\'accès : avoir moins de 60 ans à la date de la demande initiale (ou maintenu après 60 ans)',
+      'Fournir un devis détaillé des besoins réels : heures d\'aide humaine, équipements, aménagements',
+      'Demander une évaluation par l\'équipe pluridisciplinaire MDPH si elle n\'a pas eu lieu',
+      'Faire appel devant le tribunal judiciaire pôle social dans les 2 mois',
+    ],
+    delay:'Délai indicatif : 2 mois pour faire appel. La PCH est réévaluée régulièrement — un nouveau dossier est possible. Vérifiez votre courrier.',
+    recours:[
+      {l:'Service-Public — PCH', u:'https://www.service-public.fr/particuliers/vosdroits/F14202', b:'rbt', bl:'Info'},
+      {l:'Tribunal judiciaire pôle social', u:'https://www.service-public.fr/particuliers/vosdroits/N160', b:'rb3', bl:'Recours'},
+      {l:'APF France Handicap', u:'https://www.apf-francehandicap.org', b:'rb1', bl:'Accompagnement'},
+    ]
+  },
+
+  mdph_rqth: {
+    tab:'adultes', badge:'adult', ico:'💼',
+    label:'RQTH refusée', sub:'Reconnaissance Qualité Travailleur Handicapé',
+    title:'RQTH refusée — Reconnaissance Qualité Travailleur Handicapé',
+    urgency:'a', urg:'⏱️ 2 mois pour faire appel',
+    info:'La RQTH donne accès à des aménagements de poste, des formations spécifiques, des aides à l\'emploi via l\'AGEFIPH et Cap Emploi, et une protection renforcée contre le licenciement.',
+    steps:[
+      'Demander les motifs précis du refus par courrier à la MDPH',
+      'Fournir un avis de votre médecin du travail sur les limitations professionnelles',
+      'Faire appel devant le tribunal judiciaire pôle social dans les 2 mois',
+      'En attendant : contacter Cap Emploi pour un accompagnement emploi',
+      'L\'AGEFIPH peut apporter des aides même sans RQTH formelle',
+    ],
+    delay:'Délai indicatif : 2 mois pour faire appel. La RQTH est valable 1 à 5 ans selon la décision.',
+    recours:[
+      {l:'Cap Emploi', u:'https://www.capemploi.com', b:'rb1', bl:'Accompagnement'},
+      {l:'AGEFIPH', u:'https://www.agefiph.fr', b:'rb1', bl:'Aides emploi'},
+      {l:'Tribunal judiciaire pôle social', u:'https://www.service-public.fr/particuliers/vosdroits/N160', b:'rb3', bl:'Recours'},
+    ]
+  },
+
+  mdph_cmr: {
+    tab:'adultes', badge:'adult', ico:'🚗',
+    label:'Carte Mobilité\nRefusée', sub:'CMI invalidité, priorité ou stationnement',
+    title:'Carte Mobilité Inclusion (CMI) refusée',
+    urgency:'a', urg:'⏱️ 2 mois pour faire appel',
+    info:'La CMI remplace les anciens cartes d\'invalidité, priorité et stationnement. Il en existe 3 mentions : "invalidité", "priorité", "stationnement" — chacune avec ses propres critères.',
+    steps:[
+      'Identifier quelle mention est refusée : invalidité (80%), priorité (50-79%), ou stationnement (impossibilité de marquer un périmètre normal)',
+      'Demander les motifs précis du refus à la MDPH',
+      'Fournir des éléments médicaux supplémentaires sur les difficultés de déplacement',
+      'Faire appel devant le tribunal judiciaire pôle social dans les 2 mois',
+    ],
+    delay:'Délai indicatif : 2 mois pour faire appel. La CMI est valable 1 à 20 ans selon la situation. Indicatif.',
+    recours:[
+      {l:'Service-Public — CMI', u:'https://www.service-public.fr/particuliers/vosdroits/F34049', b:'rbt', bl:'Info'},
+      {l:'Tribunal judiciaire pôle social', u:'https://www.service-public.fr/particuliers/vosdroits/N160', b:'rb3', bl:'Recours'},
+    ]
+  },
+
+  mdph_delai_traitement: {
+    tab:'adultes', badge:'adult', ico:'⏰',
+    label:'Délai MDPH\ndépassé', sub:'Plus de 4 mois sans réponse',
+    title:'Délai MDPH dépassé — Que faire',
+    urgency:'a', urg:'⏱️ Après 4 mois : recours possible',
+    info:'Le délai légal de traitement MDPH est de 4 mois. Au-delà, la décision est réputée de rejet implicite, ce qui ouvre un droit au recours.',
+    steps:[
+      'Vérifier que votre dossier a bien été reçu (accusé de réception du recommandé)',
+      'Envoyer une relance par courrier recommandé à la MDPH en demandant l\'état d\'avancement',
+      'Après 4 mois sans réponse : saisir le Défenseur des droits (gratuit et efficace)',
+      'Faire appel devant le tribunal judiciaire pôle social pour rejet implicite',
+      'Contacter votre Conseil Départemental qui finance et supervise les MDPH',
+    ],
+    delay:'Délai légal : 4 mois. Après ce délai sans notification, c\'est un rejet implicite. Vous pouvez faire appel. Indicatif.',
+    recours:[
+      {l:'Défenseur des droits', u:'https://formulaire.defenseurdesdroits.fr/', b:'rb2', bl:'Urgence efficace'},
+      {l:'Tribunal judiciaire pôle social', u:'https://www.service-public.fr/particuliers/vosdroits/N160', b:'rb3', bl:'Recours'},
+      {l:'CNSA — Info MDPH', u:'https://www.cnsa.fr', b:'rbt', bl:'Info nationale'},
+    ]
+  },
+
+  mdph_recours_cdaph: {
+    tab:'adultes', badge:'adult', ico:'⚖️',
+    label:'Recours contre\nla CDAPH', sub:'Je conteste une décision de commission',
+    title:'Recours contre une décision CDAPH',
+    urgency:'r', urg:'🔴 2 mois pour contester — délai impératif',
+    steps:[
+      'Lire attentivement la notification de décision et noter la date de notification',
+      'Demander si possible un entretien avec l\'équipe pluridisciplinaire pour comprendre les motifs',
+      'Rassembler de nouveaux éléments médicaux, bilans, attestations de professionnels de santé',
+      'Saisir le tribunal judiciaire pôle social par courrier recommandé dans les 2 mois',
+      'Vous pouvez vous faire aider d\'une association ou demander l\'aide juridictionnelle',
+    ],
+    delay:'Délai STRICT : 2 mois à compter de la notification. Passé ce délai, la décision devient définitive. Indicatif.',
+    recours:[
+      {l:'Tribunal judiciaire pôle social', u:'https://www.service-public.fr/particuliers/vosdroits/N160', b:'rb3', bl:'Recours — 2 mois'},
+      {l:'Aide juridictionnelle', u:'https://www.service-public.fr/particuliers/vosdroits/F18074', b:'rb1', bl:'Aide gratuite'},
+      {l:'APF France Handicap', u:'https://www.apf-francehandicap.org', b:'rb1', bl:'Accompagnement'},
+    ]
+  },
+
+  mdph_orientation_pro: {
+    tab:'adultes', badge:'adult', ico:'🏭',
+    label:'Orientation\nprofessionnelle', sub:'ESAT, Cap Emploi, formation refusée',
+    title:'Orientation professionnelle MDPH refusée',
+    urgency:'a', urg:'⏱️ 2 mois pour faire appel',
+    info:'La MDPH peut orienter vers le milieu ordinaire (avec RQTH), le milieu protégé (ESAT), ou des formations adaptées. Le refus d\'orientation vers un ESAT prive parfois de la seule solution adaptée.',
+    steps:[
+      'Identifier précisément quelle orientation est refusée (ESAT, milieu ordinaire, formation)',
+      'Demander l\'évaluation de l\'équipe pluridisciplinaire si elle n\'a pas eu lieu',
+      'Rassembler des témoignages de professionnels qui vous suivent (médecin, psychologue, AS)',
+      'Faire appel devant le tribunal judiciaire pôle social dans les 2 mois',
+    ],
+    delay:'Délai indicatif : 2 mois pour faire appel. Les ESAT ont souvent des listes d\'attente longues — paralléliser les démarches.',
+    recours:[
+      {l:'ESAT — Trouver un établissement', u:'https://www.service-public.fr/particuliers/vosdroits/F1734', b:'rbt', bl:'Info'},
+      {l:'Cap Emploi', u:'https://www.capemploi.com', b:'rb1', bl:'Accompagnement'},
+      {l:'Tribunal judiciaire pôle social', u:'https://www.service-public.fr/particuliers/vosdroits/N160', b:'rb3', bl:'Recours'},
+    ]
+  },
+
+  mdph_renouvellement: {
+    tab:'adultes', badge:'adult', ico:'🔄',
+    label:'Renouvellement\nde droits', sub:'Mes droits n\'ont pas été renouvelés',
+    title:'Renouvellement de droits MDPH — Oubli ou refus',
+    urgency:'r', urg:'🔴 Anticiper — déposer 6 mois avant l\'expiration',
+    info:'Si vos droits (AAH, PCH, RQTH…) arrivent à expiration et que le renouvellement n\'est pas accordé, il peut y avoir une interruption de versement. Anticipez toujours 6 mois avant.',
+    steps:[
+      'Vérifier la date d\'expiration de vos droits dans la décision MDPH',
+      'Déposer le dossier de renouvellement au moins 6 mois avant l\'expiration',
+      'En cas d\'interruption des droits : contacter la MDPH par courrier recommandé',
+      'Demander le maintien des droits pendant l\'instruction si situation d\'urgence',
+      'Si refus de renouvellement : faire appel dans les 2 mois comme pour tout refus',
+    ],
+    delay:'Les droits peuvent être accordés à vie si la situation est stable. Sinon : durée variable (1 à 5 ans). Indicatif.',
+    recours:[
+      {l:'Votre MDPH', u:'https://www.service-public.fr/particuliers/vosdroits/F3626', b:'rb1', bl:'Contact'},
+      {l:'Défenseur des droits (si blocage)', u:'https://formulaire.defenseurdesdroits.fr/', b:'rb2', bl:'Si blocage'},
+    ]
+  },
+
+  // ─── ENFANTS ───────────────────────────────────────────────
+  mdph_enfant_aeeh: {
+    tab:'enfants', badge:'child', ico:'👦',
+    label:'AEEH refusée', sub:'Allocation éducation enfant handicapé',
+    title:'AEEH refusée — Allocation d\'Éducation de l\'Enfant Handicapé',
+    urgency:'r', urg:'🔴 2 mois pour faire appel',
+    info:'L\'AEEH est versée aux parents d\'enfants handicapés de moins de 20 ans. Elle est attribuée si le taux d\'incapacité est ≥ 50%. Des compléments (6 niveaux) viennent s\'y ajouter selon les besoins.',
+    steps:[
+      'Vérifier les conditions : taux d\'incapacité ≥ 50%, enfant de moins de 20 ans',
+      'Le certificat médical doit décrire précisément les limitations fonctionnelles de l\'enfant au quotidien',
+      'Fournir tous les bilans récents : bilan psychologique, orthophonique, neuropsychologique',
+      'Faire appel devant le tribunal judiciaire pôle social dans les 2 mois',
+      'Contacter UNAPEI ou APF pour un accompagnement dans la constitution du recours',
+    ],
+    delay:'Délai indicatif : 2 mois pour faire appel. L\'AEEH est réévaluée régulièrement (souvent tous les 2 à 5 ans). Vérifiez votre courrier.',
+    recours:[
+      {l:'Service-Public — AEEH', u:'https://www.service-public.fr/particuliers/vosdroits/N14401', b:'rbt', bl:'Info'},
+      {l:'Tribunal judiciaire pôle social', u:'https://www.service-public.fr/particuliers/vosdroits/N160', b:'rb3', bl:'Recours'},
+      {l:'UNAPEI', u:'https://www.unapei.org', b:'rb1', bl:'Accompagnement'},
+    ]
+  },
+
+  mdph_enfant_pps: {
+    tab:'enfants', badge:'child', ico:'📚',
+    label:'PPS refusé\nou non appliqué', sub:'Projet Personnalisé de Scolarisation',
+    title:'PPS — Projet Personnalisé de Scolarisation refusé ou non appliqué',
+    urgency:'r', urg:'🔴 Le PPS est un droit — l\'école est obligée de le mettre en œuvre',
+    info:'Le PPS définit les modalités de scolarisation de l\'enfant handicapé : aménagements, matériels adaptés, AESH, temps de scolarisation… Son application relève de l\'Éducation Nationale mais est coordonnée par la MDPH.',
+    steps:[
+      'Contacter par écrit la directrice/directeur de l\'école pour demander la mise en place du PPS',
+      'Saisir l\'inspecteur de l\'Éducation Nationale si l\'établissement ne respecte pas le PPS',
+      'Demander une réunion ESS (Équipe de Suivi de Scolarisation) — vous avez le droit d\'y participer',
+      'Si blocage persistant : Défenseur des droits et direction académique (DSDEN)',
+    ],
+    delay:'Le PPS doit être respecté dès sa notification. Il n\'y a pas de délai d\'attente légal pour sa mise en œuvre.',
+    recours:[
+      {l:'Service-Public — PPS', u:'https://www.service-public.fr/particuliers/vosdroits/F14300', b:'rbt', bl:'Info'},
+      {l:'Défenseur des droits', u:'https://formulaire.defenseurdesdroits.fr/', b:'rb2', bl:'Signalement'},
+      {l:'Inspection académique', u:'https://www.education.gouv.fr/les-services-de-l-education-nationale', b:'rb1', bl:'Recours'},
+    ]
+  },
+
+  mdph_enfant_avs_aesh: {
+    tab:'enfants', badge:'child', ico:'🙋',
+    label:'AESH refusée\nou insuffisante', sub:'Accompagnant élève en situation de handicap',
+    title:'AESH refusée ou heures insuffisantes',
+    urgency:'r', urg:'🔴 Droit à l\'inclusion scolaire — recours possible',
+    warning:'L\'AESH est souvent accordée à temps partiel même quand les besoins sont à temps complet. Il est possible et recommandé de contester si les heures accordées sont insuffisantes pour garantir l\'inclusion réelle.',
+    steps:[
+      'Demander par écrit à la MDPH les motifs du refus ou du nombre d\'heures accordées',
+      'Obtenir un avis écrit de l\'équipe pédagogique et des professionnels de santé sur les besoins réels',
+      'Saisir la direction académique (DSDEN) si l\'AESH accordée n\'est pas mise en place',
+      'Faire appel devant le tribunal judiciaire pôle social dans les 2 mois si heures insuffisantes',
+      'Contacter le Défenseur des droits — il intervient régulièrement sur ce sujet',
+    ],
+    delay:'La décision AESH peut être contestée dans les 2 mois. Le non-respect de la décision par l\'EN est une faute. Indicatif.',
+    recours:[
+      {l:'Défenseur des droits — AESH', u:'https://formulaire.defenseurdesdroits.fr/', b:'rb2', bl:'Signalement'},
+      {l:'DSDEN — Direction académique', u:'https://www.education.gouv.fr/les-services-de-l-education-nationale', b:'rb1', bl:'Recours'},
+      {l:'Tribunal judiciaire pôle social', u:'https://www.service-public.fr/particuliers/vosdroits/N160', b:'rb3', bl:'Appel MDPH'},
+    ]
+  },
+
+  mdph_enfant_ime: {
+    tab:'enfants', badge:'child', ico:'🏥',
+    label:'IME refusé\nou liste d\'attente', sub:'Institut Médico-Éducatif',
+    title:'Orientation IME refusée ou délai excessif',
+    urgency:'r', urg:'🔴 Liste d\'attente parfois longue — agir en parallèle',
+    info:'L\'IME (Institut Médico-Éducatif) accueille les enfants handicapés intellectuels. Les listes d\'attente sont souvent de 2 à 5 ans, ce qui est inacceptable et contestable.',
+    steps:[
+      'Déposer le dossier MDPH avec demande d\'orientation IME dès que possible',
+      'Multiplier les candidatures sur plusieurs IME simultanément',
+      'En attendant : demander une solution de scolarisation en ULIS ou SEGPA',
+      'Si attente excessive : contacter le Défenseur des droits et la DSDEN',
+      'Une orientation ITEP ou SESSAD peut parfois compléter en attendant',
+    ],
+    delay:'L\'orientation IME est une décision MDPH — vous pouvez la faire appliquer en justice si l\'État ne la respecte pas. Indicatif.',
+    recours:[
+      {l:'Service-Public — IME', u:'https://www.service-public.fr/particuliers/vosdroits/F3105', b:'rbt', bl:'Info'},
+      {l:'Défenseur des droits', u:'https://formulaire.defenseurdesdroits.fr/', b:'rb2', bl:'Signalement'},
+      {l:'UNAPEI', u:'https://www.unapei.org', b:'rb1', bl:'Accompagnement'},
+    ]
+  },
+
+  mdph_enfant_ulis: {
+    tab:'enfants', badge:'child', ico:'🏫',
+    label:'ULIS refusée\nou attente', sub:'Unité localisée pour l\'inclusion scolaire',
+    title:'Orientation ULIS refusée ou liste d\'attente',
+    urgency:'a', urg:'⏱️ Faire appel dans les 2 mois',
+    info:'L\'ULIS est un dispositif dans les établissements ordinaires pour les élèves qui ne peuvent pas être scolarisés en classe ordinaire de façon permanente. C\'est une orientation MDPH.',
+    steps:[
+      'Demander les motifs du refus à la MDPH',
+      'Fournir des bilans et avis de professionnels sur les besoins de scolarisation spécialisée',
+      'Contacter la DSDEN pour connaître les ULIS disponibles dans le secteur',
+      'Faire appel devant le tribunal judiciaire pôle social dans les 2 mois',
+    ],
+    delay:'Délai indicatif : 2 mois pour faire appel. Les ULIS ont aussi des listes d\'attente — demander en parallèle d\'autres solutions.',
+    recours:[
+      {l:'Service-Public — ULIS', u:'https://www.service-public.fr/particuliers/vosdroits/F24218', b:'rbt', bl:'Info'},
+      {l:'DSDEN — Direction académique', u:'https://www.education.gouv.fr/les-services-de-l-education-nationale', b:'rb1', bl:'Contact'},
+      {l:'Défenseur des droits', u:'https://formulaire.defenseurdesdroits.fr/', b:'rb2', bl:'Si blocage'},
+    ]
+  },
+
+  mdph_enfant_transport: {
+    tab:'enfants', badge:'child', ico:'🚌',
+    label:'Transport scolaire\nadapté refusé', sub:'Transport de l\'enfant handicapé',
+    title:'Transport scolaire adapté refusé',
+    urgency:'a', urg:'⏱️ Le département est responsable du transport',
+    info:'Le transport des élèves handicapés vers leur établissement scolaire est pris en charge par le Département. Ce n\'est pas une décision MDPH mais une responsabilité du Conseil Départemental.',
+    steps:[
+      'Contacter le service Transport du Conseil Départemental par courrier recommandé',
+      'Joindre la décision MDPH d\'orientation scolaire (PPS) comme pièce justificative',
+      'Si refus injustifié : contacter le Défenseur des droits',
+      'Le transport peut aussi être financé partiellement par la PCH (volet surcoûts)',
+    ],
+    delay:'Le droit au transport scolaire adapté est lié à la décision d\'orientation MDPH. Pas de délai strict mais agir dès la rentrée.',
+    recours:[
+      {l:'Service-Public — Transport scolaire handicap', u:'https://www.service-public.fr/particuliers/vosdroits/F1868', b:'rbt', bl:'Info'},
+      {l:'Défenseur des droits', u:'https://formulaire.defenseurdesdroits.fr/', b:'rb2', bl:'Signalement'},
+    ]
+  },
+
+  mdph_autism: {
+    tab:'enfants', badge:'child', ico:'🧩',
+    label:'Enfant autiste\nDroits et accompagnement', sub:'TSA — Trouble du Spectre Autistique',
+    title:'Enfant autiste — Droits et accompagnement',
+    urgency:'b', urg:'ℹ️ Plusieurs dispositifs cumulables',
+    info:'L\'autisme ouvre droit à l\'AEEH + compléments, AESH, PPS, orientation IME ou SESSAD selon le profil. Le diagnostic précoce et un dossier MDPH solide sont essentiels.',
+    steps:[
+      'Obtenir un diagnostic auprès d\'un Centre de Ressources Autisme (CRA) ou de pédopsychiatrie',
+      'Déposer un dossier MDPH complet avec le diagnostic, bilans orthophoniques, psychologiques',
+      'Demander simultanément : AEEH + compléments, AESH, PPS, orientation adaptée',
+      'Contacter l\'ARAPI ou Autisme France pour un accompagnement spécialisé',
+      'Vérifier les droits au remboursement des séances (orthophonie, psychomotricité, ABA) par l\'assurance maladie',
+    ],
+    delay:'Le traitement du dossier MDPH est de 4 mois. Un diagnostic CRA peut prendre 6 à 18 mois — anticiper très tôt. Indicatif.',
+    recours:[
+      {l:'Autisme France', u:'https://www.autisme-france.fr', b:'rb1', bl:'Accompagnement'},
+      {l:'CRA — Centre Ressources Autisme', u:'https://www.cnsa.fr/actualites-agenda/actualites/reseau-des-centres-ressources-autisme-cra', b:'rbt', bl:'Diagnostic'},
+      {l:'Votre MDPH', u:'https://www.service-public.fr/particuliers/vosdroits/F3626', b:'rb1', bl:'Démarche'},
+    ]
+  },
+
+  mdph_tdah: {
+    tab:'enfants', badge:'child', ico:'⚡',
+    label:'TDAH\nReconnaissance et école', sub:'Trouble Déficit Attention / Hyperactivité',
+    title:'TDAH — Reconnaissance et accompagnement scolaire',
+    urgency:'b', urg:'ℹ️ TDAH peut ouvrir droit à des aménagements',
+    info:'Le TDAH (avec ou sans hyperactivité) peut justifier une RQTH pour les adultes, une AEEH pour les enfants, et des aménagements scolaires (tiers temps, AESH partiel, PPS).',
+    steps:[
+      'Obtenir un diagnostic médical complet par un spécialiste (pédopsychiatre, neuropédiatre)',
+      'Déposer un dossier MDPH avec le diagnostic, un bilan neuropsychologique, et un avis scolaire',
+      'Demander un PAP (Plan d\'Accompagnement Personnalisé) sans passer par la MDPH si taux < 50%',
+      'Pour taux ≥ 50% : demander AEEH + PPS + AESH via MDPH',
+      'Contacter HyperSupers TDAH France pour des ressources et accompagnement',
+    ],
+    delay:'Le PAP peut être mis en place rapidement (sans MDPH). Le dossier MDPH prend 4 mois. Indicatif.',
+    recours:[
+      {l:'HyperSupers TDAH France', u:'https://www.tdah-france.fr', b:'rb1', bl:'Association'},
+      {l:'PAP — Plan Accompagnement', u:'https://www.service-public.fr/particuliers/vosdroits/F32010', b:'rbt', bl:'Sans MDPH'},
+      {l:'Votre MDPH', u:'https://www.service-public.fr/particuliers/vosdroits/F3626', b:'rb1', bl:'Démarche MDPH'},
+    ]
+  },
+
+  mdph_dyslexie: {
+    tab:'enfants', badge:'child', ico:'📖',
+    label:'Troubles DYS\nAménagements scolaires', sub:'Dyslexie, dyspraxie, dyscalculie…',
+    title:'Troubles DYS — Aménagements scolaires et droits',
+    urgency:'b', urg:'ℹ️ PAP possible sans MDPH si taux < 50%',
+    info:'Les troubles DYS (dyslexie, dyspraxie, dyscalculie, dysphasie…) donnent droit à des aménagements scolaires. Selon la sévérité, les démarches passent par le médecin scolaire (PAP) ou la MDPH (PPS).',
+    steps:[
+      'Consulter le médecin scolaire pour un PAP (Plan d\'Accompagnement Personnalisé) — plus rapide et sans MDPH',
+      'Si troubles sévères (taux ≥ 50%) : déposer un dossier MDPH avec bilans orthophoniques et neuropsychologiques',
+      'Les aménagements aux examens (tiers temps, ordinateur) peuvent être demandés via l\'ASNAV',
+      'Contacter l\'APEDYS pour des conseils spécifiques aux DYS',
+    ],
+    delay:'Le PAP se met en place en quelques semaines avec le médecin scolaire. Le dossier MDPH prend 4 mois. Indicatif.',
+    recours:[
+      {l:'PAP — Médecin scolaire', u:'https://www.service-public.fr/particuliers/vosdroits/F32010', b:'rb1', bl:'Démarche rapide'},
+      {l:'APEDYS — Association DYS', u:'https://www.apedys.org', b:'rb1', bl:'Accompagnement'},
+      {l:'Votre MDPH (si taux ≥ 50%)', u:'https://www.service-public.fr/particuliers/vosdroits/F3626', b:'rbt', bl:'Démarche'},
+    ]
+  },
+
+  mdph_maladie_rare: {
+    tab:'enfants', badge:'child', ico:'🔬',
+    label:'Maladie rare\nAccès aux droits', sub:'Maladies orphelines',
+    title:'Maladie rare — Accès aux droits MDPH',
+    urgency:'b', urg:'ℹ️ Maladies rares souvent sous-reconnues',
+    info:'Les maladies rares (moins de 1 sur 2000 personnes) ouvrent les mêmes droits que les autres handicaps. Elles sont souvent sous-reconnues car les médecins MDPH les connaissent peu — il faut apporter des preuves très détaillées.',
+    steps:[
+      'Contacter Orphanet pour obtenir des informations précises sur votre maladie',
+      'Obtenir une attestation d\'un centre de référence maladie rare (CRMR)',
+      'Déposer un dossier MDPH en joignant les publications médicales sur votre maladie',
+      'Contacter Alliance Maladies Rares pour un accompagnement dans les démarches',
+      'Si la MDPH ne reconnaît pas les limitations : contester avec l\'aide du CRMR',
+    ],
+    delay:'Délai MDPH : 4 mois. L\'obtention d\'un diagnostic dans un CRMR peut prendre de longs mois — anticiper. Indicatif.',
+    recours:[
+      {l:'Orphanet', u:'https://www.orpha.net', b:'rbt', bl:'Info médicale'},
+      {l:'Alliance Maladies Rares', u:'https://www.alliance-maladies-rares.org', b:'rb1', bl:'Accompagnement'},
+      {l:'Votre MDPH', u:'https://www.service-public.fr/particuliers/vosdroits/F3626', b:'rb1', bl:'Démarche'},
+    ]
+  },
+
+  mdph_enfant_aeeh_complement: {
+    tab:'enfants', badge:'child', ico:'💶',
+    label:'Complément AEEH\nrefusé', sub:'6 niveaux selon les besoins',
+    title:'Complément AEEH refusé — Niveaux 1 à 6',
+    urgency:'a', urg:'⏱️ 2 mois pour faire appel',
+    info:'L\'AEEH de base est complétée par 6 niveaux selon les besoins réels de l\'enfant (recours à une tierce personne, surcoûts liés au handicap, cessation ou réduction d\'activité d\'un parent). Le complément peut multiplier par 5 le montant total.',
+    steps:[
+      'Identifier quel complément (niveau 1 à 6) est refusé et pour quel motif',
+      'Documenter précisément : heures de soins par jour, coût des intervenants, impact sur l\'emploi des parents',
+      'Fournir les factures, contrats de prestataires, justificatifs de réduction d\'activité',
+      'Faire appel devant le tribunal judiciaire pôle social dans les 2 mois',
+    ],
+    delay:'Délai indicatif : 2 mois pour faire appel. Le complément est réévalué avec l\'AEEH. Indicatif.',
+    recours:[
+      {l:'Service-Public — Compléments AEEH', u:'https://www.service-public.fr/particuliers/vosdroits/N14401', b:'rbt', bl:'Info'},
+      {l:'Tribunal judiciaire pôle social', u:'https://www.service-public.fr/particuliers/vosdroits/N160', b:'rb3', bl:'Recours'},
+    ]
+  },
+
+  mdph_enfant_scolarisation: {
+    tab:'enfants', badge:'child', ico:'✏️',
+    label:'Scolarisation\nRefusée', sub:'L\'école refuse mon enfant handicapé',
+    title:'Scolarisation refusée — Enfant handicapé',
+    urgency:'r', urg:'🔴 La scolarisation est un droit — refus illégal',
+    info:'Tout enfant handicapé a le droit d\'être scolarisé dans l\'école de son quartier (loi 2005). L\'établissement ne peut pas refuser sous prétexte du handicap.',
+    steps:[
+      'Rappeler à l\'établissement la loi du 11 février 2005 : droit à l\'inclusion scolaire',
+      'Contacter l\'inspecteur de l\'Éducation Nationale immédiatement par courrier recommandé',
+      'Saisir la DSDEN (Direction des Services Départementaux de l\'Éducation Nationale)',
+      'Défenseur des droits si la discrimination est avérée',
+    ],
+    delay:'Aucun délai d\'attente n\'est légal pour la scolarisation. Agissez immédiatement.',
+    recours:[
+      {l:'Défenseur des droits', u:'https://formulaire.defenseurdesdroits.fr/', b:'rb2', bl:'Discrimination'},
+      {l:'Inspection académique', u:'https://www.education.gouv.fr/les-services-de-l-education-nationale', b:'rb1', bl:'Urgence'},
+    ]
+  },
+
+  // ─── EMPLOI ───────────────────────────────────────────────
+  handicap_amenagement_poste: {
+    tab:'emploi', badge:'emploi', ico:'🖥️',
+    label:'Aménagement\nde poste refusé', sub:'L\'employeur refuse d\'adapter',
+    title:'Aménagement de poste refusé par l\'employeur',
+    urgency:'r', urg:'🔴 Obligation légale pour l\'employeur',
+    info:'L\'employeur est légalement obligé de prendre des mesures raisonnables d\'aménagement pour les travailleurs handicapés (RQTH). L\'AGEFIPH peut financer jusqu\'à 50 000€ d\'aménagements.',
+    steps:[
+      'Demander par écrit à l\'employeur les mesures d\'aménagement, en précisant votre RQTH',
+      'Joindre un avis du médecin du travail sur les aménagements nécessaires',
+      'Contacter l\'AGEFIPH ou Cap Emploi pour un financement des aménagements',
+      'Si refus injustifié : saisir l\'inspection du travail et le Défenseur des droits',
+      'Conseil de Prud\'hommes si l\'employeur maintient son refus',
+    ],
+    delay:'L\'employeur doit justifier tout refus. Un refus injustifié constitue une discrimination. Indicatif.',
+    recours:[
+      {l:'AGEFIPH — Aides aménagement', u:'https://www.agefiph.fr/aides/aide-l-amenagement-du-poste-de-travail', b:'rb1', bl:'Financement'},
+      {l:'Défenseur des droits', u:'https://formulaire.defenseurdesdroits.fr/', b:'rb2', bl:'Discrimination'},
+      {l:'Inspection du travail', u:'https://www.service-public.fr/particuliers/vosdroits/F1905', b:'rb1', bl:'Signalement'},
+    ]
+  },
+
+  handicap_discrimination_emploi: {
+    tab:'emploi', badge:'emploi', ico:'⚖️',
+    label:'Discrimination\nà l\'embauche', sub:'Refus lié à mon handicap',
+    title:'Discrimination à l\'embauche liée au handicap',
+    urgency:'r', urg:'🔴 La discrimination à l\'embauche est illégale',
+    steps:[
+      'Documenter les preuves de discrimination : refus explicite, formulations suspectes, chronologie',
+      'Saisir le Défenseur des droits (gratuit, confidentiel, efficace)',
+      'Déposer une plainte pénale si la discrimination est explicite',
+      'Contacter l\'AGEFIPH qui accompagne les employeurs et peut intervenir en médiation',
+    ],
+    delay:'La prescription pénale est de 1 an. Agissez rapidement et conservez toutes les preuves. Indicatif.',
+    recours:[
+      {l:'Défenseur des droits', u:'https://formulaire.defenseurdesdroits.fr/', b:'rb2', bl:'Signalement'},
+      {l:'AGEFIPH — Médiation', u:'https://www.agefiph.fr', b:'rb1', bl:'Médiation'},
+      {l:'Prud\'hommes', u:'https://www.service-public.fr/particuliers/vosdroits/F2360', b:'rb3', bl:'Judiciaire'},
+    ]
+  },
+
+  handicap_invalidite_secu: {
+    tab:'emploi', badge:'emploi', ico:'🏥',
+    label:'Pension invalidité\nrefusée', sub:'La Sécu refuse la reconnaissance',
+    title:'Pension d\'invalidité refusée ou contestée',
+    urgency:'r', urg:'🔴 2 mois pour contester la décision CPAM',
+    info:'La pension d\'invalidité est versée par la CPAM (pas la MDPH). Elle compense la perte de revenus liée à une incapacité permanente partielle. Trois catégories selon le degré d\'invalidité.',
+    steps:[
+      'Vérifier les conditions : être en arrêt maladie depuis plus d\'un an, avoir des droits CPAM',
+      'Demander les motifs précis du refus à votre CPAM',
+      'Contester devant la Commission de Recours Amiable (CRA) de la CPAM dans les 2 mois',
+      'Si refus maintenu : tribunal judiciaire pôle social',
+    ],
+    delay:'Délai indicatif : 2 mois pour saisir la CRA CPAM. Le tribunal judiciaire est compétent (pas administratif). Vérifiez votre courrier.',
+    recours:[
+      {l:'Ameli — Pension invalidité', u:'https://www.ameli.fr/assure/droits-demarches/maladie-accident-hospitalisation/pension-invalidite', b:'rbt', bl:'Info'},
+      {l:'CRA CPAM', u:'https://www.ameli.fr/assure/droits-demarches/difficultes-acces-aux-soins/contacter-votre-caisse', b:'rb2', bl:'2 mois'},
+      {l:'Tribunal judiciaire pôle social', u:'https://www.service-public.fr/particuliers/vosdroits/N160', b:'rb3', bl:'Recours'},
+    ]
+  },
+
+  handicap_mi_temps: {
+    tab:'emploi', badge:'emploi', ico:'⏰',
+    label:'Mi-temps\nthérapeutique', sub:'Mon employeur refuse la reprise à mi-temps',
+    title:'Mi-temps thérapeutique refusé',
+    urgency:'a', urg:'⏱️ Accord de la CPAM + médecin du travail',
+    info:'Le mi-temps thérapeutique permet de reprendre progressivement son travail après un arrêt long. Il nécessite l\'accord de la CPAM ET de l\'employeur. La CPAM complète le salaire.',
+    steps:[
+      'Obtenir l\'accord de votre médecin traitant et du médecin conseil CPAM',
+      'Soumettre la demande à votre employeur avec l\'accord médical',
+      'Si l\'employeur refuse sans motif valable : saisir le médecin du travail en médiation',
+      'Inspection du travail si discrimination liée au handicap sous-jacente',
+    ],
+    delay:'La CPAM peut accepter le mi-temps même si l\'employeur refuse — mais le retour au poste nécessite l\'accord des deux. Indicatif.',
+    recours:[
+      {l:'Ameli — Mi-temps thérapeutique', u:'https://www.ameli.fr/assure/droits-demarches/maladie-accident-hospitalisation/mi-temps-therapeutique', b:'rbt', bl:'Info'},
+      {l:'Inspection du travail', u:'https://www.service-public.fr/particuliers/vosdroits/F1905', b:'rb1', bl:'Signalement'},
+    ]
+  },
+
+  handicap_licenciement: {
+    tab:'emploi', badge:'emploi', ico:'🚨',
+    label:'Licenciement\ntravailleur handicapé', sub:'Protections renforcées à connaître',
+    title:'Licenciement d\'un travailleur handicapé',
+    urgency:'r', urg:'🔴 Protections renforcées — délai 12 mois Prud\'hommes',
+    info:'Les travailleurs handicapés bénéficient d\'une protection renforcée : obligation de reclassement, contrôle de l\'inspection du travail, et toute discrimination constitue une faute grave de l\'employeur.',
+    steps:[
+      'Vérifier que l\'employeur a bien respecté l\'obligation de reclassement préalable au licenciement',
+      'Contester par courrier recommandé si la procédure n\'a pas été respectée',
+      'Saisir l\'inspection du travail pour vérification de la procédure',
+      'Conseil de Prud\'hommes dans les 12 mois si licenciement discriminatoire',
+    ],
+    delay:'Délai indicatif : 12 mois pour les Prud\'hommes. Le Défenseur des droits peut intervenir en médiation. Indicatif.',
+    recours:[
+      {l:'Défenseur des droits', u:'https://formulaire.defenseurdesdroits.fr/', b:'rb2', bl:'Discrimination'},
+      {l:'Inspection du travail', u:'https://www.service-public.fr/particuliers/vosdroits/F1905', b:'rb1', bl:'Vérification'},
+      {l:'Conseil de Prud\'hommes', u:'https://www.service-public.fr/particuliers/vosdroits/F2360', b:'rb3', bl:'12 mois'},
+    ]
+  },
+
+  handicap_agefiph: {
+    tab:'emploi', badge:'emploi', ico:'💰',
+    label:'Aide AGEFIPH\nrefusée', sub:'Financement handicap emploi',
+    title:'Aide AGEFIPH refusée ou litige',
+    urgency:'a', urg:'⏱️ Contester par écrit dans les 2 mois',
+    info:'L\'AGEFIPH finance des aides pour les travailleurs et employeurs : aménagement de poste, formation, aide à l\'embauche, maintien dans l\'emploi. Les critères varient selon les aides.',
+    steps:[
+      'Demander les motifs précis du refus par courrier recommandé à l\'AGEFIPH',
+      'Vérifier que votre dossier était complet (RQTH, justificatifs, devis)',
+      'Contester auprès de la direction régionale de l\'AGEFIPH dans les 2 mois',
+      'Cap Emploi peut vous accompagner dans la constitution du recours',
+    ],
+    delay:'Les décisions AGEFIPH peuvent être contestées. Délai indicatif : 2 mois pour le recours gracieux.',
+    recours:[
+      {l:'AGEFIPH — Contact', u:'https://www.agefiph.fr', b:'rb1', bl:'Réclamation'},
+      {l:'Cap Emploi', u:'https://www.capemploi.com', b:'rb1', bl:'Accompagnement'},
+    ]
+  },
+
+  // ─── VIE QUOTIDIENNE ──────────────────────────────────────
+  handicap_accessibilite: {
+    tab:'quotidien', badge:'adult', ico:'♿',
+    label:'Accessibilité\nrefusée', sub:'Lieu public ou logement inaccessible',
+    title:'Accessibilité refusée — Lieu public ou logement',
+    urgency:'a', urg:'⏱️ Signaler à la commission d\'accessibilité',
+    info:'Les lieux publics, commerces et logements neufs doivent être accessibles. Des dérogations existent mais elles doivent être justifiées. Le gestionnaire du lieu peut être mis en demeure.',
+    steps:[
+      'Identifier le type de lieu : établissement recevant du public (ERP) ou logement',
+      'Contacter le gestionnaire du lieu par courrier recommandé en signalant le manquement',
+      'Signaler à la mairie (CCPH — Commission Communale pour l\'Accessibilité)',
+      'Défenseur des droits si discrimination avérée',
+    ],
+    delay:'Les ERP avaient jusqu\'en 2015 pour être accessibles. Ceux en dérogation doivent avoir un Ad\'AP. Indicatif.',
+    recours:[
+      {l:'Service-Public — Accessibilité', u:'https://www.service-public.fr/particuliers/vosdroits/F20094', b:'rbt', bl:'Info'},
+      {l:'Défenseur des droits', u:'https://formulaire.defenseurdesdroits.fr/', b:'rb2', bl:'Discrimination'},
+    ]
+  },
+
+  handicap_aide_humaine: {
+    tab:'quotidien', badge:'adult', ico:'🙏',
+    label:'Aide humaine\ninsuffisante', sub:'PCH volet aide humaine',
+    title:'PCH aide humaine — Heures insuffisantes',
+    urgency:'a', urg:'⏱️ 2 mois pour contester le nombre d\'heures',
+    info:'Le volet aide humaine de la PCH finance des heures d\'assistance par une tierce personne. Les heures accordées sont calculées selon un plan de compensation. Si elles sont insuffisantes, le recours est possible.',
+    steps:[
+      'Demander le plan de compensation détaillé à la MDPH pour comprendre le calcul',
+      'Documenter précisément les besoins réels heure par heure sur une journée type',
+      'Fournir des attestations de professionnels sur le niveau d\'aide requis',
+      'Faire appel devant le tribunal judiciaire pôle social dans les 2 mois',
+    ],
+    delay:'Délai indicatif : 2 mois pour faire appel. Le plan peut être révisé si la situation évolue.',
+    recours:[
+      {l:'Service-Public — PCH aide humaine', u:'https://www.service-public.fr/particuliers/vosdroits/F14202', b:'rbt', bl:'Info'},
+      {l:'Tribunal judiciaire pôle social', u:'https://www.service-public.fr/particuliers/vosdroits/N160', b:'rb3', bl:'Recours'},
+      {l:'APF France Handicap', u:'https://www.apf-francehandicap.org', b:'rb1', bl:'Conseil'},
+    ]
+  },
+
+  handicap_aide_technique: {
+    tab:'quotidien', badge:'adult', ico:'🦽',
+    label:'Aide technique\nrefusée', sub:'PCH volet aides techniques',
+    title:'PCH aide technique — Remboursement refusé',
+    urgency:'a', urg:'⏱️ 2 mois pour faire appel + CPAM',
+    info:'Le volet aide technique de la PCH finance fauteuil roulant, orthèses, prothèses, matériel de communication… La CPAM peut aussi contribuer. Les deux peuvent être cumulés.',
+    steps:[
+      'Identifier quel financement a été refusé : PCH-AT ou remboursement CPAM',
+      'Fournir une prescription médicale détaillée et un devis du prestataire',
+      'La CPAM peut financer la base, la PCH le surcoût — faire les deux demandes simultanément',
+      'Faire appel si le refus est injustifié dans les 2 mois',
+    ],
+    delay:'Délai indicatif : 2 mois pour faire appel. Certains équipements peuvent être prêtés par une CPAM ou une association. Indicatif.',
+    recours:[
+      {l:'Service-Public — PCH aides techniques', u:'https://www.service-public.fr/particuliers/vosdroits/F14202', b:'rbt', bl:'Info'},
+      {l:'CPAM — Appareillage', u:'https://www.ameli.fr/assure/remboursements/rembourse/optique-audition-dentaire-orthodontie-orthopedique-protheses', b:'rbt', bl:'CPAM'},
+    ]
+  },
+
+  handicap_logement_adapte: {
+    tab:'quotidien', badge:'adult', ico:'🏠',
+    label:'Logement adapté\nAménagements refusés', sub:'Travaux d\'accessibilité',
+    title:'Logement adapté — Aménagements refusés',
+    urgency:'a', urg:'⏱️ Plusieurs financements cumulables',
+    info:'Les travaux d\'adaptation du logement (rampe, élargissement portes, salle de bain…) peuvent être financés par : PCH (volet aménagement logement), ANAH (MaPrimeAdapt), CAF, Département, aides mutuelles.',
+    steps:[
+      'Demander un devis auprès d\'artisans qualifiés (Handibat label)',
+      'Faire une demande PCH volet aménagement logement auprès de la MDPH',
+      'Solliciter l\'ANAH (MaPrimeAdapt) pour financer le reste à charge',
+      'Contacter votre CAF pour des aides complémentaires',
+      'Si propriétaire bailleur refuse les travaux : médiation ou tribunal selon le type',
+    ],
+    delay:'Les délais d\'instruction varient : PCH 4 mois, ANAH 2 à 6 mois. Déposer tous les dossiers simultanément. Indicatif.',
+    recours:[
+      {l:'MaPrimeAdapt — ANAH', u:'https://www.anah.fr/proprietaires/proprietaires-occupants/vous-etes-en-situation-de-perte-dautonomie/', b:'rb1', bl:'Financement'},
+      {l:'PCH volet logement', u:'https://www.service-public.fr/particuliers/vosdroits/F14202', b:'rbt', bl:'PCH'},
+      {l:'Handibat — Artisans qualifiés', u:'https://www.handibat.com', b:'rb1', bl:'Artisans'},
+    ]
+  },
+
+  handicap_parking: {
+    tab:'quotidien', badge:'adult', ico:'🅿️',
+    label:'Carte de\nstationnement', sub:'CMI mention stationnement refusée',
+    title:'CMI stationnement refusée',
+    urgency:'a', urg:'⏱️ 2 mois pour faire appel',
+    info:'La CMI mention "stationnement" permet de se garer gratuitement sur n\'importe quelle place de stationnement, y compris les places réservées, dans toute l\'Europe. Elle est valable sans limitation de durée dans la plupart des cas.',
+    steps:[
+      'La CMI stationnement est attribuée si votre handicap rend très difficile ou impossible de marquer un périmètre normal à pied',
+      'Fournir un certificat médical détaillé sur les difficultés de marche et de déplacement',
+      'Faire appel devant le tribunal judiciaire pôle social dans les 2 mois',
+      'En attendant : la carte de priorité RQTH peut donner accès à certains aménagements',
+    ],
+    delay:'Délai indicatif : 2 mois pour faire appel. La CMI stationnement est souvent accordée à vie si la situation est stable.',
+    recours:[
+      {l:'Service-Public — CMI stationnement', u:'https://www.service-public.fr/particuliers/vosdroits/F34049', b:'rbt', bl:'Info'},
+      {l:'Tribunal judiciaire pôle social', u:'https://www.service-public.fr/particuliers/vosdroits/N160', b:'rb3', bl:'Recours'},
+    ]
+  },
+
+  mdph_orientation_med: {
+    tab:'adultes', badge:'adult', ico:'🏥',
+    label:'Orientation\nétablissement', sub:'FAM, MAS, foyer de vie — liste d\'attente',
+    title:'Orientation médico-sociale refusée ou liste d\'attente excessive',
+    urgency:'r', urg:'🔴 Droit à une solution — recours possible',
+    info:'Les FAM (Foyer d\'Accueil Médicalisé), MAS (Maison d\'Accueil Spécialisée) et foyers de vie accueillent les personnes handicapées nécessitant un accompagnement renforcé. Les listes d\'attente peuvent être très longues.',
+    steps:[
+      'Déposer le dossier MDPH avec demande d\'orientation médico-sociale dès que possible',
+      'Si liste d\'attente excessive : saisir le Défenseur des droits — il peut obtenir une réponse plus rapide',
+      'L\'État a l\'obligation de proposer une solution si l\'orientation MDPH est accordée',
+      'Contacter le Tribunal judiciaire pour faire valoir le droit à une solution',
+    ],
+    delay:'L\'État doit proposer une solution quand une orientation MDPH est accordée. Le juge peut ordonner une mise en place rapide. Indicatif.',
+    recours:[
+      {l:'Défenseur des droits', u:'https://formulaire.defenseurdesdroits.fr/', b:'rb2', bl:'Signalement efficace'},
+      {l:'FEGAPEI — Associations', u:'https://www.nexem.fr', b:'rb1', bl:'Trouver un établissement'},
+      {l:'Tribunal judiciaire', u:'https://www.service-public.fr/particuliers/vosdroits/N269', b:'rb3', bl:'Contraindre l\'État'},
+    ]
+  },
+
+};
+
+// ═══════════════════════════════════════════════════════════
+// LEXIQUE
+// ═══════════════════════════════════════════════════════════
+const LEXIQUE = [
+  {term:'MDPH', full:'Maison Départementale des Personnes Handicapées', def:'Guichet unique qui évalue et attribue les droits liés au handicap. Il y en a une par département.', tag:'Institution', tagc:'#dbeafe'},
+  {term:'CDAPH', full:'Commission des Droits et de l\'Autonomie des Personnes Handicapées', def:'Commission qui prend les décisions d\'attribution (AAH, PCH, orientations…). Elle siège au sein de la MDPH.', tag:'Instance', tagc:'#dbeafe'},
+  {term:'AAH', full:'Allocation Adultes Handicapés', def:'Aide financière mensuelle (971,37€ en 2024) pour les adultes ayant un taux d\'incapacité ≥ 80% (ou 50-79% avec RSDAE).', tag:'Prestation', tagc:'#dcfce7'},
+  {term:'PCH', full:'Prestation de Compensation du Handicap', def:'Aide personnalisée couvrant les besoins liés au handicap : aide humaine, technique, aménagement logement/véhicule, surcoûts, animalier.', tag:'Prestation', tagc:'#dcfce7'},
+  {term:'RQTH', full:'Reconnaissance de la Qualité de Travailleur Handicapé', def:'Reconnaissance permettant de bénéficier d\'aides à l\'emploi (AGEFIPH), d\'aménagements de poste et d\'une protection renforcée.', tag:'Emploi', tagc:'#ecfdf5'},
+  {term:'CMI', full:'Carte Mobilité Inclusion', def:'Remplace l\'ancienne carte d\'invalidité. 3 mentions : "invalidité" (80%+), "priorité" (50-79%), "stationnement" (difficultés de marche).', tag:'Droit', tagc:'#fef3c7'},
+  {term:'AEEH', full:'Allocation d\'Éducation de l\'Enfant Handicapé', def:'Aide pour les parents d\'enfants handicapés de moins de 20 ans avec taux d\'incapacité ≥ 50%. Complétée par 6 niveaux selon les besoins.', tag:'Enfants', tagc:'#fce7f3'},
+  {term:'AESH', full:'Accompagnant des Élèves en Situation de Handicap', def:'Personnel de l\'Éducation Nationale qui accompagne les élèves handicapés. Peut être individuel (AVS-i) ou mutualisé (AVS-m).', tag:'Scolarisation', tagc:'#fce7f3'},
+  {term:'PPS', full:'Projet Personnalisé de Scolarisation', def:'Document qui définit comment l\'enfant handicapé est scolarisé : aménagements, AESH, temps de présence, matériels. Coordonné par la MDPH.', tag:'Scolarisation', tagc:'#fce7f3'},
+  {term:'ULIS', full:'Unité Localisée pour l\'Inclusion Scolaire', def:'Dispositif dans les écoles ordinaires pour les élèves qui ne peuvent pas être scolarisés en classe ordinaire de façon permanente.', tag:'Scolarisation', tagc:'#fce7f3'},
+  {term:'IME', full:'Institut Médico-Éducatif', def:'Établissement qui accueille les enfants handicapés intellectuels. Offre une scolarisation adaptée et un accompagnement éducatif et thérapeutique.', tag:'Établissement', tagc:'#f3e8ff'},
+  {term:'SESSAD', full:'Service d\'Éducation Spéciale et de Soins à Domicile', def:'Service qui accompagne les enfants handicapés dans leur milieu ordinaire (école, domicile). Alternative ou complément à l\'IME.', tag:'Service', tagc:'#f3e8ff'},
+  {term:'ESAT', full:'Établissement et Service d\'Aide par le Travail', def:'Structure de travail protégé pour les adultes handicapés qui ne peuvent pas travailler en milieu ordinaire. Finance la rémunération sur fonds publics.', tag:'Emploi', tagc:'#ecfdf5'},
+  {term:'FAM', full:'Foyer d\'Accueil Médicalisé', def:'Structure résidentielle pour adultes handicapés nécessitant un accompagnement médicalisé important. Financé par l\'Assurance Maladie et le Département.', tag:'Établissement', tagc:'#f3e8ff'},
+  {term:'MAS', full:'Maison d\'Accueil Spécialisée', def:'Accueil résidentiel pour adultes handicapés avec dépendance totale et soins médicaux importants. Financé à 100% par l\'Assurance Maladie.', tag:'Établissement', tagc:'#f3e8ff'},
+  {term:'AGEFIPH', full:'Association de Gestion du Fonds pour l\'Insertion des Personnes Handicapées', def:'Collecte les contributions des entreprises qui n\'emploient pas suffisamment de personnes handicapées et finance les aides à l\'emploi.', tag:'Emploi', tagc:'#ecfdf5'},
+  {term:'PAP', full:'Plan d\'Accompagnement Personnalisé', def:'Aménagements scolaires (tiers temps, ordinateur…) mis en place par le médecin scolaire sans passer par la MDPH. Pour les troubles qui ne justifient pas un taux d\'incapacité ≥ 50%.', tag:'Scolarisation', tagc:'#fce7f3'},
+  {term:'RSDAE', full:'Restriction Substantielle et Durable d\'Accès à l\'Emploi', def:'Critère permettant l\'accès à l\'AAH avec un taux de 50 à 79%. La restriction doit être liée au handicap et durable (plus d\'un an).', tag:'Prestation', tagc:'#dcfce7'},
+  {term:'ESS', full:'Équipe de Suivi de Scolarisation', def:'Réunion annuelle qui suit la mise en œuvre du PPS. Réunit les parents, l\'enseignant, l\'AESH, les soignants et les représentants de la MDPH.', tag:'Scolarisation', tagc:'#fce7f3'},
+  {term:'TSA', full:'Trouble du Spectre Autistique', def:'Ensemble de troubles du neurodéveloppement. L\'autisme fait partie des TSA. Ouvre droit aux prestations MDPH selon le niveau de soutien nécessaire.', tag:'Diagnostic', tagc:'#e0f2fe'},
+  {term:'CRA', full:'Centre de Ressources Autisme', def:'Centre spécialisé qui réalise des diagnostics et accompagne les personnes autistes et leurs familles. Un par région.', tag:'Diagnostic', tagc:'#e0f2fe'},
+];
+
+// ═══════════════════════════════════════════════════════════
+// RENDU
+// ═══════════════════════════════════════════════════════════
+
+function showTab(name){
+  ['adultes','enfants','emploi','quotidien','dossier','lexique'].forEach(v=>{
+    document.getElementById('view-'+v).classList.toggle('on',v===name);
+  });
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('on',['adultes','enfants','emploi','quotidien','dossier','lexique'][i]===name);
+  });
+  closeResult();
+}
+
+function buildGrid(containerId, tab){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  const sits = Object.entries(SITUATIONS).filter(([,s])=>s.tab===tab);
+  el.innerHTML = sits.map(([id,s])=>`
+    <div class="sit-card" data-id="${id}" onclick="showResult('${id}',this)">
+      <div class="sc-ico">${s.ico}</div>
+      <div class="sc-lbl">${s.label.replace('\n','<br>')}</div>
+      <div class="sc-sub">${s.sub}</div>
+      <span class="sc-badge badge-${s.badge}">${s.badge==='child'?'Enfant':s.badge==='emploi'?'Emploi':'Adulte'}</span>
+    </div>`).join('');
+}
+
+function buildLexique(){
+  const el = document.getElementById('lexique-list');
+  el.innerHTML = LEXIQUE.map(l=>`
+    <div class="lex-item">
+      <div class="lex-term">${l.term} <span style="font-weight:400;font-size:12px;color:#94a3b8">— ${l.full}</span></div>
+      <div class="lex-def">${l.def}</div>
+      <span class="lex-tag" style="background:${l.tagc};color:#1e293b">${l.tag}</span>
+    </div>`).join('');
+}
+
+let activeCard = null;
+
+function showResult(id, cardEl){
+  if(activeCard) activeCard.classList.remove('active');
+  activeCard = cardEl; cardEl.classList.add('active');
+
+  const s = SITUATIONS[id];
+  if(!s) return;
+
+  document.getElementById('rp-title').textContent = s.title;
+
+  const urgClass = {r:'ur',a:'ua',b:'ub',g:'ug',p:'up'}[s.urgency]||'ub';
+  const stepsHtml = s.steps.map((st,i)=>`
+    <div class="step">
+      <div class="sn">${i+1}</div>
+      <div>${st}</div>
+    </div>`).join('');
+  const recoursHtml = s.recours.map(r=>`
+    <a href="${r.u}" target="_blank" rel="noopener">
+      ${r.l}<span class="rbadge ${r.b}">${r.bl}</span>
+    </a>`).join('');
+
+  document.getElementById('rp-body').innerHTML = `
+    <div class="urg-strip ${urgClass}">${s.urg}</div>
+    ${s.warning ? `<div class="warning-box">⚠️ ${s.warning}</div>` : ''}
+    ${s.info ? `<div class="info-box">ℹ️ ${s.info}</div>` : ''}
+    <div class="blk-title">Plan d'action</div>
+    <div class="steps">${stepsHtml}</div>
+    <div class="delay-box">⏱️ ${s.delay}</div>
+    <div class="blk-title">Recours et ressources</div>
+    <div class="recs">${recoursHtml}</div>
+    <button class="glossary-btn" onclick="showTab('lexique')">📖 Voir le lexique MDPH →</button>
+  `;
+
+  const panel = document.getElementById('result-panel');
+  panel.classList.add('show');
+  document.getElementById('result-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function closeResult(){
+  document.getElementById('result-panel').classList.remove('show');
+  if(activeCard){ activeCard.classList.remove('active'); activeCard = null; }
+}
+
+// Init
+buildGrid('grid-adultes','adultes');
+buildGrid('grid-enfants','enfants');
+buildGrid('grid-emploi','emploi');
+buildGrid('grid-quotidien','quotidien');
+buildLexique();
+</script>
+</body>
+</html>
