@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Vigie — Trouver un organisme près de moi</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:'DM Sans',sans-serif;background:#080d1a;color:#f0f4ff;height:100%;overflow:hidden;-webkit-font-smoothing:antialiased}
+
+/* ── LAYOUT ── */
+.app{display:flex;flex-direction:column;height:100vh}
+.top-bar{background:rgba(13,20,37,.98);border-bottom:1px solid rgba(99,130,255,.2);backdrop-filter:blur(16px);color:#f0f4ff;padding:12px 16px;flex-shrink:0;z-index:1000}
+.top-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.back-btn{background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 12px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.top-title{font-size:15px;font-weight:800;flex:1}
+.context-badge{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700;color:#60a5fa}
+
+/* ── SEARCH BAR ── */
+.search-bar{display:flex;gap:6px}
+.cp-input{flex:1;padding:9px 12px;border-radius:10px;border:1px solid rgba(99,130,255,.2);font-family:'DM Sans',sans-serif;font-size:14px;color:#f0f4ff;outline:none;background:rgba(255,255,255,.06);transition:all .2s}
+.geo-btn{padding:9px 12px;background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.4);color:#60a5fa;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px;transition:all .2s}
+.geo-btn:hover{background:rgba(255,255,255,.3)}
+
+/* ── FILTER CHIPS ── */
+.filters{display:flex;gap:5px;overflow-x:auto;padding:8px 16px;background:rgba(13,20,37,.95);border-bottom:1px solid rgba(99,130,255,.15);scrollbar-width:none;flex-shrink:0}
+.filters::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;padding:5px 11px;border-radius:999px;border:1px solid rgba(99,130,255,.2);background:rgba(255,255,255,.04);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;color:#64748b;cursor:pointer;white-space:nowrap;transition:all .2s}
+.chip.on{border-color:rgba(59,130,246,.5);background:rgba(59,130,246,.15);color:#3b82f6;box-shadow:0 0 12px rgba(59,130,246,.25)}
+.chip:hover:not(.on){border-color:#9ca3af}
+
+/* ── MAP ── */
+#map{flex:1;z-index:1;filter:saturate(.8) brightness(.9)}
+
+/* ── LOADING OVERLAY ── */
+.loading{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:#fff;border-radius:16px;padding:20px 24px;text-align:center;
+  box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:2000;display:none;
+}
+.loading.show{display:block}
+.spinner{width:28px;height:28px;border:3px solid #e5e7eb;border-top-color:#1a3fad;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── RESULT PANEL ── */
+.result-panel{
+  position:absolute;bottom:0;left:0;right:0;
+  background:#111c32;border-radius:20px 20px 0 0;border-top:1px solid rgba(99,130,255,.25);
+  box-shadow:0 -4px 24px rgba(0,0,0,.15);
+  z-index:2000;transform:translateY(100%);
+  transition:transform .3s ease;max-height:70vh;overflow-y:auto;
+}
+.result-panel.open{transform:translateY(0)}
+.panel-handle{width:36px;height:4px;background:#e5e7eb;border-radius:999px;margin:12px auto 0}
+.panel-header{padding:12px 18px 8px;display:flex;justify-content:space-between;align-items:flex-start}
+.panel-title{font-size:16px;font-weight:800;color:#1a3fad;flex:1;padding-right:8px;line-height:1.3}
+.panel-close{background:none;border:none;font-size:20px;color:#9ca3af;cursor:pointer}
+.panel-body{padding:0 18px 24px}
+.detail-row{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f3f4f6;font-size:14px}
+.detail-row:last-child{border-bottom:none}
+.detail-ico{font-size:16px;flex-shrink:0;width:22px;text-align:center}
+.detail-label{color:#6b7280;font-size:12px;margin-bottom:1px}
+.detail-val{font-weight:600;color:#111827}
+.action-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.action-btn{padding:10px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center;display:block}
+.btn-primary{background:linear-gradient(135deg,#3b82f6,#06b6d4);color:#fff;border:none;box-shadow:0 4px 16px rgba(59,130,246,.3)}
+.btn-secondary{background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.3)}
+.btn-full{grid-column:1/-1}
+
+/* ── LIST PANEL ── */
+.list-panel{
+  position:absolute;bottom:0;left:0;right:0;
+  background:#111c32;border-radius:20px 20px 0 0;border-top:1px solid rgba(99,130,255,.25);
+  box-shadow:0 -4px 24px rgba(0,0,0,.15);
+  z-index:1999;transform:translateY(100%);
+  transition:transform .3s ease;max-height:55vh;overflow-y:auto;
+}
+.list-panel.open{transform:translateY(0)}
+.list-item{display:flex;align-items:flex-start;gap:12px;padding:12px 18px;border-bottom:1px solid #f3f4f6;cursor:pointer}
+.list-item:hover{background:#f9fafb}
+.list-ico{font-size:22px;flex-shrink:0;width:30px;text-align:center}
+.list-name{font-weight:700;font-size:14px;margin-bottom:2px;color:#f0f4ff}
+.list-addr{font-size:12px;color:#6b7280}
+.list-dist{font-size:11px;font-weight:700;color:#1a3fad;margin-top:3px}
+.list-count{font-size:13px;font-weight:700;color:#6b7280;padding:12px 18px 8px}
+
+/* ── FALLBACK LINKS ── */
+.fallback{padding:16px 18px}
+.fallback-title{font-size:13px;font-weight:700;color:#6b7280;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em}
+.fallback-link{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(99,130,255,.15);border-radius:10px;text-decoration:none;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:7px;transition:all .2s}
+.fallback-link:hover{border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.08);color:#f0f4ff}
+.fl-badge{margin-left:auto;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:#eff6ff;color:#1a3fad;border:1px solid #bfdbfe;flex-shrink:0}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:30px 20px;color:#9ca3af}
+.empty-ico{font-size:36px;margin-bottom:10px}
+
+/* ── NO RESULTS ── */
+.no-results{padding:16px 18px;text-align:center}
+.no-results p{font-size:14px;color:#6b7280;margin-bottom:12px}
+
+/* ── TOAST ── */
+.toast{
+  position:absolute;top:80px;left:50%;transform:translateX(-50%);
+  background:#111827;color:#fff;padding:8px 16px;border-radius:10px;
+  font-size:13px;font-weight:600;z-index:3000;opacity:0;transition:opacity .3s;
+  white-space:nowrap;
+}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-row">
+      <a href="index.html" class="back-btn">← Retour</a>
+      <div class="top-title">🗺️ Trouver près de moi</div>
+      <div class="context-badge" id="context-badge">Tous</div>
+    </div>
+    <div class="search-bar">
+      <input class="cp-input" id="cp-input" placeholder="Code postal ou ville..." onkeydown="if(event.key==='Enter')searchByCP()">
+      <button class="geo-btn" onclick="geolocate()">📍 Ma position</button>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters" id="filters"></div>
+
+  <!-- MAP -->
+  <div id="map"></div>
+
+  <!-- LOADING -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div style="font-size:13px;font-weight:700;color:#374151">Recherche en cours…</div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- LIST PANEL -->
+  <div class="list-panel" id="list-panel">
+    <div class="panel-handle"></div>
+    <div class="list-count" id="list-count"></div>
+    <div id="list-body"></div>
+  </div>
+
+  <!-- DETAIL PANEL -->
+  <div class="result-panel" id="result-panel">
+    <div class="panel-handle"></div>
+    <div class="panel-header">
+      <div class="panel-title" id="panel-title"></div>
+      <button class="panel-close" onclick="closePanel()">✕</button>
+    </div>
+    <div class="panel-body" id="panel-body"></div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════
+// CONFIGURATION DES ORGANISMES
+// ════════════════════════════════════════
+const TYPES = {
+  all:          {label:'Tous',        icon:'🔍', color:'#1a3fad'},
+  france_services:{label:'France Services', icon:'🏛️', color:'#0d5c63'},
+  caf:          {label:'CAF',         icon:'👶', color:'#7c3aed'},
+  cpam:         {label:'CPAM / Ameli',icon:'🩺', color:'#0891b2'},
+  mdph:         {label:'MDPH',        icon:'♿', color:'#0d7c5f'},
+  mairie:       {label:'Mairie',      icon:'🏢', color:'#374151'},
+  tribunal:     {label:'Tribunal',    icon:'⚖️', color:'#dc2626'},
+  notaire:      {label:'Notaire',     icon:'📜', color:'#b45309'},
+  avocat:       {label:'Avocat',      icon:'🏛️', color:'#6d28d9'},
+  commissariat: {label:'Police',      icon:'🚔', color:'#1e40af'},
+  france_travail:{label:'France Travail',icon:'💼', color:'#065f46'},
+  impots:       {label:'Impôts',      icon:'💰', color:'#b45309'},
+  ants:         {label:'ANTS',          icon:'🪪', color:'#0369a1'},
+  interco:      {label:'Communauté communes', icon:'🏘️', color:'#6d28d9'},
+  cidff:        {label:'CIDFF / Droits femmes', icon:'♀️', color:'#be185d'},
+  violences:    {label:'Violences conjugales', icon:'🆘', color:'#dc2626'},
+  mediation_fam:{label:'Médiation familiale', icon:'👨‍👩‍👧', color:'#7c3aed'},
+  aide_alim:    {label:'Aide alimentaire', icon:'🥗', color:'#065f46'},
+  aide_juridique_asso:{label:'Aide juridique gratuite', icon:'⚖️', color:'#1e40af'},
+  secours:      {label:'Secours / Urgence sociale', icon:'🤝', color:'#b45309'},
+};
+
+// Requêtes Overpass par type
+const OVERPASS_QUERIES = {
+  france_services: `node["name"~"France Services",i](around:RADIUS,LAT,LON);way["name"~"France Services",i](around:RADIUS,LAT,LON);`,
+  caf: `node["name"~"^CAF$|Caisse d'Allocations|CAF de|CAF du",i](around:RADIUS,LAT,LON);way["name"~"^CAF$|Caisse d'Allocations|CAF de|CAF du",i](around:RADIUS,LAT,LON);`,
+  cpam: `node["name"~"CPAM|Caisse Primaire|Ameli|Assurance Maladie",i](around:RADIUS,LAT,LON);way["name"~"CPAM|Caisse Primaire|Ameli|Assurance Maladie",i](around:RADIUS,LAT,LON);`,
+  mdph: `node["name"~"MDPH|Maison D.*partementale.*Handicap",i](around:RADIUS,LAT,LON);way["name"~"MDPH",i](around:RADIUS,LAT,LON);`,
+  mairie: `node["amenity"="townhall"](around:RADIUS,LAT,LON);way["amenity"="townhall"](around:RADIUS,LAT,LON);`,
+  tribunal: `node["amenity"="courthouse"](around:RADIUS,LAT,LON);way["amenity"="courthouse"](around:RADIUS,LAT,LON);node["name"~"Tribunal",i](around:RADIUS,LAT,LON);`,
+  notaire: `node["office"="notary"](around:RADIUS,LAT,LON);`,
+  avocat: `node["office"="lawyer"](around:RADIUS,LAT,LON);`,
+  commissariat: `node["amenity"="police"](around:RADIUS,LAT,LON);way["amenity"="police"](around:RADIUS,LAT,LON);`,
+  france_travail: `node["name"~"France Travail|Pôle Emploi|Pole Emploi",i](around:RADIUS,LAT,LON);way["name"~"France Travail|Pôle Emploi",i](around:RADIUS,LAT,LON);`,
+  impots: `node["name"~"Centre des Impôts|Service des Impôts|SIP |SIE |DGFIP",i](around:RADIUS,LAT,LON);way["name"~"Centre des Impôts|Service des Impôts",i](around:RADIUS,LAT,LON);`,
+  ants: `node["name"~"ANTS|Agence Nationale des Titres|Sous-préfecture|Préfecture",i](around:RADIUS,LAT,LON);way["name"~"Sous-préfecture|Préfecture",i](around:RADIUS,LAT,LON);node["amenity"="townhall"](around:RADIUS,LAT,LON);`,
+  interco: `node["name"~"Communauté|Agglomération|Métropole|EPCI|Intercommunal",i](around:RADIUS,LAT,LON);way["name"~"Communauté|Agglomération|Métropole|EPCI",i](around:RADIUS,LAT,LON);node["office"="government"]["name"~"Communauté",i](around:RADIUS,LAT,LON);`,
+  cidff: `node["name"~"CIDFF|Centre Information Droits Femmes|droits des femmes",i](around:RADIUS,LAT,LON);node["social_facility"="outreach"]["name"~"femme|droit",i](around:RADIUS,LAT,LON);`,
+  violences: `node["name"~"3919|violence|refuge|hébergement urgence femme|centre hébergement",i](around:RADIUS,LAT,LON);node["social_facility"~"shelter|refuge"](around:RADIUS,LAT,LON);`,
+  mediation_fam: `node["name"~"médiation familiale|mediateur famille|UDAF",i](around:RADIUS,LAT,LON);`,
+  aide_alim: `node["name"~"Restos du Coeur|Secours Catholique|Croix.Rouge|Banque Alimentaire|Secours Populaire|épicerie sociale",i](around:RADIUS,LAT,LON);`,
+  aide_juridique_asso: `node["name"~"CDAD|Maison Justice|Point Justice|aide juridique|consultation juridique gratuite",i](around:RADIUS,LAT,LON);`,
+  secours: `node["name"~"Croix.Rouge|Secours Populaire|Armée du Salut|SAMU Social|115",i](around:RADIUS,LAT,LON);`,
+};
+
+// Fallback links quand Overpass ne trouve rien
+const FALLBACKS = {
+  france_services:{
+    title:'France Services — Annuaire national',
+    links:[
+      {label:'Trouver un espace France Services', url:'https://www.france-services.gouv.fr/demarches-et-services/trouver-une-france-services/', badge:'Officiel'},
+    ]
+  },
+  caf:{
+    title:'CAF — Trouver votre caisse',
+    links:[
+      {label:'Trouver ma CAF — caf.fr', url:'https://www.caf.fr/allocataires/vies-de-famille/pages/trouver-ma-caf', badge:'Officiel'},
+      {label:'Mon Compte CAF (en ligne)', url:'https://www.caf.fr/allocataires/mes-services-en-ligne/bienvenue-sur-mon-compte', badge:'En ligne'},
+    ]
+  },
+  cpam:{
+    title:'CPAM — Trouver votre caisse',
+    links:[
+      {label:'Trouver ma CPAM — ameli.fr', url:'https://www.ameli.fr/assure/droits-demarches/difficultes-acces-aux-soins/contacter-votre-caisse', badge:'Officiel'},
+      {label:'Mon espace Ameli', url:'https://assure.ameli.fr', badge:'En ligne'},
+    ]
+  },
+  mdph:{
+    title:'MDPH — Trouver votre MDPH',
+    links:[
+      {label:'Trouver ma MDPH — service-public.fr', url:'https://www.service-public.fr/particuliers/vosdroits/F3626', badge:'Officiel'},
+      {label:'CNSA — Annuaire des MDPH', url:'https://www.cnsa.fr/liens-utiles/les-mdph', badge:'Officiel'},
+    ]
+  },
+  mairie:{
+    title:'Mairie — Trouver la vôtre',
+    links:[
+      {label:'Annuaire des mairies — service-public.fr', url:'https://lannuaire.service-public.fr/navigation/mairie', badge:'Officiel'},
+    ]
+  },
+  tribunal:{
+    title:'Tribunal — Trouver le compétent',
+    links:[
+      {label:'Annuaire justice — justice.fr', url:'https://www.justice.fr', badge:'Officiel'},
+      {label:'CDAD — Conseils Départementaux Accès au Droit', url:'https://www.justice.gouv.fr/annuaire/lieux-daccueil-dinformation/conseils-departementaux-dacces-au-droit', badge:'Gratuit'},
+    ]
+  },
+  notaire:{
+    title:'Notaire — Trouver le vôtre',
+    links:[
+      {label:'Annuaire des notaires', url:'https://www.notaires.fr/fr/annuaires-notaires', badge:'Officiel'},
+    ]
+  },
+  avocat:{
+    title:'Avocat — Trouver le vôtre',
+    links:[
+      {label:'Annuaire national des avocats', url:'https://www.cnb.avocat.fr/annuaire-des-avocats-de-france', badge:'Officiel'},
+      {label:'Aide juridictionnelle (avocat gratuit)', url:'https://www.service-public.fr/particuliers/vosdroits/F18074', badge:'Gratuit'},
+    ]
+  },
+  commissariat:{
+    title:'Police / Gendarmerie',
+    links:[
+      {label:'Trouver le commissariat — service-public.fr', url:'https://lannuaire.service-public.fr/navigation/commissariat_police_nationale', badge:'Officiel'},
+      {label:'Pré-plainte en ligne', url:'https://www.pre-plainte-en-ligne.gouv.fr/', badge:'En ligne'},
+    ]
+  },
+  france_travail:{
+    title:'France Travail — Agence la plus proche',
+    links:[
+      {label:'Trouver mon agence France Travail', url:'https://www.francetravail.fr/candidat/nos-agences.html', badge:'Officiel'},
+      {label:'Espace personnel France Travail', url:'https://www.francetravail.fr', badge:'En ligne'},
+    ]
+  },
+  impots:{
+    title:'Service des Impôts — SIP / SIE',
+    links:[
+      {label:'Trouver mon SIP — impots.gouv.fr', url:'https://www.impots.gouv.fr/contacts', badge:'Officiel'},
+      {label:'Médiateur de Bercy', url:'https://www.economie.gouv.fr/mediateur/je-saisis-le-mediateur', badge:'Médiation'},
+    ]
+  },
+  ants:{
+    title:'ANTS — Agence Nationale des Titres Sécurisés',
+    links:[
+      {label:'Passeport — passeport.ants.gouv.fr', url:'https://passeport.ants.gouv.fr', badge:'Officiel'},
+      {label:'Carte grise — immatriculation.ants.gouv.fr', url:'https://immatriculation.ants.gouv.fr', badge:'Officiel'},
+      {label:'Permis de conduire — permisdeconduire.ants.gouv.fr', url:'https://permisdeconduire.ants.gouv.fr', badge:'Officiel'},
+      {label:'CNI / Passeport — prendre RDV en mairie', url:'https://www.service-public.fr/particuliers/vosdroits/F21153', badge:'RDV mairie'},
+      {label:'Assistance ANTS — 0806 000 109', url:'https://ants.gouv.fr/contacter-l-ants', badge:'Assistance'},
+    ]
+  },
+  interco:{
+    title:'Communauté de communes / Intercommunalité',
+    links:[
+      {label:'Trouver ma communauté de communes', url:'https://www.banatic.interieur.gouv.fr', badge:'Officiel'},
+      {label:'Portail de l'urbanisme', url:'https://www.geoportail-urbanisme.gouv.fr', badge:'Urbanisme'},
+      {label:'Déménagement — service-public.fr', url:'https://www.service-public.fr/particuliers/vosdroits/N31954', badge:'Déménagement'},
+      {label:'Naissance — service-public.fr', url:'https://www.service-public.fr/particuliers/vosdroits/N135', badge:'Naissance'},
+      {label:'Annuaire mairies — lannuaire.service-public.fr', url:'https://lannuaire.service-public.fr/navigation/mairie', badge:'Mairies'},
+    ]
+  },
+  cidff:{
+    title:'CIDFF — Centre Information Droits Femmes et des Familles',
+    links:[
+      {label:'Trouver un CIDFF — ficdd.fr', url:'https://www.ficdd.fr/trouver-un-cidff/', badge:'Annuaire'},
+      {label:'Violences — 3919 (gratuit, 24h/24)', url:'tel:3919', badge:'Urgence'},
+      {label:'Égalité Femmes-Hommes — service-public.fr', url:'https://www.service-public.fr/particuliers/vosdroits/N31911', badge:'Officiel'},
+    ]
+  },
+  violences:{
+    title:'Violences conjugales — Ressources d'urgence',
+    links:[
+      {label:'🆘 3919 — Violences Femmes Info (gratuit 24h/24)', url:'tel:3919', badge:'URGENCE'},
+      {label:'🆘 17 — Police secours', url:'tel:17', badge:'URGENCE'},
+      {label:'SMS au 114 (si impossible d'appeler)', url:'https://www.114.fr', badge:'URGENCE'},
+      {label:'Refuges femmes violences — arretonslesviolences.gouv.fr', url:'https://arretonslesviolences.gouv.fr', badge:'Officiel'},
+      {label:'FNSF — Fédération Nationale Solidarité Femmes', url:'https://www.solidaritefemmes.org', badge:'Réseau'},
+    ]
+  },
+  mediation_fam:{
+    title:'Médiation familiale — Trouver un médiateur',
+    links:[
+      {label:'Trouver un médiateur familial — justice.fr', url:'https://www.justice.fr/fiche/mediation-familiale', badge:'Officiel'},
+      {label:'FENAMEF — Fédération nationale médiateurs', url:'https://www.fenamef.asso.fr', badge:'Annuaire'},
+      {label:'Médiation familiale — service-public.fr', url:'https://www.service-public.fr/particuliers/vosdroits/F10553', badge:'Info'},
+    ]
+  },
+  aide_alim:{
+    title:'Aide alimentaire — Associations près de vous',
+    links:[
+      {label:'Restos du Cœur — Trouver un centre', url:'https://www.restosducoeur.org/trouver-un-centre/', badge:'Annuaire'},
+      {label:'Banque Alimentaire — Annuaire', url:'https://www.banquealimentaire.org/trouver-la-banque-alimentaire-pres-de-chez-moi/', badge:'Annuaire'},
+      {label:'Secours Populaire', url:'https://www.secourspopulaire.fr/trouver-une-federation', badge:'Annuaire'},
+      {label:'Croix-Rouge française', url:'https://www.croix-rouge.fr/Nos-actions/Action-sociale/Aide-alimentaire', badge:'Annuaire'},
+      {label:'🆘 115 — SAMU Social (urgence hébergement)', url:'tel:115', badge:'URGENCE'},
+    ]
+  },
+  aide_juridique_asso:{
+    title:'Aide juridique gratuite — Consultations',
+    links:[
+      {label:'CDAD — Conseils Départementaux Accès au Droit', url:'https://www.justice.gouv.fr/annuaire/lieux-daccueil-dinformation/conseils-departementaux-dacces-au-droit', badge:'Gratuit'},
+      {label:'Maisons de Justice et du Droit', url:'https://www.justice.fr/content/maisons-justice-et-du-droit', badge:'Gratuit'},
+      {label:'Points Justice', url:'https://www.justice.fr/content/points-justice', badge:'Gratuit'},
+      {label:'Aide juridictionnelle (avocat pris en charge)', url:'https://www.service-public.fr/particuliers/vosdroits/F18074', badge:'Gratuit'},
+      {label:'Défenseur des droits', url:'https://formulaire.defenseurdesdroits.fr/', badge:'Gratuit'},
+    ]
+  },
+  secours:{
+    title:'Secours et urgence sociale',
+    links:[
+      {label:'🆘 115 — SAMU Social (hébergement urgence)', url:'tel:115', badge:'URGENCE'},
+      {label:'Croix-Rouge — Aide sociale', url:'https://www.croix-rouge.fr/Nos-actions/Action-sociale', badge:'Annuaire'},
+      {label:'Secours Populaire', url:'https://www.secourspopulaire.fr', badge:'Annuaire'},
+      {label:'Armée du Salut', url:'https://www.armeedusalut.fr/trouver-aide', badge:'Annuaire'},
+      {label:'CCAS de votre mairie', url:'https://lannuaire.service-public.fr/navigation/mairie', badge:'Local'},
+    ]
+  },
+  all:{
+    title:'Ressources nationales',
+    links:[
+      {label:'Défenseur des droits', url:'https://formulaire.defenseurdesdroits.fr/', badge:'Gratuit'},
+      {label:'Conciliateur de justice', url:'https://www.conciliateurs.fr/Trouver-une-permanence', badge:'Gratuit'},
+      {label:'Médiateur de l\'énergie', url:'https://www.energie-mediateur.fr', badge:'Gratuit'},
+      {label:'Médiateur bancaire', url:'https://www.economie.gouv.fr/particuliers/litige-avec-sa-banque', badge:'Gratuit'},
+      {label:'ADIL — Conseil logement', url:'https://www.anil.org/lanil-et-les-adil/votre-adil/', badge:'Gratuit'},
+    ]
+  }
+};
+
+// ════════════════════════════════════════
+// ÉTAT
+// ════════════════════════════════════════
+let map, userMarker, userLat, userLon;
+let currentType = 'all';
+let markers = [];
+let currentResults = [];
+let currentPlace = null;
+
+// Lire les paramètres URL
+const urlParams = new URLSearchParams(window.location.search);
+const urlType = urlParams.get('type');
+const urlCp = urlParams.get('cp');
+const urlOrg = urlParams.get('org'); // nom de l'organisme pour la fiche
+
+if(urlType && TYPES[urlType]) currentType = urlType;
+
+// ════════════════════════════════════════
+// INIT CARTE
+// ════════════════════════════════════════
+function initMap(){
+  map = L.map('map', {
+    center: [46.5, 2.5],
+    zoom: 6,
+    zoomControl: true,
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19,
+  }).addTo(map);
+
+  // Fermer les panels au clic sur la carte
+  map.on('click', ()=>{
+    closePanel();
+    closeList();
+  });
+}
+
+// ════════════════════════════════════════
+// FILTRES
+// ════════════════════════════════════════
+function buildFilters(){
+  const fe = document.getElementById('filters');
+  Object.entries(TYPES).forEach(([key, t])=>{
+    const b = document.createElement('button');
+    b.className = 'chip' + (key === currentType ? ' on' : '');
+    b.innerHTML = t.icon + ' ' + t.label;
+    b.onclick = ()=>{
+      currentType = key;
+      document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+      b.classList.add('on');
+      checkEmergencyBanner(key);
+      document.getElementById('context-badge').textContent = t.label;
+      if(userLat) search(userLat, userLon, currentType);
+      else showFallback(key);
+    };
+    fe.appendChild(b);
+  });
+}
+
+// ════════════════════════════════════════
+// GÉOLOCALISATION
+// ════════════════════════════════════════
+function geolocate(){
+  if(!navigator.geolocation){
+    showToast('Géolocalisation non supportée par votre navigateur');
+    return;
+  }
+  showLoading(true);
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      userLat = pos.coords.latitude;
+      userLon = pos.coords.longitude;
+      moveToUser(userLat, userLon);
+      search(userLat, userLon, currentType);
+    },
+    err => {
+      showLoading(false);
+      if(err.code === 1) showToast('Accès à la position refusé — saisissez votre code postal');
+      else showToast('Position non disponible — saisissez votre code postal');
+    },
+    {enableHighAccuracy:true, timeout:8000}
+  );
+}
+
+// ════════════════════════════════════════
+// RECHERCHE PAR CODE POSTAL
+// ════════════════════════════════════════
+async function searchByCP(){
+  const cp = document.getElementById('cp-input').value.trim();
+  if(!cp) return;
+  showLoading(true);
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cp)}&countrycodes=fr&format=json&limit=1`);
+    const data = await r.json();
+    if(data.length){
+      userLat = parseFloat(data[0].lat);
+      userLon = parseFloat(data[0].lon);
+      document.getElementById('cp-input').value = data[0].display_name.split(',')[0];
+      moveToUser(userLat, userLon);
+      search(userLat, userLon, currentType);
+    } else {
+      showLoading(false);
+      showToast('Localité non trouvée — vérifiez le code postal');
+    }
+  } catch(e){
+    showLoading(false);
+    showToast('Erreur réseau — vérifiez votre connexion');
+  }
+}
+
+function moveToUser(lat, lon){
+  map.setView([lat, lon], 13);
+  if(userMarker) map.removeLayer(userMarker);
+  userMarker = L.marker([lat, lon], {
+    icon: L.divIcon({
+      html:'<div style="width:16px;height:16px;background:#1a3fad;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>',
+      iconSize:[16,16],iconAnchor:[8,8]
+    })
+  }).addTo(map).bindPopup('📍 Votre position');
+}
+
+// ════════════════════════════════════════
+// RECHERCHE OVERPASS
+// ════════════════════════════════════════
+// Afficher bannière urgence si violences conjugales
+function checkEmergencyBanner(type){
+  const existing = document.getElementById('emergency-banner');
+  if(existing) existing.remove();
+  if(type === 'violences'){
+    const banner = document.createElement('div');
+    banner.id = 'emergency-banner';
+    banner.style.cssText = 'background:#dc2626;color:#fff;padding:12px 16px;font-size:13px;font-weight:700;text-align:center;position:relative;z-index:1001;';
+    banner.innerHTML = '🆘 URGENCE : appelez le <a href="tel:3919" style="color:#fff;font-size:16px">3919</a> (gratuit 24h/24) ou le <a href="tel:17" style="color:#fff">17</a> · SMS : 114';
+    document.querySelector('.filters').before(banner);
+  }
+}
+
+async function search(lat, lon, type){
+  showLoading(true);
+  clearMarkers();
+  closeList();
+  closePanel();
+
+  const radius = type === 'all' ? 5000 : 15000;
+
+  // Construire la requête
+  let queryParts = '';
+  if(type === 'all'){
+    Object.entries(OVERPASS_QUERIES).forEach(([,q])=>{
+      queryParts += q.replace(/RADIUS/g, radius).replace(/LAT/g, lat).replace(/LON/g, lon);
+    });
+  } else if(OVERPASS_QUERIES[type]){
+    queryParts = OVERPASS_QUERIES[type].replace(/RADIUS/g, radius).replace(/LAT/g, lat).replace(/LON/g, lon);
+  }
+
+  const query = `[out:json][timeout:20];(${queryParts});out center;`;
+
+  try {
+    const r = await fetch('https://overpass-api.de/api/interpreter', {
+      method:'POST',
+      body: 'data=' + encodeURIComponent(query)
+    });
+    const data = await r.json();
+    showLoading(false);
+
+    const elements = data.elements || [];
+    currentResults = elements.map(el => {
+      const clat = el.lat || (el.center && el.center.lat);
+      const clon = el.lon || (el.center && el.center.lon);
+      if(!clat || !clon) return null;
+      const dist = getDistance(lat, lon, clat, clon);
+      return {...el, _lat:clat, _lon:clon, _dist:dist};
+    }).filter(Boolean).sort((a,b)=>a._dist-b._dist).slice(0,50);
+
+    if(currentResults.length > 0){
+      plotResults(currentResults, type);
+      showList(currentResults, lat, lon);
+    } else {
+      showFallback(type);
+    }
+  } catch(e){
+    showLoading(false);
+    showToast('Erreur de connexion — affichage des liens alternatifs');
+    showFallback(type);
+  }
+}
+
+// ════════════════════════════════════════
+// MARQUEURS
+// ════════════════════════════════════════
+function getTypeForElement(el){
+  const name = (el.tags && el.tags.name || '').toLowerCase();
+  const amenity = el.tags && el.tags.amenity || '';
+  const office = el.tags && el.tags.office || '';
+  if(name.includes('france services') || name.includes('france service')) return 'france_services';
+  if(name.includes('caf') || name.includes("caisse d'allocations")) return 'caf';
+  if(name.includes('cpam') || name.includes('assurance maladie') || name.includes('ameli')) return 'cpam';
+  if(name.includes('mdph')) return 'mdph';
+  if(amenity === 'courthouse' || name.includes('tribunal')) return 'tribunal';
+  if(office === 'notary' || name.includes('notaire')) return 'notaire';
+  if(office === 'lawyer' || name.includes('avocat')) return 'avocat';
+  if(amenity === 'police') return 'commissariat';
+  if(name.includes('france travail') || name.includes('pôle emploi') || name.includes('pole emploi')) return 'france_travail';
+  if(name.includes('impôt') || name.includes('impots') || name.includes('sip ') || name.includes('sie ')) return 'impots';
+  if(name.includes('ants') || name.includes('agence nationale des titres') || name.includes('sous-préfecture') || name.includes('sous-prefecture') || name.includes('préfecture') || name.includes('prefecture')) return 'ants';
+  if(name.includes('communauté') || name.includes('communaute') || name.includes('agglomération') || name.includes('métropole') || name.includes('epci') || name.includes('intercommunal')) return 'interco';
+  if(name.includes('cidff') || name.includes('droits des femmes') || name.includes('droits femmes')) return 'cidff';
+  if(name.includes('violence') || name.includes('refuge') || name.includes('3919')) return 'violences';
+  if(name.includes('médiation familiale') || name.includes('mediateur famille') || name.includes('udaf')) return 'mediation_fam';
+  if(name.includes('restos du cœur') || name.includes('restos du coeur') || name.includes('banque alimentaire') || name.includes('secours catholique') || name.includes('épicerie sociale')) return 'aide_alim';
+  if(name.includes('cdad') || name.includes('maison de justice') || name.includes('point justice') || name.includes('aide juridique')) return 'aide_juridique_asso';
+  if(name.includes('croix-rouge') || name.includes('croix rouge') || name.includes('secours populaire') || name.includes('armée du salut') || name.includes('armee du salut') || name.includes('samu social')) return 'secours';
+  if(amenity === 'townhall') return 'mairie';
+  return 'all';
+}
+
+function plotResults(results, type){
+  results.forEach(el => {
+    const t = getTypeForElement(el);
+    const cfg = TYPES[t] || TYPES.all;
+    const name = el.tags?.name || 'Organisme';
+
+    const icon = L.divIcon({
+      html:`<div style="
+        width:34px;height:34px;border-radius:50%;
+        background:${cfg.color};color:#fff;
+        display:flex;align-items:center;justify-content:center;
+        font-size:16px;
+        border:3px solid #fff;
+        box-shadow:0 2px 8px rgba(0,0,0,.25);
+        cursor:pointer;
+      ">${cfg.icon}</div>`,
+      iconSize:[34,34], iconAnchor:[17,17], className:''
+    });
+
+    const m = L.marker([el._lat, el._lon], {icon}).addTo(map);
+    m.on('click', ()=>showDetail(el));
+    markers.push(m);
+  });
+}
+
+function clearMarkers(){
+  markers.forEach(m=>map.removeLayer(m));
+  markers = [];
+}
+
+// ════════════════════════════════════════
+// LISTE DES RÉSULTATS
+// ════════════════════════════════════════
+function showList(results, lat, lon){
+  const panel = document.getElementById('list-panel');
+  const body = document.getElementById('list-body');
+  const count = document.getElementById('list-count');
+
+  count.textContent = `${results.length} organisme${results.length>1?'s':''} trouvé${results.length>1?'s':''} dans un rayon de 15 km`;
+
+  body.innerHTML = results.slice(0,20).map(el => {
+    const t = getTypeForElement(el);
+    const cfg = TYPES[t] || TYPES.all;
+    const name = el.tags?.name || 'Organisme';
+    const addr = formatAddr(el.tags);
+    const dist = el._dist < 1000 ? Math.round(el._dist)+'m' : (el._dist/1000).toFixed(1)+'km';
+    return `<div class="list-item" onclick='showDetail(${JSON.stringify(el).replace(/'/g,"&#39;")})'>
+      <div class="list-ico">${cfg.icon}</div>
+      <div style="flex:1">
+        <div class="list-name">${name}</div>
+        <div class="list-addr">${addr||'Adresse non renseignée'}</div>
+        <div class="list-dist">📍 ${dist}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  panel.classList.add('open');
+}
+
+function closeList(){
+  document.getElementById('list-panel').classList.remove('open');
+}
+
+// ════════════════════════════════════════
+// DÉTAIL D'UN ORGANISME
+// ════════════════════════════════════════
+function showDetail(el){
+  closeList();
+  const t = getTypeForElement(el);
+  const cfg = TYPES[t] || TYPES.all;
+  const tags = el.tags || {};
+  const name = tags.name || 'Organisme';
+  const addr = formatAddr(tags);
+  const phone = tags.phone || tags['contact:phone'] || null;
+  const website = tags.website || tags['contact:website'] || null;
+  const hours = tags.opening_hours || null;
+  const email = tags.email || tags['contact:email'] || null;
+  const dist = el._dist ? (el._dist < 1000 ? Math.round(el._dist)+'m' : (el._dist/1000).toFixed(1)+'km') : null;
+
+  document.getElementById('panel-title').innerHTML = cfg.icon + ' ' + name;
+
+  let html = '';
+
+  if(dist) html += `<div class="detail-row"><div class="detail-ico">📍</div><div><div class="detail-label">Distance</div><div class="detail-val">${dist}</div></div></div>`;
+  if(addr) html += `<div class="detail-row"><div class="detail-ico">🏠</div><div><div class="detail-label">Adresse</div><div class="detail-val">${addr}</div></div></div>`;
+  if(phone) html += `<div class="detail-row"><div class="detail-ico">📞</div><div><div class="detail-label">Téléphone</div><div class="detail-val"><a href="tel:${phone}" style="color:#1a3fad">${phone}</a></div></div></div>`;
+  if(email) html += `<div class="detail-row"><div class="detail-ico">✉️</div><div><div class="detail-label">Email</div><div class="detail-val"><a href="mailto:${email}" style="color:#1a3fad">${email}</a></div></div></div>`;
+  if(hours) html += `<div class="detail-row"><div class="detail-ico">🕐</div><div><div class="detail-label">Horaires</div><div class="detail-val">${hours}</div></div></div>`;
+  if(website) html += `<div class="detail-row"><div class="detail-ico">🌐</div><div><div class="detail-label">Site web</div><div class="detail-val"><a href="${website}" target="_blank" style="color:#1a3fad">${website.replace(/https?:\/\//,'').substring(0,40)}</a></div></div></div>`;
+
+  // Boutons d'action
+  html += '<div class="action-btns">';
+  html += `<a href="https://www.openstreetmap.org/?mlat=${el._lat}&mlon=${el._lon}&zoom=17" target="_blank" class="action-btn btn-secondary">🗺️ Voir sur la carte</a>`;
+  html += `<a href="https://www.google.com/maps/dir/?api=1&destination=${el._lat},${el._lon}" target="_blank" class="action-btn btn-primary">🧭 Itinéraire</a>`;
+  if(website) html += `<a href="${website}" target="_blank" class="action-btn btn-secondary btn-full">🌐 Site officiel</a>`;
+
+  // Fallback links pour ce type
+  const fb = FALLBACKS[t] || FALLBACKS.all;
+  if(fb){
+    html += '</div>';
+    html += `<div style="margin-top:14px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:8px">Liens utiles</div>`;
+    fb.links.forEach(l=>{
+      html += `<a href="${l.url}" target="_blank" class="fallback-link">${l.label}<span class="fl-badge">${l.badge}</span></a>`;
+    });
+    html += '</div>';
+  } else {
+    html += '</div>';
+  }
+
+  document.getElementById('panel-body').innerHTML = html;
+  document.getElementById('result-panel').classList.add('open');
+
+  // Centrer la carte sur l'organisme
+  map.setView([el._lat, el._lon], 15);
+}
+
+function closePanel(){
+  document.getElementById('result-panel').classList.remove('open');
+}
+
+// ════════════════════════════════════════
+// FALLBACK LINKS (quand Overpass ne trouve rien)
+// ════════════════════════════════════════
+function showFallback(type){
+  const fb = FALLBACKS[type] || FALLBACKS.all;
+  const panel = document.getElementById('list-panel');
+  const body = document.getElementById('list-body');
+  const count = document.getElementById('list-count');
+
+  count.textContent = 'Aucun résultat cartographié — liens directs';
+
+  let html = '<div class="fallback">';
+  html += `<div class="fallback-title">${fb.title}</div>`;
+  fb.links.forEach(l=>{
+    html += `<a href="${l.url}" target="_blank" class="fallback-link">${l.label}<span class="fl-badge">${l.badge}</span></a>`;
+  });
+
+  // Toujours ajouter les ressources universelles
+  html += `<div class="fallback-title" style="margin-top:14px">Ressources universelles gratuites</div>`;
+  html += `<a href="https://formulaire.defenseurdesdroits.fr/" target="_blank" class="fallback-link">🛡️ Défenseur des droits<span class="fl-badge">Gratuit</span></a>`;
+  html += `<a href="https://www.conciliateurs.fr/Trouver-une-permanence" target="_blank" class="fallback-link">🤝 Conciliateur de justice<span class="fl-badge">Gratuit</span></a>`;
+  html += `<a href="https://lannuaire.service-public.fr" target="_blank" class="fallback-link">📋 Annuaire service-public.fr<span class="fl-badge">Officiel</span></a>`;
+  html += '</div>';
+
+  body.innerHTML = html;
+  panel.classList.add('open');
+}
+
+// ════════════════════════════════════════
+// UTILITAIRES
+// ════════════════════════════════════════
+function formatAddr(tags){
+  if(!tags) return '';
+  const parts = [];
+  if(tags['addr:housenumber'] && tags['addr:street'])
+    parts.push(tags['addr:housenumber'] + ' ' + tags['addr:street']);
+  else if(tags['addr:street'])
+    parts.push(tags['addr:street']);
+  if(tags['addr:postcode']) parts.push(tags['addr:postcode']);
+  if(tags['addr:city']) parts.push(tags['addr:city']);
+  return parts.join(', ');
+}
+
+function getDistance(lat1, lon1, lat2, lon2){
+  const R = 6371000;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function showLoading(show){
+  document.getElementById('loading').classList.toggle('show', show);
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+initMap();
+buildFilters();
+
+// Activer le bon filtre selon l'URL
+if(currentType !== 'all'){
+  document.getElementById('context-badge').textContent = TYPES[currentType]?.label || 'Tous';
+}
+
+// Si code postal dans l'URL → rechercher directement
+if(urlCp){
+  document.getElementById('cp-input').value = urlCp;
+  setTimeout(searchByCP, 500);
+} else {
+  // Afficher les fallbacks par défaut
+  showFallback(currentType);
+}
+</script>
+</body>
+</html>

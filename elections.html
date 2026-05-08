@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Vigie — Élections & Citoyenneté</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:'DM Sans',sans-serif;background:#080d1a;color:#f0f4ff;min-height:100vh;-webkit-font-smoothing:antialiased}
+.hero{background:linear-gradient(160deg,#0d1832,#0a0f1e 50%,#0d1e3d);border-bottom:1px solid rgba(99,130,255,.15);color:#f0f4ff;padding:24px 18px 28px;position:relative;overflow:hidden}
+.hero-back{display:inline-flex;align-items:center;gap:6px;color:#94a3b8;text-decoration:none;font-size:13px;margin-bottom:12px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);padding:5px 12px;border-radius:999px;transition:all .2s}
+.hero h1{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;margin-bottom:6px;letter-spacing:-.02em}
+.hero p{font-size:13px;opacity:.75;max-width:400px}
+.tabs{display:flex;background:rgba(13,20,37,.98);border-bottom:1px solid rgba(99,130,255,.15);overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:10;backdrop-filter:blur(12px)}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:13px 16px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;color:#64748b;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .2s}
+.tab.on{color:#3b82f6;border-bottom-color:#3b82f6}
+.view{display:none;padding:16px 16px 60px;position:relative;z-index:1}
+.view.on{display:block}
+.card{background:#111c32;border-radius:16px;border:1px solid rgba(99,130,255,.15);padding:18px;margin-bottom:12px;transition:border-color .2s}
+.card h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#60a5fa;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.card p{font-size:14px;color:#94a3b8;line-height:1.6;margin-bottom:8px}
+.step-row{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(99,130,255,.1);font-size:14px;line-height:1.5;color:#94a3b8}
+.step-row:last-child{border-bottom:none}
+.sn{width:22px;height:22px;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#3b82f6;border-radius:8px;font-size:11px;font-weight:800;display:grid;place-items:center;flex-shrink:0;margin-top:1px;font-family:'JetBrains Mono',monospace}
+.info-box{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:10px;padding:12px;font-size:13px;color:#93c5fd;margin-bottom:10px;line-height:1.5}
+.warn-box{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px;font-size:13px;color:#78350f;margin-bottom:10px;line-height:1.5}
+.urgent-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:12px;font-size:13px;color:#f87171;font-weight:700;margin-bottom:10px}
+.election-card{background:#111c32;border-radius:14px;border:1px solid rgba(99,130,255,.15);padding:14px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;transition:border-color .2s}
+.election-ico{font-size:28px;flex-shrink:0}
+.election-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:3px;color:#f0f4ff}
+.election-desc{font-size:12px;color:#64748b;line-height:1.4}
+.election-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-top:5px}
+.eb-next{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3)}
+.eb-info{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.3)}
+.link-btn{display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(99,130,255,.15);border-radius:10px;text-decoration:none;color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:6px;transition:all .2s}
+.link-btn:hover{border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.08);color:#f0f4ff}
+.lb{margin-left:auto;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;flex-shrink:0}
+.lb-g{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3)}
+.lb-b{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.3)}
+.lb-o{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3)}
+.section-label{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#64748b;margin-bottom:10px}
+.procuration-path{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:12px;padding:14px;margin-bottom:10px}
+.footer{text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:#64748b;padding:12px 0 4px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="hero">
+  <a href="index.html" class="hero-back">← Retour Vigie</a>
+  <h1>🗳️ Élections & Citoyenneté</h1>
+  <p>S'inscrire, voter, donner procuration — toutes les démarches expliquées simplement.</p>
+</div>
+<div class="tabs">
+  <button class="tab on" onclick="showTab('inscrire')">📋 S'inscrire</button>
+  <button class="tab" onclick="showTab('voter')">🗳️ Voter</button>
+  <button class="tab" onclick="showTab('procuration')">📬 Procuration</button>
+  <button class="tab" onclick="showTab('scrutins')">🏛️ Les scrutins</button>
+  <button class="tab" onclick="showTab('droits')">⚖️ Droits civiques</button>
+</div>
+
+<!-- ═══ S'INSCRIRE ═══ -->
+<div class="view on" id="view-inscrire">
+  <div class="info-box">ℹ️ En France, l'inscription sur les listes électorales n'est plus automatique à 18 ans depuis 2019. Il faut faire la démarche soi-même.</div>
+  
+  <div class="card">
+    <h3>✅ Qui peut s'inscrire ?</h3>
+    <div class="step-row"><div class="sn">1</div><div>Être de nationalité française (ou citoyen UE pour les élections municipales et européennes)</div></div>
+    <div class="step-row"><div class="sn">2</div><div>Avoir 18 ans le jour de l'élection</div></div>
+    <div class="step-row"><div class="sn">3</div><div>Jouir de ses droits civils et politiques</div></div>
+    <div class="step-row"><div class="sn">4</div><div>Avoir un lien avec la commune (domicile, travail, ou résidence)</div></div>
+  </div>
+
+  <div class="card">
+    <h3>📝 Comment s'inscrire ?</h3>
+    <div class="warn-box">⚠️ Délai : s'inscrire avant le 6e vendredi précédant le scrutin pour pouvoir voter à l'élection suivante.</div>
+    <div class="step-row"><div class="sn">1</div><div><strong>En ligne</strong> — sur service-public.fr ou directement sur l'application France Identité</div></div>
+    <div class="step-row"><div class="sn">2</div><div><strong>En mairie</strong> — avec pièce d'identité + justificatif de domicile de moins de 3 mois</div></div>
+    <div class="step-row"><div class="sn">3</div><div><strong>Par courrier</strong> — formulaire Cerfa 12669 + pièces jointes à la mairie</div></div>
+    <a href="https://www.service-public.fr/particuliers/vosdroits/F1
+
+193" target="_blank" class="link-btn" style="margin-top:10px">📋 S'inscrire en ligne — service-public.fr<span class="lb lb-g">Officiel</span></a>
+    <a href="https://www.moncompte.fr" target="_blank" class="link-btn">🗺️ Vérifier son inscription — moncompte.fr<span class="lb lb-b">Vérifier</span></a>
+  </div>
+
+  <div class="card">
+    <h3>🔄 Changer de commune ?</h3>
+    <p>En cas de déménagement, il faut se réinscrire dans la nouvelle commune. L'ancienne inscription ne se transfère pas automatiquement.</p>
+    <div class="warn-box">⚠️ Si vous déménagez après la date limite d'inscription, vous devrez peut-être voter dans votre ancienne commune pour la prochaine élection.</div>
+  </div>
+
+  <div class="card">
+    <h3>👶 Inscription automatique à 18 ans ?</h3>
+    <p>Les jeunes ayant fait leur recensement citoyen à 16 ans sont inscrits d'office à 18 ans. Si ce n'est pas le cas : démarche manuelle nécessaire.</p>
+    <a href="https://www.service-public.fr/particuliers/vosdroits/F870" target="_blank" class="link-btn">📋 Recensement citoyen<span class="lb lb-b">Info</span></a>
+  </div>
+</div>
+
+<!-- ═══ VOTER ═══ -->
+<div class="view" id="view-voter">
+  <div class="card">
+    <h3>🗳️ Le jour du vote</h3>
+    <div class="step-row"><div class="sn">1</div><div>Se présenter au bureau de vote indiqué sur sa carte électorale (ou sa convocation)</div></div>
+    <div class="step-row"><div class="sn">2</div><div>Présenter une pièce d'identité en cours de validité (CNI, passeport, permis de conduire…)</div></div>
+    <div class="step-row"><div class="sn">3</div><div>Signer la liste d'émargement et recevoir l'enveloppe</div></div>
+    <div class="step-row"><div class="sn">4</div><div>S'isoler dans l'isoloir pour choisir son bulletin</div></div>
+    <div class="step-row"><div class="sn">5</div><div>Glisser le bulletin dans l'enveloppe et la déposer dans l'urne</div></div>
+    <div class="info-box" style="margin-top:10px">ℹ️ Le vote blanc est comptabilisé mais ne compte pas comme suffrage exprimé. Il n'est pas assimilé à un vote nul.</div>
+  </div>
+
+  <div class="card">
+    <h3>📍 Trouver son bureau de vote</h3>
+    <p>Le bureau de vote est indiqué sur votre carte électorale. Vous pouvez aussi le vérifier en ligne.</p>
+    <a href="https://www.service-public.fr/particuliers/vosdroits/F1939" target="_blank" class="link-btn">🗺️ Trouver son bureau de vote<span class="lb lb-g">Officiel</span></a>
+    <a href="https://www.elections.interieur.gouv.fr" target="_blank" class="link-btn">🏛️ Résultats électoraux officiels<span class="lb lb-b">Résultats</span></a>
+  </div>
+
+  <div class="card">
+    <h3>🪪 Pièce d'identité acceptée</h3>
+    <div class="step-row"><div class="sn">✓</div><div>Carte nationale d'identité (même expirée depuis moins de 5 ans)</div></div>
+    <div class="step-row"><div class="sn">✓</div><div>Passeport (même expiré depuis moins de 5 ans)</div></div>
+    <div class="step-row"><div class="sn">✓</div><div>Permis de conduire en cours de validité</div></div>
+    <div class="step-row"><div class="sn">✓</div><div>Carte de séjour, titre de séjour en cours de validité</div></div>
+    <div class="urgent-box" style="margin-top:10px">❌ La carte électorale seule ne suffit pas — une pièce d'identité est obligatoire.</div>
+  </div>
+</div>
+
+<!-- ═══ PROCURATION ═══ -->
+<div class="view" id="view-procuration">
+  <div class="info-box">ℹ️ La procuration permet de voter à votre place si vous ne pouvez pas vous déplacer le jour du scrutin. Depuis 2022, la démarche se fait principalement en ligne.</div>
+
+  <div class="card">
+    <h3>📋 Qui peut donner procuration ?</h3>
+    <p>Tout électeur inscrit sur les listes électorales qui ne peut pas voter en personne pour l'une des raisons suivantes :</p>
+    <div class="step-row"><div class="sn">📍</div><div>Déplacement professionnel ou personnel</div></div>
+    <div class="step-row"><div class="sn">🩺</div><div>Raison médicale ou handicap</div></div>
+    <div class="step-row"><div class="sn">📚</div><div>Études hors de la commune d'inscription</div></div>
+    <div class="step-row"><div class="sn">✈️</div><div>Vacances ou voyage à l'étranger</div></div>
+    <div class="warn-box" style="margin-top:10px">⚠️ Le mandataire (celui qui vote à votre place) doit être inscrit dans la même commune que vous.</div>
+  </div>
+
+  <div class="card">
+    <h3>🖥️ Comment faire une procuration ?</h3>
+    <div class="procuration-path">
+      <div style="font-weight:800;font-size:14px;margin-bottom:8px;color:#065f46">🟢 Méthode la plus simple — En ligne</div>
+      <div class="step-row"><div class="sn">1</div><div>Sur maprocuration.gouv.fr — connexion avec FranceConnect</div></div>
+      <div class="step-row"><div class="sn">2</div><div>Indiquer l'identité du mandataire (celui qui votera à votre place)</div></div>
+      <div class="step-row"><div class="sn">3</div><div>Un officier de police judiciaire vérifie votre identité (parfois à domicile si nécessaire)</div></div>
+    </div>
+    <div class="procuration-path" style="background:#eff6ff;border-color:#bfdbfe">
+      <div style="font-weight:800;font-size:14px;margin-bottom:8px;color:#1e40af">🔵 Méthode classique — En personne</div>
+      <div class="step-row"><div class="sn">1</div><div>Se rendre au commissariat, gendarmerie, tribunal judiciaire ou ambassade/consulat à l'étranger</div></div>
+      <div class="step-row"><div class="sn">2</div><div>Présenter une pièce d'identité et le formulaire Cerfa 14952</div></div>
+      <div class="step-row"><div class="sn">3</div><div>La procuration est transmise à la mairie automatiquement</div></div>
+    </div>
+    <a href="https://www.maprocuration.gouv.fr" target="_blank" class="link-btn">📬 maprocuration.gouv.fr — Démarche en ligne<span class="lb lb-g">Officiel</span></a>
+    <a href="https://www.service-public.fr/particuliers/vosdroits/F1604" target="_blank" class="link-btn">📋 Formulaire Cerfa 14952<span class="lb lb-b">Formulaire</span></a>
+  </div>
+
+  <div class="card">
+    <h3>⏱️ Quand faire la procuration ?</h3>
+    <p>Il n'y a pas de délai minimum légal, mais il est conseillé de faire la démarche au moins une semaine avant le scrutin pour que la mairie ait le temps de l'enregistrer.</p>
+    <div class="warn-box">⚠️ La procuration peut être annulée à tout moment si vous pouvez finalement voter en personne.</div>
+  </div>
+</div>
+
+<!-- ═══ LES SCRUTINS ═══ -->
+<div class="view" id="view-scrutins">
+  <div class="section-label">Élections en France</div>
+
+  <div class="election-card">
+    <div class="election-ico">🏠</div>
+    <div>
+      <div class="election-title">Élections municipales</div>
+      <div class="election-desc">Élisent le conseil municipal et le maire. Tous les 6 ans. Prochaines : 2026.</div>
+      <span class="election-badge eb-next">📅 2026</span>
+    </div>
+  </div>
+
+  <div class="election-card">
+    <div class="election-ico">🏛️</div>
+    <div>
+      <div class="election-title">Élections législatives</div>
+      <div class="election-desc">Élisent les 577 députés de l'Assemblée nationale. Tous les 5 ans (ou dissolution). Dernier scrutin : 2024.</div>
+      <span class="election-badge eb-info">📅 2024 — Passées</span>
+    </div>
+  </div>
+
+  <div class="election-card">
+    <div class="election-ico">🇫🇷</div>
+    <div>
+      <div class="election-title">Élection présidentielle</div>
+      <div class="election-desc">Élit le Président de la République. Tous les 5 ans. Prochaine : 2027.</div>
+      <span class="election-badge eb-next">📅 2027</span>
+    </div>
+  </div>
+
+  <div class="election-card">
+    <div class="election-ico">🌍</div>
+    <div>
+      <div class="election-title">Élections européennes</div>
+      <div class="election-desc">Élisent les 81 eurodéputés français au Parlement européen. Tous les 5 ans. Dernier scrutin : juin 2024.</div>
+      <span class="election-badge eb-info">📅 2024 — Passées</span>
+    </div>
+  </div>
+
+  <div class="election-card">
+    <div class="election-ico">🗺️</div>
+    <div>
+      <div class="election-title">Élections régionales et départementales</div>
+      <div class="election-desc">Élisent les conseillers régionaux et départementaux. Tous les 6 ans. Prochaines : 2028.</div>
+      <span class="election-badge eb-next">📅 2028</span>
+    </div>
+  </div>
+
+  <div class="election-card">
+    <div class="election-ico">🏘️</div>
+    <div>
+      <div class="election-title">Élections sénatoriales</div>
+      <div class="election-desc">Élisent les 348 sénateurs — suffrage indirect (par les grands électeurs). Par moitié tous les 3 ans.</div>
+      <span class="election-badge eb-info">Suffrage indirect</span>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h3>🗳️ Comprendre les scrutins</h3>
+    <div class="step-row"><div style="font-weight:700;width:120px;flex-shrink:0">Scrutin uninominal</div><div>Un seul candidat élu par circonscription (ex: législatives, présidentielle)</div></div>
+    <div class="step-row"><div style="font-weight:700;width:120px;flex-shrink:0">Scrutin de liste</div><div>Liste de candidats — les sièges sont répartis proportionnellement (ex: européennes, régionales)</div></div>
+    <div class="step-row"><div style="font-weight:700;width:120px;flex-shrink:0">Deux tours</div><div>Si aucun candidat n'obtient la majorité absolue au 1er tour, un 2nd tour est organisé</div></div>
+    <a href="https://www.elections.interieur.gouv.fr" target="_blank" class="link-btn" style="margin-top:10px">🏛️ Résultats officiels — elections.interieur.gouv.fr<span class="lb lb-g">Officiel</span></a>
+  </div>
+</div>
+
+<!-- ═══ DROITS CIVIQUES ═══ -->
+<div class="view" id="view-droits">
+  <div class="card">
+    <h3>⚖️ Droits fondamentaux du citoyen</h3>
+    <div class="step-row"><div class="sn">🗳️</div><div><strong>Droit de vote</strong> — à partir de 18 ans, pour tout citoyen français inscrit</div></div>
+    <div class="step-row"><div class="sn">🏃</div><div><strong>Droit d'éligibilité</strong> — se présenter à une élection sous conditions</div></div>
+    <div class="step-row"><div class="sn">📢</div><div><strong>Liberté d'expression et de réunion</strong> — droits constitutionnels garantis</div></div>
+    <div class="step-row"><div class="sn">📝</div><div><strong>Droit de pétition</strong> — saisir le parlement via une pétition en ligne</div></div>
+    <div class="step-row"><div class="sn">🛡️</div><div><strong>Droit de recours</strong> — contester toute décision administrative devant un tribunal</div></div>
+  </div>
+
+  <div class="card">
+    <h3>🛡️ Défenseur des droits</h3>
+    <p>Autorité constitutionnelle indépendante qui défend les droits des citoyens face aux administrations. Saisine gratuite.</p>
+    <a href="https://formulaire.defenseurdesdroits.fr/" target="_blank" class="link-btn">🛡️ Saisir le Défenseur des droits<span class="lb lb-g">Gratuit</span></a>
+  </div>
+
+  <div class="card">
+    <h3>📜 Accès aux documents administratifs (CADA)</h3>
+    <p>Tout citoyen peut demander l'accès à des documents administratifs le concernant via la CADA.</p>
+    <a href="https://www.cada.fr" target="_blank" class="link-btn">📋 Commission d'Accès aux Documents Administratifs<span class="lb lb-b">CADA</span></a>
+    <a href="https://www.service-public.fr/particuliers/vosdroits/F2467" target="_blank" class="link-btn">📋 Demander un document administratif<span class="lb lb-g">Officiel</span></a>
+  </div>
+
+  <div class="card">
+    <h3>🏛️ Saisir ses représentants</h3>
+    <div class="step-row"><div class="sn">📧</div><div>Contacter son député : via assemblee-nationale.fr (annuaire)</div></div>
+    <div class="step-row"><div class="sn">📧</div><div>Contacter son sénateur : via senat.fr (annuaire)</div></div>
+    <div class="step-row"><div class="sn">📧</div><div>Pétitions au Parlement : petitions.assemblee-nationale.fr</div></div>
+    <a href="https://www.assemblee-nationale.fr/dyn/vos-deputes" target="_blank" class="link-btn">🏛️ Trouver mon député<span class="lb lb-b">Officiel</span></a>
+    <a href="https://www.senat.fr/elus/les-senateurs.html" target="_blank" class="link-btn">🏛️ Trouver mon sénateur<span class="lb lb-b">Officiel</span></a>
+  </div>
+</div>
+
+<div class="footer">
+  ℹ️ Information générale — vérifiez toujours les dates sur <a href="https://www.elections.interieur.gouv.fr" style="color:#1a3fad">elections.interieur.gouv.fr</a><br>
+  <a href="index.html" style="color:#1a3fad;font-weight:700">← Retour Vigie</a>
+</div>
+
+<script>
+function showTab(name){
+  ['inscrire','voter','procuration','scrutins','droits'].forEach(v=>{
+    document.getElementById('view-'+v).classList.toggle('on',v===name);
+  });
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('on',['inscrire','voter','procuration','scrutins','droits'][i]===name);
+  });
+}
+</script>
+</body>
+</html>
